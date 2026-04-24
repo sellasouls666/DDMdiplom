@@ -1,0 +1,198 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Регистрация аккаунта</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-card {
+            max-width: 480px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 8px 18px rgba(0, 0, 0, 0.05);
+            padding: 30px 28px 40px 28px;
+            transition: all 0.2s ease;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 80px;
+            height: auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1e2a3e;
+            margin-bottom: 32px;
+            letter-spacing: -0.3px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-family: inherit;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 24px;
+            background-color: #fefefe;
+            transition: all 0.2s;
+            outline: none;
+            color: #0f172a;
+        }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+            background-color: white;
+        }
+
+        .input-field::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        /* Простая текстовая подсказка для пароля */
+.password-hint {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #1e2a3e;
+    padding-left: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+    line-height: 1.4;
+}
+
+.check-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid #6c757d;
+    font-size: 12px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+        .btn-register {
+            width: 100%;
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 14px 18px;
+            font-size: 18px;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 8px 14px -8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-register:hover {
+            background: #1e293b;
+        }
+
+        .btn-register:active {
+            transform: scale(0.97);
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 14px;
+            color: #5b6e8c;
+        }
+        .footer-note a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        @@media (max-width: 520px) {
+            .register-card {
+                padding: 24px 20px 32px 20px;
+            }
+            .title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <div class="logo-container">
+            <img src="~/images/favicon.png" alt="Логотип" class="logo" />
+        </div>
+
+        <div class="title">
+            Регистрация аккаунта
+        </div>
+
+        <form action="#" method="post">
+            <div class="input-group">
+                <input type="text" class="input-field" placeholder="Имя и фамилия" id="fullname" name="fullname" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="email" class="input-field" placeholder="Электронная почта" id="email" name="email" autocomplete="email">
+            </div>
+            <div class="input-group">
+                <input type="tel" class="input-field" placeholder="Номер телефона (необязательно)" id="phone" name="phone" autocomplete="tel">
+            </div>
+            <div class="input-group">
+                <input type="password" class="input-field" placeholder="Пароль" id="password" name="password">
+<div class="password-hint">
+    <div><span class="check-icon">✓</span> минимум 8 символов</div>
+    <div><span class="check-icon">✓</span> заглавные буквы (A–Z)</div>
+    <div><span class="check-icon">✓</span> строчные буквы (a–z)</div>
+    <div><span class="check-icon">✓</span> цифры (0–9)</div>
+    <div><span class="check-icon">✓</span> спецсимволы (# $ % &)</div>
+</div>
+            </div>
+            <button type="submit" class="btn-register">Зарегистрироваться</button>
+        </form>
+
+        <div class="footer-note">
+            Уже есть аккаунт? <a href="#">Войти</a>
+        </div>
+    </div>
+</body>
+</html>
