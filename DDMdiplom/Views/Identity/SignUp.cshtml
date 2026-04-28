@@ -81,32 +81,41 @@
             font-weight: 400;
         }
 
-        /* Простая текстовая подсказка для пароля */
-.password-hint {
-    margin-top: 8px;
-    font-size: 12px;
-    color: #1e2a3e;
-    padding-left: 8px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 16px;
-    line-height: 1.4;
-}
+        /* Требования в две колонки */
+        .password-hint {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #1e2a3e;
+            padding-left: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            line-height: 1.4;
+        }
 
-.check-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1.5px solid #6c757d;
-    font-size: 12px;
-    font-weight: bold;
-    color: #2c3e50;
-    margin-right: 8px;
-    flex-shrink: 0;
-}
+        /* Кружок с галочкой */
+        .check-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1.5px solid #6c757d;
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-right: 8px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        /* Состояние "выполнено" – зелёный фон и белая галочка */
+        .check-icon.valid {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
 
         .btn-register {
             width: 100%;
@@ -179,13 +188,15 @@
             </div>
             <div class="input-group">
                 <input type="password" class="input-field" placeholder="Пароль" id="password" name="password">
-<div class="password-hint">
-    <div><span class="check-icon">✓</span> минимум 8 символов</div>
-    <div><span class="check-icon">✓</span> заглавные буквы (A–Z)</div>
-    <div><span class="check-icon">✓</span> строчные буквы (a–z)</div>
-    <div><span class="check-icon">✓</span> цифры (0–9)</div>
-    <div><span class="check-icon">✓</span> спецсимволы (# $ % &)</div>
-</div>
+                
+                <!-- Блок требований с идентификаторами для скрипта -->
+                <div class="password-hint">
+                    <div id="req-length"><span class="check-icon">✓</span> минимум 8 символов</div>
+                    <div id="req-upper"><span class="check-icon">✓</span> заглавные буквы (A–Z)</div>
+                    <div id="req-lower"><span class="check-icon">✓</span> строчные буквы (a–z)</div>
+                    <div id="req-digit"><span class="check-icon">✓</span> цифры (0–9)</div>
+                    <div id="req-special"><span class="check-icon">✓</span> спецсимволы (# $ % &)</div>
+                </div>
             </div>
             <button type="submit" class="btn-register">Зарегистрироваться</button>
         </form>
@@ -194,5 +205,55 @@
             Уже есть аккаунт? <a href="#">Войти</a>
         </div>
     </div>
+
+    <script>
+        (function() {
+            const passwordInput = document.getElementById('password');
+            
+            // Элементы требований
+            const reqLength = document.getElementById('req-length').querySelector('.check-icon');
+            const reqUpper  = document.getElementById('req-upper').querySelector('.check-icon');
+            const reqLower  = document.getElementById('req-lower').querySelector('.check-icon');
+            const reqDigit  = document.getElementById('req-digit').querySelector('.check-icon');
+            const reqSpecial = document.getElementById('req-special').querySelector('.check-icon');
+
+            function validatePassword() {
+                const pwd = passwordInput.value;
+                
+                // Длина >= 8
+                const isLength = pwd.length >= 8;
+                toggleValid(reqLength, isLength);
+                
+                // Заглавная буква
+                const hasUpper = /[A-Z]/.test(pwd);
+                toggleValid(reqUpper, hasUpper);
+                
+                // Строчная буква
+                const hasLower = /[a-z]/.test(pwd);
+                toggleValid(reqLower, hasLower);
+                
+                // Цифра
+                const hasDigit = /[0-9]/.test(pwd);
+                toggleValid(reqDigit, hasDigit);
+                
+                // Спецсимвол (любой, кроме букв и цифр)
+                const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+                toggleValid(reqSpecial, hasSpecial);
+            }
+            
+            function toggleValid(iconElement, isValid) {
+                if (isValid) {
+                    iconElement.classList.add('valid');
+                } else {
+                    iconElement.classList.remove('valid');
+                }
+            }
+            
+            // Слушаем ввод пароля
+            passwordInput.addEventListener('input', validatePassword);
+            // Вызываем один раз для начального состояния (все невалидны)
+            validatePassword();
+        })();
+    </script>
 </body>
 </html>
