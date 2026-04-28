@@ -1,0 +1,156 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Вход в аккаунт</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            max-width: 480px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 8px 18px rgba(0, 0, 0, 0.05);
+            padding: 30px 28px 40px 28px;
+            transition: all 0.2s ease;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 80px;
+            height: auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1e2a3e;
+            margin-bottom: 32px;
+            letter-spacing: -0.3px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-family: inherit;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 24px;
+            background-color: #fefefe;
+            transition: all 0.2s;
+            outline: none;
+            color: #0f172a;
+        }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+            background-color: white;
+        }
+
+        .input-field::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 14px 18px;
+            font-size: 18px;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 8px 14px -8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-login:hover {
+            background: #1e293b;
+        }
+
+        .btn-login:active {
+            transform: scale(0.97);
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 14px;
+            color: #5b6e8c;
+        }
+        .footer-note a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        @@media (max-width: 520px) {
+            .login-card {
+                padding: 24px 20px 32px 20px;
+            }
+            .title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo-container">
+            <img src="~/images/favicon.png" alt="Логотип" class="logo" />
+        </div>
+
+        <div class="title">
+            Вход в аккаунт
+        </div>
+
+        <form action="#" method="post">
+            @Html.AntiForgeryToken()  <!-- Защита от CSRF -->
+            <div class="input-group">
+                <input type="email" class="input-field" placeholder="Электронная почта" id="email" name="email" autocomplete="email" required>
+            </div>
+            <button type="submit" class="btn-login">Войти</button>
+        </form>
+
+        <div class="footer-note">
+            Впервые на DDM? <a asp-action="SignUp" asp-controller="Identity">Зарегистрироваться</a>
+        </div>
+    </div>
+</body>
+</html>
