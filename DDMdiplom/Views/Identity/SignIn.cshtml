@@ -1,4 +1,5 @@
-﻿@{
+﻿@model DDMdiplom.ViewModels.LoginViewModel
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -120,6 +121,61 @@
             text-decoration: underline;
         }
 
+        /* Стили для отображения ошибок */
+        .validation-summary-errors,
+        .validation-summary-errors ul,
+        .validation-summary-errors li {
+            color: #b91c1c;
+            font-size: 12px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .field-validation-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+        .input-validation-error {
+            border-color: #dc2626 !important;
+        }
+
+        /* Стили для переключения шагов */
+        .step {
+            transition: all 0.3s ease;
+        }
+        .step.hidden {
+            display: none;
+        }
+        .email-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 12px 18px;
+            border-radius: 40px;
+            margin-bottom: 20px;
+        }
+        .email-display span {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1e2a3e;
+        }
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #3b82f6;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
+        .back-button:hover {
+            color: #2563eb;
+        }
+
         @@media (max-width: 520px) {
             .login-card {
                 padding: 24px 20px 32px 20px;
@@ -140,17 +196,139 @@
             Вход в аккаунт
         </div>
 
-        <form action="#" method="post">
-            @Html.AntiForgeryToken()  <!-- Защита от CSRF -->
-            <div class="input-group">
-                <input type="email" class="input-field" placeholder="Электронная почта" id="email" name="email" autocomplete="email" required>
+        <!-- Шаг 1: Ввод email -->
+        <div id="step-email" class="step">
+            <form id="email-form" asp-action="#" method="post">
+                @Html.AntiForgeryToken()
+                <div class="input-group">
+                    <input type="email" id="email-input" class="input-field" placeholder="Электронная почта" autocomplete="email">
+                </div>
+                <div id="email-errors" class="validation-summary-errors"></div>
+                <button type="button" id="check-email-btn" class="btn-login">Войти</button>
+            </form>
+        </div>
+
+        <!-- Шаг 2: Ввод пароля (скрыт изначально) -->
+        <div id="step-password" class="step hidden">
+            <div class="email-display">
+                <button type="button" id="back-to-email" class="back-button">←</button>
+                <span id="display-email"></span>
+                <span style="width: 24px;"></span> <!-- балансировка -->
             </div>
-            <button type="submit" class="btn-login">Войти</button>
-        </form>
+            <form asp-action="SignIn" asp-controller="Identity" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="hidden-email" name="Email" value="@Model?.Email" />
+                <div class="input-group">
+                    <input type="password" id="password-input" name="Password" class="input-field" placeholder="Пароль">
+                    <span asp-validation-for="Password" class="field-validation-error"></span>
+                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+                </div>
+                <button type="submit" class="btn-login">Войти</button>
+            </form>
+        </div>
 
         <div class="footer-note">
             Впервые на DDM? <a asp-action="SignUp" asp-controller="Identity">Зарегистрироваться</a>
         </div>
     </div>
+
+    <script>
+        // DOM элементы
+        const stepEmail = document.getElementById('step-email');
+        const stepPassword = document.getElementById('step-password');
+        const emailInput = document.getElementById('email-input');
+        const checkEmailBtn = document.getElementById('check-email-btn');
+        const backToEmailBtn = document.getElementById('back-to-email');
+        const displayEmailSpan = document.getElementById('display-email');
+        const hiddenEmail = document.getElementById('hidden-email');
+        
+        // Функция проверки существования пользователя через AJAX
+        async function checkUserExists(email) {
+            try {
+                const response = await fetch(`/Identity/CheckUserExists?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                return data.exists;
+            } catch (error) {
+                console.error('Ошибка проверки пользователя:', error);
+                return false;
+            }
+        }
+
+        const emailErrorsDiv = document.getElementById('email-errors');
+
+        // функция для отображения ошибки красным текстом
+        function showEmailError(message) {
+            emailErrorsDiv.innerHTML = message;
+            emailErrorsDiv.style.display = 'block';
+        }
+
+        function clearEmailErrors() {
+            emailErrorsDiv.innerHTML = '';
+            emailErrorsDiv.style.display = 'none';
+        }
+
+        // Обработчик кнопки "Войти" на шаге email
+        checkEmailBtn.addEventListener('click', async () => {
+            clearEmailErrors(); // очищаем старые ошибки
+            const email = emailInput.value.trim();
+    
+            if (!email) {
+                showEmailError('Это поле обязательно.');
+                return;
+            }
+            // Валидация формата email
+            if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                showEmailError('Пожалуйста, введите действительный адрес электронной почты.');
+                return;
+            }
+    
+            const originalText = checkEmailBtn.textContent;
+            checkEmailBtn.textContent = 'Войти';
+            checkEmailBtn.disabled = true;
+    
+            const exists = await checkUserExists(email);
+    
+            if (exists) {
+                // переключение на шаг пароля
+                displayEmailSpan.textContent = email;
+                hiddenEmail.value = email;
+                emailInput.value = '';
+                stepEmail.classList.add('hidden');
+                stepPassword.classList.remove('hidden');
+                document.getElementById('password-input').focus();
+            } else {
+                showEmailError('Пользователь с таким email не найден');
+            }
+    
+            checkEmailBtn.textContent = originalText;
+            checkEmailBtn.disabled = false;
+        });
+
+        // Кнопка "назад" – очищаем ошибки, если возвращаемся
+        backToEmailBtn.addEventListener('click', () => {
+            stepPassword.classList.add('hidden');
+            stepEmail.classList.remove('hidden');
+            clearEmailErrors();
+            emailInput.focus();
+            hiddenEmail.value = '';
+        });
+        
+        // Дополнительно: при нажатии Enter в поле email
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkEmailBtn.click();
+            }
+        });
+        
+        // При загрузке страницы фокус на email
+        emailInput.focus();
+
+        if (hiddenEmail.value) {
+            displayEmailSpan.textContent = hiddenEmail.value;
+            stepEmail.classList.add('hidden');
+            stepPassword.classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>

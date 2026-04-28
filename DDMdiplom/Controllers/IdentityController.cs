@@ -65,6 +65,41 @@ namespace DDMdiplom.Controllers
             // Если что-то не так – возвращаем ту же страницу с ошибками
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckUserExists(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return Json(new { exists = false });
+            var user = await _userManager.FindByEmailAsync(email);
+            return Json(new { exists = user != null });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SignIn(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Мы не нашли совпадений, пожалуйста, попробуйте еще раз.");
+                return View(model);
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Адрес электронной почты и пароль не совпадают, пожалуйста, повторите попытку.");
+                return View(model);
+            }
+        }
     }
 }
 
