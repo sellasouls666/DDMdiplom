@@ -82,7 +82,6 @@
             font-weight: 400;
         }
 
-        /* Требования в две колонки */
         .password-hint {
             margin-top: 8px;
             font-size: 12px;
@@ -94,7 +93,6 @@
             line-height: 1.4;
         }
 
-        /* Кружок с галочкой */
         .check-icon {
             display: inline-flex;
             align-items: center;
@@ -111,7 +109,6 @@
             transition: all 0.2s;
         }
 
-        /* Состояние "выполнено" – зелёный фон и белая галочка */
         .check-icon.valid {
             background-color: #28a745;
             border-color: #28a745;
@@ -157,6 +154,28 @@
             text-decoration: underline;
         }
 
+        /* Стили для отображения ошибок валидации */
+        .validation-summary-errors {
+            color: #b91c1c;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+        .validation-summary-errors ul,
+        .validation-summary-errors li {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .field-validation-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+        .input-validation-error {
+            border-color: #dc2626 !important;
+        }
+
         @@media (max-width: 520px) {
             .register-card {
                 padding: 24px 20px 32px 20px;
@@ -177,20 +196,29 @@
             Регистрация аккаунта
         </div>
 
-        <form action="#" method="post">
+        <form asp-action="SignUp" asp-controller="Identity" method="post" novalidate>
+            @Html.AntiForgeryToken() <!-- защита от CSRF -->
+
             <div class="input-group">
-                <input type="text" class="input-field" placeholder="Имя и фамилия" id="fullname" name="fullname" autocomplete="off">
+                <input asp-for="FullName" class="input-field" placeholder="Имя и фамилия" autocomplete="off">
+                <span asp-validation-for="FullName" class="field-validation-error"></span>
             </div>
+
             <div class="input-group">
-                <input type="email" class="input-field" placeholder="Электронная почта" id="email" name="email" autocomplete="email">
+                <input asp-for="Email" class="input-field" placeholder="Электронная почта" autocomplete="email">
+                <span asp-validation-for="Email" class="field-validation-error"></span>
             </div>
+
             <div class="input-group">
-                <input type="tel" class="input-field" placeholder="Номер телефона (необязательно)" id="phone" name="phone" autocomplete="tel">
+                <input asp-for="Phone" class="input-field" placeholder="Номер телефона (необязательно)" autocomplete="tel">
+                <span asp-validation-for="Phone" class="field-validation-error"></span>
             </div>
+
             <div class="input-group">
-                <input type="password" class="input-field" placeholder="Пароль" id="password" name="password">
-                
-                <!-- Блок требований с идентификаторами для скрипта -->
+                <input asp-for="Password" type="password" class="input-field" placeholder="Пароль">
+                <span asp-validation-for="Password" class="field-validation-error"></span>
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+                <!-- Блок требований к паролю (визуальный) -->
                 <div class="password-hint">
                     <div id="req-length"><span class="check-icon">✓</span> минимум 8 символов</div>
                     <div id="req-upper"><span class="check-icon">✓</span> заглавные буквы (A–Z)</div>
@@ -199,19 +227,20 @@
                     <div id="req-special"><span class="check-icon">✓</span> спецсимволы (# $ % &)</div>
                 </div>
             </div>
+
             <button type="submit" class="btn-register">Зарегистрироваться</button>
         </form>
 
         <div class="footer-note">
-            Уже есть аккаунт? <a href="#">Войти</a>
+            Уже есть аккаунт? <a asp-action="SignIn" asp-controller="Identity">Войти</a>
         </div>
     </div>
 
     <script>
         (function() {
-            const passwordInput = document.getElementById('password');
+            const passwordInput = document.getElementById('Password'); // id сгенерируется как "Password"
+            if (!passwordInput) return;
             
-            // Элементы требований
             const reqLength = document.getElementById('req-length').querySelector('.check-icon');
             const reqUpper  = document.getElementById('req-upper').querySelector('.check-icon');
             const reqLower  = document.getElementById('req-lower').querySelector('.check-icon');
@@ -221,23 +250,18 @@
             function validatePassword() {
                 const pwd = passwordInput.value;
                 
-                // Длина >= 8
                 const isLength = pwd.length >= 8;
                 toggleValid(reqLength, isLength);
                 
-                // Заглавная буква
                 const hasUpper = /[A-Z]/.test(pwd);
                 toggleValid(reqUpper, hasUpper);
                 
-                // Строчная буква
                 const hasLower = /[a-z]/.test(pwd);
                 toggleValid(reqLower, hasLower);
                 
-                // Цифра
                 const hasDigit = /[0-9]/.test(pwd);
                 toggleValid(reqDigit, hasDigit);
                 
-                // Спецсимвол (любой, кроме букв и цифр)
                 const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
                 toggleValid(reqSpecial, hasSpecial);
             }
@@ -250,10 +274,29 @@
                 }
             }
             
-            // Слушаем ввод пароля
             passwordInput.addEventListener('input', validatePassword);
-            // Вызываем один раз для начального состояния (все невалидны)
             validatePassword();
+
+            // Функция для подсветки поля пароля при наличии ошибки в summary
+        function highlightPasswordOnError() {
+            const summaryErrors = document.querySelector('.validation-summary-errors');
+            const hasError = summaryErrors && summaryErrors.innerText.trim() !== '';
+            if (hasError) {
+                passwordInput.classList.add('input-validation-error');
+            } else {
+                passwordInput.classList.remove('input-validation-error');
+            }
+        }
+
+        // При вводе пароля убираем подсветку (пользователь начал исправлять)
+        passwordInput.addEventListener('input', function() {
+            passwordInput.classList.remove('input-validation-error');
+            validatePassword();
+        });
+        
+        // Первоначальная проверка и подсветка, если ошибка уже есть
+        validatePassword();
+        highlightPasswordOnError();
         })();
     </script>
 </body>

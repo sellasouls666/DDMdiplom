@@ -13,10 +13,10 @@ namespace DDMdiplom.ViewModels
         public string Email { get; set; }
 
         [Phone(ErrorMessage = "Пожалуйста, введите действительный номер телефона.")]
-        public string Phone { get; set; }
+        [StringLength (11)]
+        public string? Phone { get; set; }
 
-        [Required(ErrorMessage = "Пароль обязателен.")]
-        [MinLength(8)]
+        [Required(ErrorMessage = "Слабый пароль. Пожалуйста, создайте надежный пароль, соответствующий приведенным ниже требованиям.")]
         public string Password { get; set; }
     }
 }

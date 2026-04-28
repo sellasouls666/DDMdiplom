@@ -45,17 +45,20 @@ namespace DDMdiplom.Controllers
                     Name = model.FullName       // дополнительное поле
                 };
 
-                var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password); //создаём нового пользователя
 
                 if (result.Succeeded)
                 {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("SignIn", "Identity");
+                    await _signInManager.SignInAsync(user, isPersistent: false); //после регистрации остаёмся в аккаунте
+                    return RedirectToAction("Index", "Home");
                 }
-
-                foreach (var error in result.Errors)
+                else
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    var firstError = result.Errors.FirstOrDefault(); //т.к. в моей валидации все ошибки с паролем имеют одинаковый текст, отображаем только первую ошибку
+                    if (firstError != null)
+                    {
+                        ModelState.AddModelError(string.Empty, firstError.Description);
+                    }
                 }
             }
 
