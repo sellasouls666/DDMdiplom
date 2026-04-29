@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DDMdiplom.styles.css" asp-append-version="true" />
     <link rel="icon" type="image/png" href="~/images/favicon.png" />
+    <style>
+            .custom-user-btn:hover {
+                background-color: #e0e0e0;
+                color: #000000;
+            }
+    </style>
 </head>
 <body>
     <header>
@@ -30,6 +36,15 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
+                    <div class="d-flex ms-auto">
+                        <a asp-controller="Identity" asp-action="SignIn" class="nav-link custom-user-btn d-flex align-items-center gap-2" style="border-radius: 40px; padding: 6px 16px; transition: background-color 0.2s;">
+                            <span style="font-size: 1.3rem;">👤</span>
+                            <div class="text-start">
+                                <div style="font-size: 0.7rem; line-height: 1.2;">Добро пожаловать</div>
+                                <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.2;">Войти / Зарегистрироваться</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </nav>
