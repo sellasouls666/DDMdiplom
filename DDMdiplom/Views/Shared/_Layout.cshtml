@@ -14,6 +14,18 @@
     <link rel="icon" type="image/png" href="~/images/favicon.png" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
+            /* Полностью подавляем любой фон для нашей кнопки */
+            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn,
+            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn:hover,
+            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn:focus,
+            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn:active {
+                background-color: #e0e0e0 !important;
+                background-image: none !important;
+                box-shadow: none !important;
+                outline: none !important;
+                color: #212529 !important;
+            }
+
             .custom-user-btn {
                 background-color: transparent !important;
                 color: #212529 !important;
@@ -55,6 +67,17 @@
             .dropdown-menu {
                 display: none;
                 transition: opacity 0.2s ease;
+            }
+
+            .custom-dropdown-menu {
+                background-color: white;
+                border: 1px solid #dee2e6;
+                border-radius: 12px;
+                padding: 0.5rem 0;
+                margin-top: 5px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                left: auto !important;
+                right: 0 !important;
             }
     </style>
 </head>
@@ -153,31 +176,49 @@
     @await RenderSectionAsync("Scripts", required: false)
 
     <script>
-            // Отключаем стандартное поведение Bootstrap dropdown (по клику)
-            document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                toggle.removeAttribute('data-bs-toggle');
-                toggle.removeAttribute('aria-expanded');
-            });
-
-            // Реализуем hover с задержкой
-            document.querySelectorAll('.dropdown').forEach(dropdown => {
-                let timer;
-                const menu = dropdown.querySelector('.dropdown-menu');
-                if (!menu) return;
-
-                dropdown.addEventListener('mouseenter', () => {
-                    clearTimeout(timer);
-                    setTimeout(() => {
-                        menu.style.display = 'block';
-                    }, 150); // задержка перед появлением
+            (function() {
+                // Отключаем Bootstrap dropdown полностью
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.removeAttribute('data-bs-toggle');
+                    toggle.removeAttribute('aria-expanded');
                 });
 
-                dropdown.addEventListener('mouseleave', () => {
-                    timer = setTimeout(() => {
-                        menu.style.display = 'none';
-                    }, 300); // задержка перед скрытием (чтобы не исчезало сразу)
+                // Находим все dropdown
+                document.querySelectorAll('.dropdown').forEach(dropdown => {
+                    let timer;
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    const btn = dropdown.querySelector('.dropdown-toggle');
+                    if (!menu || !btn) return;
+
+                    // Принудительно задаём фон при наведении через inline-стиль с !important
+                    btn.addEventListener('mouseenter', () => {
+                        btn.style.setProperty('background-color', '#e0e0e0', 'important');
+                        btn.style.setProperty('background-image', 'none', 'important');
+                        clearTimeout(timer);
+                        timer = setTimeout(() => {
+                            menu.style.display = 'block';
+                        }, 150);
+                    });
+
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.removeProperty('background-color');
+                        btn.style.removeProperty('background-image');
+                        timer = setTimeout(() => {
+                            menu.style.display = 'none';
+                        }, 300);
+                    });
+
+                    // Также чтобы меню не исчезало при переходе курсора внутрь
+                    menu.addEventListener('mouseenter', () => {
+                        clearTimeout(timer);
+                    });
+                    menu.addEventListener('mouseleave', () => {
+                        timer = setTimeout(() => {
+                            menu.style.display = 'none';
+                        }, 300);
+                    });
                 });
-            });
+            })();
     </script>
 </body>
 </html>
