@@ -29,3 +29,8 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.navbar .navbar-nav .nav-link.custom-user-btn:hover {
+    background-color: #e0e0e0 !important;
+    background-image: none !important;
+}

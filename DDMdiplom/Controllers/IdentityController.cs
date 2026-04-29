@@ -42,7 +42,8 @@ namespace DDMdiplom.Controllers
                     UserName = model.Email,     // используем email как логин
                     Email = model.Email,
                     PhoneNumber = model.Phone,
-                    Name = model.FullName       // дополнительное поле
+                    Name = model.FullName,       // дополнительное поле
+                    CreatedAt = DateTime.UtcNow,
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password); //создаём нового пользователя

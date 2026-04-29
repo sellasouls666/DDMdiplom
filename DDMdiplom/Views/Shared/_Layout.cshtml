@@ -2,22 +2,12 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
-@{ //получаем имя авторизованного пользователя
-    var displayName = "Пользователь";
-    if (SignInManager.IsSignedIn(User))
-    {
-        var user = await UserManager.GetUserAsync(User);
-        displayName = user?.Name ?? User.Identity?.Name ?? "Пользователь";
-    }
-}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DDM</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DDMdiplom.styles.css" asp-append-version="true" />
@@ -34,32 +24,57 @@
                     background-color: #e0e0e0 !important;
                     color: #212529 !important;
                 }
-
-                .custom-user-btn.disabled {
-                    opacity: 0.6;
-                    pointer-events: none;
-                    cursor: default;
-                }
-
-            .navbar .custom-user-btn.custom-user-btn:hover {
-                background-color: #e0e0e0 !important;
-                background-image: none !important;
+            /* Стили для dropdown при наведении */
+            /* Убираем синюю рамку при фокусе/клике */
+            .dropdown-toggle:focus,
+            .dropdown-toggle:active,
+            .nav-link.custom-user-btn:focus,
+            .nav-link.custom-user-btn:active {
+                outline: none !important;
+                box-shadow: none !important;
+                border-color: transparent !important;
             }
 
-            .navbar .custom-user-btn.custom-user-btn {
-                background-color: transparent !important;
+            /* Переопределяем фон при наведении для любой кнопки в dropdown */
+            .dropdown:hover .dropdown-toggle,
+            .dropdown-toggle.custom-user-btn:hover {
+                background-color: #e0e0e0 !important;
+                color: #212529 !important;
+            }
+
+            /* Скрываем стандартную стрелку Bootstrap, так как у вас уже есть своя */
+            .dropdown-toggle::after {
+                display: none !important;
+            }
+
+            /* Базовая логика: при наведении на .dropdown показываем меню */
+            .dropdown:hover .dropdown-menu {
+                display: block;
+            }
+
+            .dropdown-menu {
+                display: none;
+                transition: opacity 0.2s ease;
             }
     </style>
 </head>
 <body>
+    @{
+        string GetDayWord(int days)
+        {
+            if (days % 10 == 1 && days % 100 != 11) return "день";
+            if (days % 10 >= 2 && days % 10 <= 4 && (days % 100 < 10 || days % 100 >= 20)) return "дня";
+            return "дней";
+        }
+    }
+
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <img src="~/images/favicon.png" alt="Logo" style="height: 30px; width: auto;" />
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -74,17 +89,35 @@
                     <div class="d-flex ms-auto">
                         @if (SignInManager.IsSignedIn(User))
                         {
-                            var userName = User.Identity?.Name ?? "Пользователь";
-                            <a href="javascript:void(0);" class="nav-link custom-user-btn d-flex align-items-center gap-2" style="border-radius: 40px; padding: 6px 16px; transition: background-color 0.2s;">
-                                <i class="bi bi-person" style="font-size: 2rem;"></i>
-                                <div class="text-start">
-                                    <div style="font-size: 0.7rem; line-height: 1.2;">Добро пожаловать, @displayName</div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.2;">
-                                        Личный кабинет
-                                        <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 4px;"></i>
+                            var user = await UserManager.GetUserAsync(User);
+                            var displayName = user?.Name ?? User.Identity?.Name ?? "Пользователь";
+                            var daysSinceRegistration = (int)Math.Ceiling((DateTime.UtcNow - (user?.CreatedAt ?? DateTime.UtcNow)).TotalDays);
+                            var dayWord = GetDayWord(daysSinceRegistration);
+                            <div class="dropdown">
+                                <a href="javascript:void(0);" class="nav-link custom-user-btn d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 40px; padding: 6px 16px;">
+                                    <i class="bi bi-person" style="font-size: 2rem;"></i>
+                                    <div class="text-start">
+                                        <div style="font-size: 0.7rem; line-height: 1.2;">Добро пожаловать, @displayName</div>
+                                        <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.2;">
+                                            Личный кабинет
+                                            <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 4px;"></i>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
+                                </a>
+                                <ul class="dropdown-menu custom-dropdown-menu">
+                                    <li>
+                                        <div class="dropdown-item d-flex align-items-center gap-3">
+                                            <i class="bi bi-person-circle" style="font-size: 2rem;"></i>
+                                            <div>
+                                                <div style="font-size: 1rem; font-weight: 600;">@displayName</div>
+                                                <div style="font-size: 0.8rem;">
+                                                    Спасибо, что являетесь нашим клиентом уже @daysSinceRegistration @dayWord
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
                         }
                         else
                         {
@@ -101,6 +134,7 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -112,9 +146,38 @@
             &copy; 2026 - DDMdiplom - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+            // Отключаем стандартное поведение Bootstrap dropdown (по клику)
+            document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                toggle.removeAttribute('data-bs-toggle');
+                toggle.removeAttribute('aria-expanded');
+            });
+
+            // Реализуем hover с задержкой
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                let timer;
+                const menu = dropdown.querySelector('.dropdown-menu');
+                if (!menu) return;
+
+                dropdown.addEventListener('mouseenter', () => {
+                    clearTimeout(timer);
+                    setTimeout(() => {
+                        menu.style.display = 'block';
+                    }, 150); // задержка перед появлением
+                });
+
+                dropdown.addEventListener('mouseleave', () => {
+                    timer = setTimeout(() => {
+                        menu.style.display = 'none';
+                    }, 300); // задержка перед скрытием (чтобы не исчезало сразу)
+                });
+            });
+    </script>
 </body>
 </html>
