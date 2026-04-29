@@ -79,6 +79,45 @@
                 left: auto !important;
                 right: 0 !important;
             }
+
+            .dropdown-item {
+                color: #212529 !important;
+            }
+
+                .dropdown-item:hover {
+                    background-color: #e9ecef !important;
+                    color: #212529 !important;
+                }
+
+            #logoutForm .dropdown-item:hover {
+                background-color: #e9ecef !important;
+            }
+            /* Чтобы при наведении на весь пункт меню не было фона */
+            .custom-dropdown-menu li:hover {
+                background-color: transparent !important;
+            }
+
+            /* Запрещаем перенос строк для блока с благодарностью */
+            .custom-dropdown-menu .dropdown-item .nowrap-text,
+            .custom-dropdown-menu div[style*="font-size: 0.8rem"] {
+                white-space: nowrap !important;
+            }
+            /* Разрешаем меню растягиваться по ширине содержимого */
+            .custom-dropdown-menu {
+                min-width: auto !important;
+                width: max-content !important;
+                max-width: none !important;
+            }
+
+            /* Подсветка текста кнопки выхода при наведении (без фона) */
+            #logoutForm .btn-link {
+                transition: color 0.2s ease, text-decoration 0.2s ease;
+            }
+
+                #logoutForm .btn-link:hover {
+                    color: #000000 !important;
+                    text-decoration: underline !important;
+                }
     </style>
 </head>
 <body>
@@ -129,14 +168,23 @@
                                 </a>
                                 <ul class="dropdown-menu custom-dropdown-menu">
                                     <li>
-                                        <div class="dropdown-item d-flex align-items-center gap-3">
-                                            <i class="bi bi-person-circle" style="font-size: 2rem;"></i>
-                                            <div>
-                                                <div style="font-size: 1rem; font-weight: 600;">@displayName</div>
-                                                <div style="font-size: 0.8rem;">
-                                                    Спасибо, что являетесь нашим клиентом уже @daysSinceRegistration @dayWord
+                                        <div class="d-flex align-items-center justify-content-between gap-3 px-3 py-2">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <i class="bi bi-person-circle" style="font-size: 2rem;"></i>
+                                                <div>
+                                                    <div style="font-size: 1rem; font-weight: 600;">@displayName</div>
+                                                    <div style="font-size: 0.8rem;">
+                                                        Спасибо, что являетесь нашим клиентом уже @daysSinceRegistration @dayWord
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <form asp-controller="Identity" asp-action="SignOut" method="post" id="logoutForm" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-link text-dark p-0 d-flex align-items-center gap-1" style="text-decoration: none; background: none; border: none;">
+                                                    <i class="bi bi-box-arrow-right" style="font-size: 1.2rem;"></i>
+                                                    <span>Выйти</span>
+                                                </button>
+                                            </form>
                                         </div>
                                     </li>
                                 </ul>
