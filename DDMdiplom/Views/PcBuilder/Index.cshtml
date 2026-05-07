@@ -1,0 +1,205 @@
+﻿@{
+    ViewData["Title"] = "Сборка ПК";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .builder-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Flex-сетка для центрирования последней строки */
+        .categories-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+            margin: 30px 0 40px;
+        }
+
+        /* Каждый квадратик имеет фиксированную ширину */
+        .category-card {
+            flex: 0 0 140px; /* не растягивается, не сжимается, базовая ширина 140px */
+            background: white;
+            border-radius: 20px;
+            padding: 20px 12px;
+            text-align: center;
+            text-decoration: none;
+            color: #212529;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .category-card i {
+                font-size: 2.5rem;
+                color: #495057;
+            }
+
+            .category-card span {
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+
+            .category-card:hover {
+                background-color: #f8f9fa;
+                transform: translateY(-4px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+                border-color: #dee2e6;
+            }
+
+        /* Блок итоговой цены */
+        .total-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 24px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .total-label {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1e2a3e;
+        }
+
+        .total-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e2a3e;
+        }
+
+        .btn-dark-gray {
+            background: #1e2a3e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 24px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+            .btn-dark-gray:hover {
+                background: #2c3e50;
+            }
+
+        .btn-light-gray {
+            background: #f1f3f5;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 24px;
+            font-weight: 500;
+            color: #212529;
+        }
+
+            .btn-light-gray:hover {
+                background: #e9ecef;
+            }
+
+        @@media (max-width: 640px) {
+            .category-card {
+                flex: 0 0 110px;
+                padding: 16px 8px;
+            }
+
+                .category-card i {
+                    font-size: 2rem;
+                }
+
+                .category-card span {
+                    font-size: 0.7rem;
+                }
+        }
+    </style>
+}
+
+<div class="builder-container">
+    <div class="page-header mb-3">
+        <h1 class="display-6">Сборка ПК</h1>
+        <p class="text-muted">Выберите категорию, чтобы добавить комплектующее</p>
+    </div>
+
+    <!-- Сетка квадратных категорий -->
+    <div class="categories-grid">
+        <!-- Основные компоненты -->
+        <a href="#" class="category-card">
+            <i class="bi bi-cpu"></i>
+            <span>Процессор</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-gpu-card"></i>
+            <span>Видеокарта</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-motherboard"></i>
+            <span>Материнская плата</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-memory"></i>
+            <span>Оперативная память</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-hdd-stack"></i>
+            <span>Накопитель</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-plug"></i>
+            <span>Блок питания</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-pc-display"></i>
+            <span>Корпус</span>
+        </a>
+
+        <!-- Дополнительные категории -->
+        <a href="#" class="category-card">
+            <i class="bi bi-fan"></i>
+            <span>Система охлаждения</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-windows"></i>
+            <span>Операционная система</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-display"></i>
+            <span>Монитор</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-battery-charging"></i>
+            <span>Источник бесперебойного питания</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-keyboard"></i>
+            <span>Клавиатура</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-mouse"></i>
+            <span>Мышь</span>
+        </a>
+        <a href="#" class="category-card">
+            <i class="bi bi-boxes"></i>
+            <span>Аксессуары</span>
+        </a>
+    </div>
+
+    <!-- Блок итоговой цены и действий (пока статика) -->
+    <div class="total-card">
+        <span class="total-label">Общая стоимость</span>
+        <span class="total-price">0 ₽</span>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn-light-gray">Очистить</button>
+            <button class="btn-dark-gray">Сохранить сборку</button>
+        </div>
+    </div>
+</div>
