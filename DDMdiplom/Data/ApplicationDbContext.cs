@@ -11,6 +11,8 @@ namespace DDMdiplom.Data
         {
         }
 
+        public DbSet<Processor> Processors { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
