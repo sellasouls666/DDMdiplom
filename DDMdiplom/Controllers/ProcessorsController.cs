@@ -19,5 +19,13 @@ namespace DDMdiplom.Controllers
             var processors = await _context.Processors.ToListAsync();
             return View(processors);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProcessor(int id)
+        {
+            var processor = await _context.Processors.FindAsync(id);
+            if (processor == null) return NotFound();
+            return Ok(processor);
+        }
     }
 }

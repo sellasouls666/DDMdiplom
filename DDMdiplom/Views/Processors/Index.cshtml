@@ -7,34 +7,62 @@
 
 @section Styles {
     <style>
-        .processor-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-radius: 16px;
-            overflow: hidden;
+        .processor-table th, .processor-table td {
+            vertical-align: middle;
         }
-        .processor-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-        }
+
         .price {
-            font-size: 1.4rem;
             font-weight: 700;
             color: #1e2a3e;
+            white-space: nowrap;
         }
+
         .btn-outline-add {
             border-radius: 40px;
-            padding: 8px 20px;
-            transition: all 0.2s;
+            padding: 4px 16px;
+            font-size: 0.85rem;
         }
+
         .offcanvas {
             width: 350px;
         }
+
         .build-item {
             border-bottom: 1px solid #eee;
             padding: 12px 0;
         }
-        .build-item:last-child {
-            border-bottom: none;
+
+            .build-item:last-child {
+                border-bottom: none;
+            }
+
+        /* Стили для модального окна */
+        .modal-specs-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+            .modal-specs-table td {
+                padding: 8px 12px;
+                vertical-align: top;
+            }
+
+                .modal-specs-table td:first-child {
+                    font-weight: 600;
+                    width: 40%;
+                    background-color: #f8f9fa;
+                }
+
+        .price-large {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e2a3e;
+        }
+
+        .btn-select-sm {
+            border-radius: 40px;
+            padding: 4px 20px;
+            font-size: 0.85rem;
         }
     </style>
 }
@@ -47,28 +75,67 @@
         </button>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="processorsList">
-        @foreach (var proc in Model)
-        {
-            <div class="col">
-                <div class="card processor-card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">@proc.Name</h5>
-                        <p class="card-text text-muted">@proc.Brand @proc.Series</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="price">@string.Format("{0:C}", proc.Price)</span>
-                            <button class="btn btn-outline-dark btn-outline-add" data-component-id="@proc.Id" data-component-name="@proc.Name" data-component-price="@proc.Price">
+    <div class="table-responsive">
+        <table class="table table-hover processor-table align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Продукт</th>
+                    <th>Ядра</th>
+                    <th>Тактовая частота</th>
+                    <th>Память</th>
+                    <th>TDP</th>
+                    <th>Встроенная графика</th>
+                    <th>Цена</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var proc in Model)
+                {
+                    var memoryTypes = proc.MemoryTypes ?? "";
+                    var lastMemory = memoryTypes.Contains('/') ? memoryTypes.Split('/').Last().Trim() : memoryTypes;
+                    <tr>
+                        <td style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#processorModal" data-id="@proc.Id">
+                            <strong>@proc.Brand @proc.Name</strong>
+                        </td>
+                        <td>@proc.Cores</td>
+                        <td>@proc.OperatingFrequency GHz</td>
+                        <td>@lastMemory</td>
+                        <td>@proc.ThermalDesignPower Вт</td>
+                        <td>@(string.IsNullOrEmpty(proc.IntegratedGraphics) ? "Нет" : proc.IntegratedGraphics)</td>
+                        <td class="price">@string.Format("{0:N0}", proc.Price) ₽</td>
+                        <td>
+                            <button class="btn btn-outline-dark btn-outline-add select-component"
+                                    data-id="@proc.Id"
+                                    data-name="@proc.Brand @proc.Name"
+                                    data-price="@proc.Price"
+                                    data-type="Процессор">
                                 <i class="bi bi-plus-lg"></i> Выбрать
                             </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Offcanvas панель для сборки -->
+<!-- Модальное окно для деталей процессора -->
+<div class="modal fade" id="processorModal" tabindex="-1" aria-labelledby="processorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="modalContent">
+                    <div class="text-center my-3">
+                        <div class="spinner-border" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Offcanvas панель -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="buildOffcanvas" aria-labelledby="buildOffcanvasLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="buildOffcanvasLabel">Моя сборка</h5>
@@ -76,7 +143,6 @@
     </div>
     <div class="offcanvas-body">
         <div id="buildItemsList">
-            <!-- Сюда будут динамически добавляться выбранные компоненты -->
             <p class="text-muted">Вы пока ничего не выбрали</p>
         </div>
         <hr>
@@ -92,9 +158,9 @@
 
 @section Scripts {
     <script>
-        // Загружаем сборку из сессии при загрузке страницы
         let currentBuild = [];
 
+        // Загрузка сборки из сессии
         function loadBuildFromSession() {
             fetch('/PcBuilder/GetBuild')
                 .then(response => response.json())
@@ -170,15 +236,111 @@
             });
         }
 
-        // Обработчики на кнопки "Выбрать"
-        document.querySelectorAll('[data-component-id]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = parseInt(this.getAttribute('data-component-id'));
-                const name = this.getAttribute('data-component-name');
-                const price = parseFloat(this.getAttribute('data-component-price'));
-                const type = 'Процессор';
+        // Кнопки "Выбрать" в таблице
+        document.querySelectorAll('.select-component').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = parseInt(this.getAttribute('data-id'));
+                const name = this.getAttribute('data-name');
+                const price = parseFloat(this.getAttribute('data-price'));
+                const type = this.getAttribute('data-type');
                 addToBuild(id, name, price, type);
             });
+        });
+
+        // Загрузка деталей процессора в модальное окно
+        const modal = document.getElementById('processorModal');
+        modal.addEventListener('show.bs.modal', async function(event) {
+            const target = event.relatedTarget;
+            const processorId = target.getAttribute('data-id');
+            if (!processorId) return;
+
+            const contentDiv = document.getElementById('modalContent');
+            contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+
+            try {
+                const response = await fetch(`/Processors/GetProcessor/${processorId}`);
+                const processor = await response.json();
+
+                // Часть 1: основная информация
+                const part1 = `
+                    <div class="mb-4">
+                        <h6 class="mb-2">Основная информация</h6>
+                        <table class="modal-specs-table">
+                            <tr><td>Бренд</td><td>${processor.brand}</td></tr>
+                            <tr><td>Тип процессора</td><td>${processor.processorsType || ''}</td></tr>
+                            <tr><td>Серия</td><td>${processor.series || ''}</td></tr>
+                            <tr><td>Название</td><td>${processor.name}</td></tr>
+                            <tr><td>Модель</td><td>${processor.model || ''}</td></tr>
+                        </table>
+                    </div>
+                `;
+
+                // Часть 2: детальные характеристики
+                const part2 = `
+                    <div>
+                        <h6 class="mb-2">Детальные характеристики</h6>
+                        <table class="modal-specs-table">
+                            <tr><td>Сокет CPU</td><td>${processor.cpuSocketType || ''}</td></tr>
+                            <tr><td>Кодовое имя</td><td>${processor.coreName || ''}</td></tr>
+                            <tr><td>Количество ядер</td><td>${processor.cores}</td></tr>
+                            <tr><td>Количество потоков</td><td>${processor.threads}</td></tr>
+                            <tr><td>Базовая частота</td><td>${processor.operatingFrequency} GHz</td></tr>
+                            <tr><td>Макс. турбо частота</td><td>${processor.maxTurboFrequency} GHz</td></tr>
+                            <tr><td>L1 кэш</td><td>${processor.l1Cache || ''}</td></tr>
+                            <tr><td>L2 кэш</td><td>${processor.l2Cache || ''}</td></tr>
+                            <tr><td>L3 кэш</td><td>${processor.l3Cache || ''}</td></tr>
+                            <tr><td>Техпроцесс</td><td>${processor.manufacturingTech || ''}</td></tr>
+                            <tr><td>Набор инструкций</td><td>${processor.instructionSet || ''}</td></tr>
+                            <tr><td>Типы памяти</td><td>${processor.memoryTypes || ''}</td></tr>
+                            <tr><td>Каналов памяти</td><td>${processor.memoryChannel}</td></tr>
+                            <tr><td>Макс. объем памяти</td><td>${processor.maxMemorySize || ''}</td></tr>
+                            <tr><td>Встроенная графика</td><td>${processor.integratedGraphics || 'Нет'}</td></tr>
+                            <tr><td>Частота графики</td><td>${processor.graphicsBaseFrequency ? processor.graphicsBaseFrequency + ' MHz' : ''}</td></tr>
+                            <tr><td>Версия PCIe</td><td>${processor.pciExpressRevision || ''}</td></tr>
+                            <tr><td>Макс. линий PCIe</td><td>${processor.maxPciExpressLanes || ''}</td></tr>
+                            <tr><td>TDP</td><td>${processor.thermalDesignPower} Вт</td></tr>
+                            <tr><td>Охлаждение</td><td>${processor.coolingDevice || ''}</td></tr>
+                            <tr><td>Совместимые чипсеты</td><td>${processor.compatibleChipsets || ''}</td></tr>
+                            <tr><td>Поддерживаемые ОС</td><td>${processor.supportedOperatingSystems || ''}</td></tr>
+                            <tr><td>Технологии</td><td>${processor.advancedTechnologies || ''}</td></tr>
+                        </table>
+                    </div>
+                `;
+
+                const title = `${processor.brand} ${processor.name}`;
+                const priceHtml = `<div class="price-large mb-2">${processor.price.toLocaleString()} ₽</div>`;
+                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${processor.id}" data-name="${title}" data-price="${processor.price}" data-type="Процессор"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                contentDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="modal-title">${title}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div></div>
+                        <div class="text-end">
+                            ${priceHtml}
+                            ${selectBtn}
+                        </div>
+                    </div>
+                    ${part1}
+                    ${part2}
+                `;
+
+                // Обработчик кнопки "Выбрать" внутри модального окна
+                document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.getAttribute('data-id'));
+                    const name = this.getAttribute('data-name');
+                    const price = parseFloat(this.getAttribute('data-price'));
+                    const type = this.getAttribute('data-type');
+                    addToBuild(id, name, price, type);
+                });
+
+            } catch (error) {
+                contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+            }
         });
 
         loadBuildFromSession();
