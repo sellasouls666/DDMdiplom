@@ -1,0 +1,186 @@
+﻿@model IEnumerable<DDMdiplom.Models.Processor>
+
+@{
+    ViewData["Title"] = "Процессоры";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .processor-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .processor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        .price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e2a3e;
+        }
+        .btn-outline-add {
+            border-radius: 40px;
+            padding: 8px 20px;
+            transition: all 0.2s;
+        }
+        .offcanvas {
+            width: 350px;
+        }
+        .build-item {
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+        }
+        .build-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Процессоры</h1>
+        <button class="btn btn-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#buildOffcanvas" aria-controls="buildOffcanvas">
+            <i class="bi bi-cart3"></i> Сборка (<span id="buildCount">0</span>)
+        </button>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="processorsList">
+        @foreach (var proc in Model)
+        {
+            <div class="col">
+                <div class="card processor-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@proc.Name</h5>
+                        <p class="card-text text-muted">@proc.Brand @proc.Series</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="price">@string.Format("{0:C}", proc.Price)</span>
+                            <button class="btn btn-outline-dark btn-outline-add" data-component-id="@proc.Id" data-component-name="@proc.Name" data-component-price="@proc.Price">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Offcanvas панель для сборки -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="buildOffcanvas" aria-labelledby="buildOffcanvasLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="buildOffcanvasLabel">Моя сборка</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div id="buildItemsList">
+            <!-- Сюда будут динамически добавляться выбранные компоненты -->
+            <p class="text-muted">Вы пока ничего не выбрали</p>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between">
+            <strong>Итого:</strong>
+            <strong id="totalPrice">0 ₽</strong>
+        </div>
+        <div class="mt-3">
+            <button class="btn btn-dark w-100" id="saveBuildBtn">Сохранить сборку</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Загружаем сборку из сессии при загрузке страницы
+        let currentBuild = [];
+
+        function loadBuildFromSession() {
+            fetch('/PcBuilder/GetBuild')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.build) {
+                        currentBuild = data.build;
+                        renderBuildPanel();
+                    }
+                });
+        }
+
+        function renderBuildPanel() {
+            const container = document.getElementById('buildItemsList');
+            const totalSpan = document.getElementById('totalPrice');
+            const buildCountSpan = document.getElementById('buildCount');
+            if (currentBuild.length === 0) {
+                container.innerHTML = '<p class="text-muted">Вы пока ничего не выбрали</p>';
+                totalSpan.innerText = '0 ₽';
+                buildCountSpan.innerText = '0';
+                return;
+            }
+            let html = '';
+            let total = 0;
+            currentBuild.forEach(item => {
+                total += item.price;
+                html += `
+                    <div class="build-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${item.name}</strong>
+                            <div class="text-muted small">${item.type}</div>
+                        </div>
+                        <div>
+                            <span class="me-3">${item.price.toLocaleString()} ₽</span>
+                            <button class="btn btn-sm btn-outline-danger" data-id="${item.id}" onclick="removeFromBuild(${item.id})"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            totalSpan.innerText = total.toLocaleString() + ' ₽';
+            buildCountSpan.innerText = currentBuild.length;
+        }
+
+        function addToBuild(id, name, price, type) {
+            fetch('/PcBuilder/AddComponent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, name: name, price: price, type: type })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentBuild = data.build;
+                    renderBuildPanel();
+                } else {
+                    alert('Ошибка добавления');
+                }
+            });
+        }
+
+        function removeFromBuild(id) {
+            fetch('/PcBuilder/RemoveComponent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentBuild = data.build;
+                    renderBuildPanel();
+                }
+            });
+        }
+
+        // Обработчики на кнопки "Выбрать"
+        document.querySelectorAll('[data-component-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-component-id'));
+                const name = this.getAttribute('data-component-name');
+                const price = parseFloat(this.getAttribute('data-component-price'));
+                const type = 'Процессор';
+                addToBuild(id, name, price, type);
+            });
+        });
+
+        loadBuildFromSession();
+    </script>
+}
