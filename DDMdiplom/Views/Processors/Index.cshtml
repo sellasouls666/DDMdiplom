@@ -7,137 +7,226 @@
 
 @section Styles {
 <style>
-    /* Карточка процессора */
-    .processor-card {
-        border-radius: 20px;
-        overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
-        height: 100%;
-        cursor: pointer;
-        width: 100%;
-        max-width: 280px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-    }
-    .processor-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-    }
-
-    /* Изображение — максимально большим, с небольшим отступом */
-    .card-img-container {
-        height: 220px;          /* увеличено */
-        background: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8px;           /* уменьшено для заполнения */
-    }
-    .card-img-top {
-        max-width: 100%;
-        max-height: 100%;
-        width: auto;
-        height: auto;
-        object-fit: contain;    /* сохраняем пропорции, без обрезки */
-    }
-    .processor-card:hover .card-img-top {
-        transform: scale(1.02);
-    }
-
-    /* Тело карточки — слегка увеличен шрифт */
-    .card-body {
-        padding: 12px 12px 4px 12px;
-    }
-    .card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        margin-bottom: 10px;
-        line-height: 1.3;
-    }
-
-    /* Бейджи — шрифт увеличен */
-    .spec-badge {
-        background: #f1f3f5;
-        padding: 4px 8px;
-        border-radius: 8px;
-        font-size: 0.75rem;     /* было 0.65rem */
-        color: #495057;
-        display: inline-block;
-        white-space: nowrap;
-    }
-    .card-specs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 10px;
-    }
-
-    /* Цена и кнопка */
-    .price {
-        font-size: 1.25rem;     /* слегка увеличена */
-        font-weight: 700;
-        color: #1e2a3e;
-        white-space: nowrap;
-    }
-    .btn-outline-add {
-        border-radius: 40px;
-        padding: 5px 14px;
-        font-size: 0.8rem;
-        white-space: nowrap;
-    }
-    .card-footer {
-        padding: 0 12px 14px 12px;
-        background: transparent;
-        border: none;
-    }
-    .card-footer .d-flex {
-        gap: 8px;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    /* Сетка */
+    /* ========== Карточки процессоров ========== */
+    .processor-card { border-radius: 20px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; height: 100%; cursor: pointer; width: 100%; max-width: 280px; margin: 0 auto; display: flex; flex-direction: column; }
+    .processor-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+    .card-img-container { height: 220px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; padding: 8px; }
+    .card-img-top { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+    .processor-card:hover .card-img-top { transform: scale(1.02); }
+    .card-body { padding: 12px 12px 4px 12px; }
+    .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
+    .spec-badge { background: #f1f3f5; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; color: #495057; display: inline-block; white-space: nowrap; }
+    .card-specs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .price { font-size: 1.25rem; font-weight: 700; color: #1e2a3e; white-space: nowrap; }
+    .btn-outline-add { border-radius: 40px; padding: 5px 14px; font-size: 0.8rem; white-space: nowrap; }
+    .card-footer { padding: 0 12px 14px 12px; background: transparent; border: none; }
+    .card-footer .d-flex { gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
     .processors-grid {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 24px;
     }
-    .processors-grid .col {
-        flex: 0 0 280px;
-        max-width: 280px;
+    .processors-grid .col { flex: 0 0 280px; max-width: 280px; }
+
+    /* ========== Боковая панель ========== */
+    .build-sidebar {
+        position: fixed;
+        top: 80px;
+        right: 0;
+        height: calc(100% - 80px);
+        background: white;
+        box-shadow: -2px 0 12px rgba(0,0,0,0.1);
+        transition: width 0.3s ease;
+        z-index: 1050;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        overflow-x: visible;
+        overflow-y: auto;
+    }
+    .build-sidebar.collapsed { width: 240px; }
+    .build-sidebar.expanded { width: 400px; }
+
+    .sidebar-toggle {
+        position: absolute;
+        left: -18px;          /* отступ влево от левого края панели */
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1061;
+        border: 1px solid #dee2e6;
+        font-size: 1.2rem;
+        color: #000;
     }
 
-    /* Offcanvas, модальное окно — без изменений */
-    .offcanvas { width: 350px; }
-    .build-item { border-bottom: 1px solid #eee; padding: 12px 0; }
-    .build-item:last-child { border-bottom: none; }
+    .expanded-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 20px 16px;
+    }
+    .collapsed-content {
+        display: flex;
+        flex-direction: column;
+        padding: 16px 12px;
+        height: 100%;
+    }
+    .build-sidebar.collapsed .expanded-content { display: none; }
+    .build-sidebar.expanded .collapsed-content { display: none; }
+
+    .sidebar-header {
+        flex-shrink: 0;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+    .build-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 12px; }
+
+    .sidebar-components {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        padding-right: 4px;
+    }
+    .component-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding: 8px;
+        border-radius: 12px;
+        background: #f8f9fa;
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    .component-item:hover { background: #e9ecef; }
+    .component-icon { width: 40px; text-align: center; font-size: 1.5rem; color: #495057; }
+    .component-details { flex: 1; }
+    .component-name { font-weight: 500; font-size: 0.85rem; margin-bottom: 2px; }
+    .component-price { font-size: 0.75rem; color: #1e2a3e; font-weight: 600; }
+    .delete-component { color: #dc3545; background: none; border: none; padding: 0; font-size: 1.2rem; cursor: pointer; }
+    .select-component-sidebar { border: 1px solid #ced4da; background: white; border-radius: 20px; padding: 2px 10px; font-size: 0.7rem; font-weight: 500; }
+    .component-img { width: 35px; height: 35px; object-fit: contain; border-radius: 6px; }
+
+    .sidebar-footer {
+        flex-shrink: 0;
+        border-top: 1px solid #dee2e6;
+        padding-top: 12px;
+    }
+    .total-stats {
+        background: #f1f3f5;
+        border-radius: 12px;
+        padding: 12px;
+        margin: 8px 0;
+    }
+    .total-stats div { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .btn-sidebar { border-radius: 30px; padding: 6px 12px; font-size: 0.8rem; width: 100%; margin-bottom: 8px; }
+
+    .collapsed-header {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .collapsed-stats {
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: #f1f3f5;
+        border-radius: 16px;
+        padding: 8px 12px;
+        margin-bottom: 12px;
+    }
+    .collapsed-stats div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        margin: 4px 0;
+    }
+    .collapsed-stats div span:first-child {
+        font-weight: normal;
+    }
+    .collapsed-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+        flex: 1;
+        padding: 4px 8px 8px 8px;
+        margin-top: 8px;
+    }
+    .collapsed-category {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        cursor: pointer;
+        padding: 8px 4px;
+        border-radius: 16px;
+        transition: background 0.2s;
+    }
+    .collapsed-category:hover { background: #f1f3f5; }
+    .collapsed-category-icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #e9ecef;
+    }
+    .collapsed-category-icon img {
+        max-width: 68px;
+        max-height: 68px;
+        object-fit: contain;
+    }
+    .collapsed-category-icon i {
+        font-size: 3rem;
+        color: #495057;
+    }
+    .collapsed-category-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        max-width: 100px;
+    }
+
+    body.sidebar-expanded .container { margin-right: 400px; transition: margin-right 0.3s; }
+    body.sidebar-collapsed .container { margin-right: 200px; transition: margin-right 0.3s; }
+
     .modal-specs-table { width: 100%; margin-bottom: 20px; }
     .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
     .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
     .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
     .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
+    body { overflow-x: visible; }
 </style>
 }
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Процессоры</h1>
-        <button class="btn btn-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#buildOffcanvas" aria-controls="buildOffcanvas">
-            <i class="bi bi-cart3"></i> Сборка (<span id="buildCount">0</span>)
-        </button>
     </div>
 
-    <!-- Сетка карточек -->
-<div class="processors-grid">
+    <div class="processors-grid">
         @foreach (var proc in Model)
         {
             var memoryTypes = proc.MemoryTypes ?? "";
             var lastMemory = memoryTypes.Contains('/') ? memoryTypes.Split('/').Last().Trim() : memoryTypes;
             var imageUrl = !string.IsNullOrEmpty(proc.ImageUrl) ? proc.ImageUrl : "/images/placeholder.png";
-
             <div class="col">
                 <div class="card processor-card h-100" data-id="@proc.Id">
                     <div class="card-img-container">
@@ -160,6 +249,8 @@
                                     data-id="@proc.Id"
                                     data-name="@proc.Brand @proc.Name"
                                     data-price="@proc.Price"
+                                    data-tdp="@proc.ThermalDesignPower"
+                                    data-image="@imageUrl"
                                     data-type="Процессор">
                                 <i class="bi bi-plus-lg"></i> Выбрать
                             </button>
@@ -171,232 +262,355 @@
     </div>
 </div>
 
-<!-- Модальное окно для деталей процессора -->
-<div class="modal fade" id="processorModal" tabindex="-1" aria-labelledby="processorModalLabel" aria-hidden="true">
+<!-- Модальное окно -->
+<div class="modal fade" id="processorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
                 <div id="modalContent">
-                    <div class="text-center my-3">
-                        <div class="spinner-border" role="status"></div>
-                    </div>
+                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Offcanvas панель -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="buildOffcanvas" aria-labelledby="buildOffcanvasLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="buildOffcanvasLabel">Моя сборка</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+<!-- Боковая панель сборки (оставлена без изменений) -->
+<div id="buildSidebar" class="build-sidebar collapsed">
+    <div class="sidebar-toggle" id="sidebarToggle">
+        <i class="bi bi-chevron-left"></i>
     </div>
-    <div class="offcanvas-body">
-        <div id="buildItemsList">
-            <p class="text-muted">Вы пока ничего не выбрали</p>
+    <div class="collapsed-content">
+        <div class="collapsed-header">Конфигуратор ПК</div>
+        <div class="collapsed-stats">
+            <div><span>💰</span><span id="collapsedPrice">0</span><span>₽</span></div>
+            <div><span>⚡</span><span id="collapsedWatts">0</span><span>Вт</span></div>
         </div>
-        <hr>
-        <div class="d-flex justify-content-between">
-            <strong>Итого:</strong>
-            <strong id="totalPrice">0 ₽</strong>
+        <div id="collapsedCategoriesGrid" class="collapsed-grid"></div>
+    </div>
+    <div class="expanded-content">
+        <div class="sidebar-header">
+            <div class="build-title">Конфигуратор ПК</div>
+            <label class="form-label small">Название сборки</label>
+            <input type="text" id="buildName" class="form-control form-control-sm" placeholder="Моя сборка" value="Моя сборка">
         </div>
-        <div class="mt-3">
-            <button class="btn btn-dark w-100" id="saveBuildBtn">Сохранить сборку</button>
+        <div class="sidebar-components" id="componentsList"></div>
+        <div class="sidebar-footer">
+            <div class="total-stats">
+                <div><span>Количество компонентов:</span> <strong id="selectedCount">0</strong></div>
+                <div><span>Суммарная мощность:</span> <strong id="totalWatts">0</strong> Вт</div>
+                <div><span>Общая цена:</span> <strong id="totalPriceSidebar">0</strong> ₽</div>
+            </div>
+            <button class="btn btn-outline-secondary btn-sidebar" id="resetBuildBtn">Сбросить сборку</button>
+            <button class="btn btn-dark btn-sidebar" id="saveBuildBtn">Сохранить сборку</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        let currentBuild = [];
+    // Все категории
+    const allCategories = [
+        { type: "Процессор", icon: "bi-cpu", defaultName: "Процессор" },
+        { type: "Видеокарта", icon: "bi-gpu-card", defaultName: "Видеокарта" },
+        { type: "Материнская плата", icon: "bi-motherboard", defaultName: "Материнская плата" },
+        { type: "Оперативная память", icon: "bi-memory", defaultName: "Оперативная память" },
+        { type: "Накопитель", icon: "bi-hdd-stack", defaultName: "Накопитель" },
+        { type: "Блок питания", icon: "bi-plug", defaultName: "Блок питания" },
+        { type: "Корпус", icon: "bi-pc-display", defaultName: "Корпус" },
+        { type: "Система охлаждения", icon: "bi-fan", defaultName: "Система охлаждения" },
+        { type: "Операционная система", icon: "bi-windows", defaultName: "ОС" },
+        { type: "Монитор", icon: "bi-display", defaultName: "Монитор" },
+        { type: "Источник бесперебойного питания", icon: "bi-battery-charging", defaultName: "UPS" },
+        { type: "Клавиатура", icon: "bi-keyboard", defaultName: "Клавиатура" },
+        { type: "Мышь", icon: "bi-mouse", defaultName: "Мышь" },
+        { type: "Аксессуары", icon: "bi-boxes", defaultName: "Аксессуары" }
+    ];
 
-        function loadBuildFromSession() {
-            fetch('/PcBuilder/GetBuild')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.build) {
-                        currentBuild = data.build;
-                        renderBuildPanel();
-                    }
-                });
-        }
+    let currentBuild = [];
 
-        function renderBuildPanel() {
-            const container = document.getElementById('buildItemsList');
-            const totalSpan = document.getElementById('totalPrice');
-            const buildCountSpan = document.getElementById('buildCount');
-            if (currentBuild.length === 0) {
-                container.innerHTML = '<p class="text-muted">Вы пока ничего не выбрали</p>';
-                totalSpan.innerText = '0 ₽';
-                buildCountSpan.innerText = '0';
-                return;
-            }
-            let html = '';
-            let total = 0;
-            currentBuild.forEach(item => {
-                total += item.price;
+    // Загрузка сборки из сессии
+    function loadBuildFromSession() {
+        fetch('/PcBuilder/GetBuild')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.build) {
+                    currentBuild = data.build;
+                    renderAll();
+                } else {
+                    renderAll();
+                }
+            });
+    }
+
+    function renderAll() {
+        renderSidebarExpanded();
+        renderSidebarCollapsed();
+    }
+
+    function renderSidebarExpanded() {
+        let totalPrice = 0, totalWatts = 0;
+        currentBuild.forEach(item => {
+            totalPrice += item.price;
+            if (item.tdp) totalWatts += item.tdp;
+        });
+        document.getElementById('totalPriceSidebar').innerText = totalPrice.toLocaleString() + ' ₽';
+        document.getElementById('totalWatts').innerText = totalWatts;
+        document.getElementById('selectedCount').innerText = currentBuild.length;
+
+        let html = '';
+        allCategories.forEach(cat => {
+            const selected = currentBuild.find(c => c.type === cat.type);
+            if (selected) {
                 html += `
-                    <div class="build-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${item.name}</strong>
-                            <div class="text-muted small">${item.type}</div>
+                    <div class="component-item" data-type="${cat.type}">
+                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                        <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
+                        <div class="component-details">
+                            <div class="component-name">${selected.name}</div>
+                            <div class="component-price">${selected.price.toLocaleString()} ₽</div>
                         </div>
-                        <div>
-                            <span class="me-3">${item.price.toLocaleString()} ₽</span>
-                            <button class="btn btn-sm btn-outline-danger" data-id="${item.id}" onclick="removeFromBuild(${item.id})"><i class="bi bi-trash"></i></button>
-                        </div>
+                        <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
                     </div>
                 `;
-            });
-            container.innerHTML = html;
-            totalSpan.innerText = total.toLocaleString() + ' ₽';
-            buildCountSpan.innerText = currentBuild.length;
-        }
+            } else {
+                html += `
+                    <div class="component-item" data-type="${cat.type}">
+                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                        <div class="component-details">
+                            <div class="component-name">${cat.defaultName}</div>
+                            <div class="component-price">—</div>
+                        </div>
+                        <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
+                    </div>
+                `;
+            }
+        });
+        document.getElementById('componentsList').innerHTML = html;
 
-        function addToBuild(id, name, price, type) {
-            fetch('/PcBuilder/AddComponent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, name: name, price: price, type: type })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    currentBuild = data.build;
-                    renderBuildPanel();
-                } else {
-                    alert('Ошибка добавления');
-                }
-            });
-        }
-
-        function removeFromBuild(id) {
-            fetch('/PcBuilder/RemoveComponent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    currentBuild = data.build;
-                    renderBuildPanel();
-                }
-            });
-        }
-
-        // Кнопки "Выбрать" в карточках
-        document.querySelectorAll('.select-component').forEach(btn => {
-            btn.addEventListener('click', function(e) {
+        document.querySelectorAll('.delete-component').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const id = parseInt(this.getAttribute('data-id'));
-                const name = this.getAttribute('data-name');
-                const price = parseFloat(this.getAttribute('data-price'));
-                const type = this.getAttribute('data-type');
-                addToBuild(id, name, price, type);
+                const id = parseInt(btn.getAttribute('data-id'));
+                removeFromBuild(id);
             });
         });
-
-        // Открытие модального окна по клику на карточку
-        document.querySelectorAll('.processor-card').forEach(card => {
-            card.addEventListener('click', async function(e) {
-                // Если клик был по кнопке "Выбрать" — не открываем модальное окно
-                if (e.target.closest('.select-component')) return;
-                
-                const processorId = this.getAttribute('data-id');
-                const contentDiv = document.getElementById('modalContent');
-                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
-
-                try {
-                    const response = await fetch(`/Processors/GetProcessor/${processorId}`);
-                    const processor = await response.json();
-
-                    const part1 = `
-                        <div class="mb-4">
-                            <h6 class="mb-2">Основная информация</h6>
-                            <table class="modal-specs-table">
-                                <tr><td>Бренд</td><td>${processor.brand}</td></tr>
-                                <tr><td>Тип процессора</td><td>${processor.processorsType || ''}</td></tr>
-                                <tr><td>Серия</td><td>${processor.series || ''}</td></tr>
-                                <tr><td>Название</td><td>${processor.name}</td></tr>
-                                <tr><td>Модель</td><td>${processor.model || ''}</td></tr>
-                            </table>
-                        </div>
-                    `;
-
-                    const part2 = `
-                        <div>
-                            <h6 class="mb-2">Детальные характеристики</h6>
-                            <table class="modal-specs-table">
-                                <tr><td>Сокет CPU</td><td>${processor.cpuSocketType || ''}</td></tr>
-                                <tr><td>Кодовое имя</td><td>${processor.coreName || ''}</td></tr>
-                                <tr><td>Количество ядер</td><td>${processor.cores}</td></tr>
-                                <tr><td>Количество потоков</td><td>${processor.threads}</td></tr>
-                                <tr><td>Базовая частота</td><td>${processor.operatingFrequency} GHz</td></tr>
-                                <tr><td>Макс. турбо частота</td><td>${processor.maxTurboFrequency} GHz</td></tr>
-                                <tr><td>L1 кэш</td><td>${processor.l1Cache || ''}</td></tr>
-                                <tr><td>L2 кэш</td><td>${processor.l2Cache || ''}</td></tr>
-                                <tr><td>L3 кэш</td><td>${processor.l3Cache || ''}</td></tr>
-                                <tr><td>Техпроцесс</td><td>${processor.manufacturingTech || ''}</td></tr>
-                                <tr><td>Набор инструкций</td><td>${processor.instructionSet || ''}</td></tr>
-                                <tr><td>Типы памяти</td><td>${processor.memoryTypes || ''}</td></tr>
-                                <tr><td>Каналов памяти</td><td>${processor.memoryChannel}</td></tr>
-                                <tr><td>Макс. объем памяти</td><td>${processor.maxMemorySize || ''}</td></tr>
-                                <tr><td>Встроенная графика</td><td>${processor.integratedGraphics || 'Нет'}</td></tr>
-                                <tr><td>Частота графики</td><td>${processor.graphicsBaseFrequency ? processor.graphicsBaseFrequency + ' MHz' : ''}</td></tr>
-                                <tr><td>Версия PCIe</td><td>${processor.pciExpressRevision || ''}</td></tr>
-                                <tr><td>Макс. линий PCIe</td><td>${processor.maxPciExpressLanes || ''}</td></tr>
-                                <tr><td>TDP</td><td>${processor.thermalDesignPower} Вт</td></tr>
-                                <tr><td>Охлаждение</td><td>${processor.coolingDevice || ''}</td></tr>
-                                <tr><td>Совместимые чипсеты</td><td>${processor.compatibleChipsets || ''}</td></tr>
-                                <tr><td>Поддерживаемые ОС</td><td>${processor.supportedOperatingSystems || ''}</td></tr>
-                                <tr><td>Технологии</td><td>${processor.advancedTechnologies || ''}</td></tr>
-                            </table>
-                        </div>
-                    `;
-
-                    const title = `${processor.brand} ${processor.name}`;
-                    const imageUrl = processor.imageUrl ? processor.imageUrl : '/images/placeholder.png';
-                    const priceHtml = `<div class="price-large mb-2">${processor.price.toLocaleString()} ₽</div>`;
-                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${processor.id}" data-name="${title}" data-price="${processor.price}" data-type="Процессор"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
-
-                    contentDiv.innerHTML = `
-                        <div class="d-flex justify-content-end mb-2">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
-                                <h5 class="mb-0">${title}</h5>
-                            </div>
-                            <div class="text-end">
-                                ${priceHtml}
-                                ${selectBtn}
-                            </div>
-                        </div>
-                        ${part1}
-                        ${part2}
-                    `;
-
-                    document.querySelector('.select-from-modal').addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const id = parseInt(this.getAttribute('data-id'));
-                        const name = this.getAttribute('data-name');
-                        const price = parseFloat(this.getAttribute('data-price'));
-                        const type = this.getAttribute('data-type');
-                        addToBuild(id, name, price, type);
-                    });
-
-                    const modal = new bootstrap.Modal(document.getElementById('processorModal'));
-                    modal.show();
-
-                } catch (error) {
-                    contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
-                }
+        document.querySelectorAll('.select-component-sidebar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const type = btn.getAttribute('data-type');
+                alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
             });
         });
+        document.querySelectorAll('.component-item').forEach(row => {
+            row.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-component')) return;
+                if (e.target.closest('.select-component-sidebar')) return;
+                const type = row.getAttribute('data-type');
+                if (type) alert(`Переход на страницу ${type} (пока не реализовано)`);
+            });
+        });
+    }
 
-        loadBuildFromSession();
-    </script>
+    function renderSidebarCollapsed() {
+        let totalPrice = 0, totalWatts = 0;
+        currentBuild.forEach(item => {
+            totalPrice += item.price;
+            if (item.tdp) totalWatts += item.tdp;
+        });
+        document.getElementById('collapsedWatts').innerText = totalWatts;
+        document.getElementById('collapsedPrice').innerText = totalPrice.toLocaleString();
+
+        let gridHtml = '';
+        allCategories.forEach((cat, idx) => {
+            const selected = currentBuild.find(c => c.type === cat.type);
+            let iconHtml = '';
+            if (selected && selected.imageUrl) {
+                iconHtml = `<img src="${selected.imageUrl}" alt="${selected.name}">`;
+            } else {
+                iconHtml = `<i class="bi ${cat.icon}"></i>`;
+            }
+            const label = selected ? selected.name : cat.defaultName;
+            gridHtml += `
+                <div class="collapsed-category" data-type="${cat.type}" data-index="${idx}">
+                    <div class="collapsed-category-icon">${iconHtml}</div>
+                    <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
+                </div>
+            `;
+        });
+        document.getElementById('collapsedCategoriesGrid').innerHTML = gridHtml;
+        document.querySelectorAll('.collapsed-category').forEach(el => {
+            el.addEventListener('click', () => {
+                const type = el.getAttribute('data-type');
+                alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
+            });
+        });
+    }
+
+    function addToBuild(id, name, price, type, tdp, imageUrl) {
+        fetch('/PcBuilder/AddComponent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, name, price, type, tdp, imageUrl })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentBuild = data.build;
+                renderAll();
+            } else {
+                alert('Ошибка добавления');
+            }
+        });
+    }
+
+    function removeFromBuild(id) {
+        fetch('/PcBuilder/RemoveComponent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentBuild = data.build;
+                renderAll();
+            }
+        });
+    }
+
+    // Кнопки "Выбрать" в карточках
+    document.querySelectorAll('.select-component').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            addToBuild(
+                parseInt(this.dataset.id),
+                this.dataset.name,
+                parseFloat(this.dataset.price),
+                this.dataset.type,
+                parseInt(this.dataset.tdp) || 0,
+                this.dataset.image
+            );
+        });
+    });
+
+    // Открытие модального окна – рабочий код из старой версии (без лишних символов)
+    document.querySelectorAll('.processor-card').forEach(card => {
+        card.addEventListener('click', async function(e) {
+            if (e.target.closest('.select-component')) return;
+            const processorId = this.getAttribute('data-id');
+            const contentDiv = document.getElementById('modalContent');
+            contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+            try {
+                const response = await fetch(`/Processors/GetProcessor/${processorId}`);
+                const processor = await response.json();
+
+                const part1 = `
+                    <div class="mb-4">
+                        <h6 class="mb-2">Основная информация</h6>
+                        <table class="modal-specs-table">
+                            <tr><td>Бренд</td><td>${processor.brand}</td></tr>
+                            <tr><td>Тип процессора</td><td>${processor.processorsType || ''}</td></tr>
+                            <tr><td>Серия</td><td>${processor.series || ''}</td></tr>
+                            <tr><td>Название</td><td>${processor.name}</td></tr>
+                            <tr><td>Модель</td><td>${processor.model || ''}</td></tr>
+                        </table>
+                    </div>
+                `;
+                const part2 = `
+                    <div>
+                        <h6 class="mb-2">Детальные характеристики</h6>
+                        <table class="modal-specs-table">
+                            <tr><td>Сокет CPU</td><td>${processor.cpuSocketType || ''}</td></tr>
+                            <tr><td>Кодовое имя</td><td>${processor.coreName || ''}</td></tr>
+                            <tr><td>Количество ядер</td><td>${processor.cores}</td></tr>
+                            <tr><td>Количество потоков</td><td>${processor.threads}</td></tr>
+                            <tr><td>Базовая частота</td><td>${processor.operatingFrequency} GHz</td></tr>
+                            <tr><td>Макс. турбо частота</td><td>${processor.maxTurboFrequency} GHz</td></tr>
+                            <tr><td>L1 кэш</td><td>${processor.l1Cache || ''}</td></tr>
+                            <tr><td>L2 кэш</td><td>${processor.l2Cache || ''}</td></tr>
+                            <tr><td>L3 кэш</td><td>${processor.l3Cache || ''}</td></tr>
+                            <tr><td>Техпроцесс</td><td>${processor.manufacturingTech || ''}</td></tr>
+                            <tr><td>Набор инструкций</td><td>${processor.instructionSet || ''}</td></tr>
+                            <tr><td>Типы памяти</td><td>${processor.memoryTypes || ''}</td></tr>
+                            <tr><td>Каналов памяти</td><td>${processor.memoryChannel}</td></tr>
+                            <tr><td>Макс. объем памяти</td><td>${processor.maxMemorySize || ''}</td></tr>
+                            <tr><td>Встроенная графика</td><td>${processor.integratedGraphics || 'Нет'}</td></tr>
+                            <tr><td>Частота графики</td><td>${processor.graphicsBaseFrequency ? processor.graphicsBaseFrequency + ' MHz' : ''}</td></tr>
+                            <tr><td>Версия PCIe</td><td>${processor.pciExpressRevision || ''}</td></tr>
+                            <tr><td>Макс. линий PCIe</td><td>${processor.maxPciExpressLanes || ''}</td></tr>
+                            <tr><td>TDP</td><td>${processor.thermalDesignPower} Вт</td></tr>
+                            <tr><td>Охлаждение</td><td>${processor.coolingDevice || ''}</td></tr>
+                            <tr><td>Совместимые чипсеты</td><td>${processor.compatibleChipsets || ''}</td></td>
+                            <tr><td>Поддерживаемые ОС</td><td>${processor.supportedOperatingSystems || ''}</td></tr>
+                            <tr><td>Технологии</td><td>${processor.advancedTechnologies || ''}</td></tr>
+                        </table>
+                    </div>
+                `;
+                const title = `${processor.brand} ${processor.name}`;
+                const imageUrl = processor.imageUrl || '/images/placeholder.png';
+                const priceHtml = `<div class="price-large mb-2">${processor.price.toLocaleString()} ₽</div>`;
+                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${processor.id}" data-name="${title}" data-price="${processor.price}" data-tdp="${processor.thermalDesignPower}" data-image="${imageUrl}" data-type="Процессор"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                contentDiv.innerHTML = `
+                    <div class="d-flex justify-content-end mb-2">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
+                            <h5 class="mb-0">${title}</h5>
+                        </div>
+                        <div class="text-end">
+                            ${priceHtml}
+                            ${selectBtn}
+                        </div>
+                    </div>
+                    ${part1}
+                    ${part2}
+                `;
+
+                document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    addToBuild(
+                        parseInt(this.dataset.id),
+                        this.dataset.name,
+                        parseFloat(this.dataset.price),
+                        this.dataset.type,
+                        parseInt(this.dataset.tdp) || 0,
+                        this.dataset.image
+                    );
+                });
+
+                const modal = new bootstrap.Modal(document.getElementById('processorModal'));
+                modal.show();
+            } catch (error) {
+                contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+            }
+        });
+    });
+
+    // Управление сворачиванием панели
+    const sidebar = document.getElementById('buildSidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        if (sidebar.classList.contains('collapsed')) {
+            sidebar.classList.remove('collapsed');
+            sidebar.classList.add('expanded');
+            body.classList.remove('sidebar-collapsed');
+            body.classList.add('sidebar-expanded');
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        } else {
+            sidebar.classList.remove('expanded');
+            sidebar.classList.add('collapsed');
+            body.classList.remove('sidebar-expanded');
+            body.classList.add('sidebar-collapsed');
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        }
+    });
+    body.classList.add('sidebar-collapsed');
+
+    loadBuildFromSession();
+</script>
 }
