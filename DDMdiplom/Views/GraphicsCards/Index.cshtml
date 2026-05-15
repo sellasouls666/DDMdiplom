@@ -1,35 +1,106 @@
-﻿@model IEnumerable<DDMdiplom.Models.Processor>
+﻿@model IEnumerable<DDMdiplom.Models.GraphicsCard>
 
 @{
-    ViewData["Title"] = "Процессоры";
+    ViewData["Title"] = "Видеокарты";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Styles {
 <style>
-    /* ========== Карточки процессоров ========== */
-    .processor-card { border-radius: 20px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; height: 100%; cursor: pointer; width: 100%; max-width: 280px; margin: 0 auto; display: flex; flex-direction: column; }
-    .processor-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
-    .card-img-container { height: 220px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; padding: 8px; }
-    .card-img-top { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
-    .processor-card:hover .card-img-top { transform: scale(1.02); }
-    .card-body { padding: 12px 12px 4px 12px; }
-    .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
-    .spec-badge { background: #f1f3f5; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; color: #495057; display: inline-block; white-space: nowrap; }
-    .card-specs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-    .price { font-size: 1.25rem; font-weight: 700; color: #1e2a3e; white-space: nowrap; }
-    .btn-outline-add { border-radius: 40px; padding: 5px 14px; font-size: 0.8rem; white-space: nowrap; }
-    .card-footer { padding: 0 12px 14px 12px; background: transparent; border: none; }
-    .card-footer .d-flex { gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-    .processors-grid {
+    /* ========== Карточки видеокарт ========== */
+    .graphics-card {
+        border-radius: 20px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        cursor: pointer;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+    }
+    .graphics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+    .card-img-container {
+        height: 220px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+    .card-img-top {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+    .graphics-card:hover .card-img-top {
+        transform: scale(1.02);
+    }
+    .card-body {
+        padding: 12px 12px 4px 12px;
+    }
+    .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+    .spec-badge {
+        background: #f1f3f5;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        color: #495057;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    .card-specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e2a3e;
+        white-space: nowrap;
+    }
+    .btn-outline-add {
+        border-radius: 40px;
+        padding: 5px 14px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    .card-footer {
+        padding: 0 12px 14px 12px;
+        background: transparent;
+        border: none;
+    }
+    .card-footer .d-flex {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .graphics-grid {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
         gap: 24px;
     }
-    .processors-grid .col { flex: 0 0 280px; max-width: 280px; }
+    .graphics-grid .col {
+        flex: 0 0 280px;
+        max-width: 280px;
+    }
 
-    /* ========== Боковая панель ========== */
+    /* ========== Боковая панель (та же, что и для процессоров) ========== */
     .build-sidebar {
         position: fixed;
         top: 80px;
@@ -40,14 +111,14 @@
         transition: width 0.3s ease;
         z-index: 1050;
         font-family: 'Segoe UI', Roboto, sans-serif;
-        overflow: visible;  /* теперь панель ничего не обрезает */
+        overflow: visible;
     }
     .build-sidebar.collapsed { width: 240px; }
     .build-sidebar.expanded { width: 400px; }
 
     .sidebar-toggle {
         position: absolute;
-        left: -18px;          /* отступ влево от левого края панели */
+        left: -18px;
         top: 50%;
         transform: translateY(-50%);
         width: 32px;
@@ -81,7 +152,7 @@
     .expanded-content,
     .collapsed-content {
         height: 100%;
-        overflow-y: auto;   /* скролл будет только внутри этих контейнеров */
+        overflow-y: auto;
     }
     .build-sidebar.collapsed .expanded-content { display: none; }
     .build-sidebar.expanded .collapsed-content { display: none; }
@@ -235,11 +306,9 @@
     .collapsed-stats div span:first-child {
         font-weight: 700 !important;
     }
-
     .collapsed-stats div span:last-child {
         font-weight: 700 !important;
     }
-
     .total-stats .value-group span:last-child {
         font-weight: 700 !important;
     }
@@ -248,40 +317,37 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Процессоры</h1>
+        <h1>Видеокарты</h1>
     </div>
 
-    <div class="processors-grid">
-        @foreach (var proc in Model)
+    <div class="graphics-grid">
+        @foreach (var card in Model)
         {
-            var memoryTypes = proc.MemoryTypes ?? "";
-            var lastMemory = memoryTypes.Contains('/') ? memoryTypes.Split('/').Last().Trim() : memoryTypes;
-            var imageUrl = !string.IsNullOrEmpty(proc.ImageUrl) ? proc.ImageUrl : "/images/placeholder.png";
+            var imageUrl = !string.IsNullOrEmpty(card.ImageUrl) ? card.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card processor-card h-100" data-id="@proc.Id">
+                <div class="card graphics-card h-100" data-id="@card.Id">
                     <div class="card-img-container">
-                        <img src="@imageUrl" class="card-img-top" alt="@proc.Name">
+                        <img src="@imageUrl" class="card-img-top" alt="@card.Model">
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">@proc.Brand @proc.Name</h5>
+                        <h5 class="card-title">@card.Brand @card.Model</h5>
                         <div class="card-specs">
-                            <span class="spec-badge"><i class="bi bi-cpu"></i> @proc.Cores ядер</span>
-                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @proc.OperatingFrequency GHz</span>
-                            <span class="spec-badge"><i class="bi bi-memory"></i> @lastMemory</span>
-                            <span class="spec-badge"><i class="bi bi-lightning-charge"></i> @proc.ThermalDesignPower Вт</span>
-                            <span class="spec-badge"><i class="bi bi-display"></i> @(string.IsNullOrEmpty(proc.IntegratedGraphics) ? "Нет" : proc.IntegratedGraphics)</span>
+                            <span class="spec-badge"><i class="bi bi-gpu-card"></i> @(card.Gpu ?? "GPU")</span>
+                            <span class="spec-badge"><i class="bi bi-memory"></i> @card.MemorySize ГБ</span>
+                            <span class="spec-badge"><i class="bi bi-fan"></i> @(string.IsNullOrEmpty(card.Cooler) ? "Не указано" : card.Cooler)</span>
+                            <span class="spec-badge"><i class="bi bi-lightning-charge"></i> @card.ThermalDesignPower Вт</span>
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3 pt-0">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="price">@string.Format("{0:N0}", proc.Price) ₽</span>
+                            <span class="price">@string.Format("{0:N0}", card.Price) ₽</span>
                             <button class="btn btn-outline-dark btn-outline-add select-component"
-                                    data-id="@proc.Id"
-                                    data-name="@proc.Brand @proc.Name"
-                                    data-price="@proc.Price"
-                                    data-tdp="@proc.ThermalDesignPower"
+                                    data-id="@card.Id"
+                                    data-name="@card.Brand @card.Model"
+                                    data-price="@card.Price"
+                                    data-tdp="@card.ThermalDesignPower"
                                     data-image="@imageUrl"
-                                    data-type="Процессор">
+                                    data-type="Видеокарта">
                                 <i class="bi bi-plus-lg"></i> Выбрать
                             </button>
                         </div>
@@ -293,7 +359,7 @@
 </div>
 
 <!-- Модальное окно -->
-<div class="modal fade" id="processorModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="graphicsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -305,7 +371,7 @@
     </div>
 </div>
 
-<!-- Боковая панель сборки (оставлена без изменений) -->
+<!-- Боковая панель сборки (та же, что и в процессорах) -->
 <div id="buildSidebar" class="build-sidebar collapsed">
     <div class="sidebar-toggle" id="sidebarToggle">
         <i class="bi bi-chevron-left"></i>
@@ -339,7 +405,7 @@
 
 @section Scripts {
     <script>
-    // Все категории
+    // Все категории (та же, что и раньше)
     const allCategories = [
         { type: "Процессор", icon: "bi-cpu", defaultName: "Процессор" },
         { type: "Видеокарта", icon: "bi-gpu-card", defaultName: "Видеокарта" },
@@ -358,7 +424,6 @@
 
     let currentBuild = [];
 
-    // Загрузка сборки из сессии
     function loadBuildFromSession() {
         fetch('/PcBuilder/GetBuild')
             .then(response => response.json())
@@ -428,13 +493,9 @@
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const type = btn.getAttribute('data-type');
-                if (type === "Процессор") {
-                    window.location.href = '/Processors';
-                } else if (type === "Видеокарта") {
-                    window.location.href = '/GraphicsCards';
-                } else {
-                    alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
-                }
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
             });
         });
         document.querySelectorAll('.component-item').forEach(row => {
@@ -442,13 +503,9 @@
                 if (e.target.closest('.delete-component')) return;
                 if (e.target.closest('.select-component-sidebar')) return;
                 const type = row.getAttribute('data-type');
-                if (type === "Процессор") {
-                    window.location.href = '/Processors';
-                } else if (type === "Видеокарта") {
-                    window.location.href = '/GraphicsCards';
-                } else if (type) {
-                    alert(`Переход на страницу ${type} (пока не реализовано)`);
-                }
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else if (type) alert(`Переход на страницу ${type} (пока не реализовано)`);
             });
         });
     }
@@ -483,13 +540,9 @@
         document.querySelectorAll('.collapsed-category').forEach(el => {
             el.addEventListener('click', () => {
                 const type = el.getAttribute('data-type');
-                if (type === "Процессор") {
-                    window.location.href = '/Processors';
-                } else if (type === "Видеокарта") {
-                    window.location.href = '/GraphicsCards';
-                } else {
-                    alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
-                }
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
             });
         });
     }
@@ -541,58 +594,63 @@
         });
     });
 
-    // Открытие модального окна – рабочий код из старой версии (без лишних символов)
-    document.querySelectorAll('.processor-card').forEach(card => {
+    // Открытие модального окна
+    document.querySelectorAll('.graphics-card').forEach(card => {
         card.addEventListener('click', async function(e) {
             if (e.target.closest('.select-component')) return;
-            const processorId = this.getAttribute('data-id');
+            const cardId = this.getAttribute('data-id');
             const contentDiv = document.getElementById('modalContent');
             contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
             try {
-                const response = await fetch(`/Processors/GetProcessor/${processorId}`);
-                const processor = await response.json();
+                const response = await fetch(`/GraphicsCards/GetGraphicsCard/${cardId}`);
+                const gpu = await response.json();
 
                 // Основная информация (только непустые поля)
                 let part1Rows = '';
-                if (processor.brand) part1Rows += `<tr><td>Бренд</td><td>${processor.brand}</td></tr>`;
-                if (processor.processorsType) part1Rows += `<tr><td>Тип процессора</td><td>${processor.processorsType}</td></tr>`;
-                if (processor.series) part1Rows += `<tr><td>Серия</td><td>${processor.series}</td></tr>`;
-                if (processor.name) part1Rows += `<tr><td>Название</td><td>${processor.name}</td></tr>`;
-                if (processor.model) part1Rows += `<tr><td>Модель</td><td>${processor.model}</td></tr>`;
+                if (gpu.brand) part1Rows += `<tr><td>Бренд</td><td>${gpu.brand}</td></tr>`;
+                if (gpu.series) part1Rows += `<tr><td>Серия</td><td>${gpu.series}</td></tr>`;
+                if (gpu.model) part1Rows += `<tr><td>Модель</td><td>${gpu.model}</td></tr>`;
+                if (gpu.partNumber) part1Rows += `<tr><td>Артикул</td><td>${gpu.partNumber}</td></tr>`;
+                if (gpu.interface) part1Rows += `<tr><td>Интерфейс</td><td>${gpu.interface}</td></tr>`;
+                if (gpu.chipsetManufacturer) part1Rows += `<tr><td>Производитель чипсета</td><td>${gpu.chipsetManufacturer}</td></tr>`;
+                if (gpu.gpuSeries) part1Rows += `<tr><td>Серия GPU</td><td>${gpu.gpuSeries}</td></tr>`;
+                if (gpu.gpu) part1Rows += `<tr><td>GPU</td><td>${gpu.gpu}</td></tr>`;
 
                 const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
 
-                // Детальные характеристики (только непустые)
+                // Детальные характеристики
                 let part2Rows = '';
-                if (processor.cpuSocketType) part2Rows += `<tr><td>Сокет CPU</td><td>${processor.cpuSocketType}</td></tr>`;
-                if (processor.coreName) part2Rows += `<tr><td>Кодовое имя</td><td>${processor.coreName}</td></tr>`;
-                if (processor.cores) part2Rows += `<tr><td>Количество ядер</td><td>${processor.cores}</td></tr>`;
-                if (processor.threads) part2Rows += `<tr><td>Количество потоков</td><td>${processor.threads}</td></tr>`;
-                if (processor.operatingFrequency) part2Rows += `<tr><td>Базовая частота</td><td>${processor.operatingFrequency} GHz</td></tr>`;
-                if (processor.maxTurboFrequency) part2Rows += `<tr><td>Макс. турбо частота</td><td>${processor.maxTurboFrequency} GHz</td></tr>`;
-                if (processor.l1Cache) part2Rows += `<tr><td>L1 кэш</td><td>${processor.l1Cache}</td></tr>`;
-                if (processor.l2Cache) part2Rows += `<tr><td>L2 кш</td><td>${processor.l2Cache}</td></tr>`;
-                if (processor.l3Cache) part2Rows += `<tr><td>L3 кэш</td><td>${processor.l3Cache}</td></tr>`;
-                if (processor.manufacturingTech) part2Rows += `<tr><td>Техпроцесс</td><td>${processor.manufacturingTech}</td></tr>`;
-                if (processor.instructionSet) part2Rows += `<tr><td>Набор инструкций</td><td>${processor.instructionSet}</td></tr>`;
-                if (processor.memoryTypes) part2Rows += `<tr><td>Типы памяти</td><td>${processor.memoryTypes}</td></tr>`;
-                if (processor.memoryChannel) part2Rows += `<tr><td>Каналов памяти</td><td>${processor.memoryChannel}</td></tr>`;
-                if (processor.maxMemorySize) part2Rows += `<tr><td>Макс. объем памяти</td><td>${processor.maxMemorySize}</td></tr>`;
-                if (processor.integratedGraphics) part2Rows += `<tr><td>Встроенная графика</td><td>${processor.integratedGraphics}</td></tr>`;
-                if (processor.graphicsBaseFrequency) part2Rows += `<tr><td>Частота графики</td><td>${processor.graphicsBaseFrequency} MHz</td></tr>`;
-                if (processor.pciExpressRevision) part2Rows += `<tr><td>Версия PCIe</td><td>${processor.pciExpressRevision}</td></tr>`;
-                if (processor.maxPciExpressLanes) part2Rows += `<tr><td>Макс. линий PCIe</td><td>${processor.maxPciExpressLanes}</td></tr>`;
-                if (processor.thermalDesignPower) part2Rows += `<tr><td>TDP</td><td>${processor.thermalDesignPower} Вт</td></tr>`;
-                if (processor.coolingDevice) part2Rows += `<tr><td>Охлаждение</td><td>${processor.coolingDevice}</td></tr>`;
-                if (processor.compatibleChipsets) part2Rows += `<tr><td>Совместимые чипсеты</td><td>${processor.compatibleChipsets}</td></tr>`;
-                if (processor.supportedOperatingSystems) part2Rows += `<tr><td>Поддерживаемые ОС</td><td>${processor.supportedOperatingSystems}</td></tr>`;
-                if (processor.advancedTechnologies) part2Rows += `<tr><td>Технологии</td><td>${processor.advancedTechnologies}</td></tr>`;
+                if (gpu.coreClock) part2Rows += `<tr><td>Базовая частота (МГц)</td><td>${gpu.coreClock}</td></tr>`;
+                if (gpu.boostClock) part2Rows += `<tr><td>Boost частота (МГц)</td><td>${gpu.boostClock}</td></tr>`;
+                if (gpu.cudaCores) part2Rows += `<tr><td>CUDA ядра/Потоковые процессоры</td><td>${gpu.cudaCores}</td></tr>`;
+                if (gpu.effectiveMemoryClock) part2Rows += `<tr><td>Эффективная частота памяти (МГц)</td><td>${gpu.effectiveMemoryClock}</td></tr>`;
+                if (gpu.memorySize) part2Rows += `<tr><td>Объём памяти (ГБ)</td><td>${gpu.memorySize}</td></tr>`;
+                if (gpu.memoryInterface) part2Rows += `<tr><td>Шина памяти (бит)</td><td>${gpu.memoryInterface}</td></tr>`;
+                if (gpu.memoryType) part2Rows += `<tr><td>Тип памяти</td><td>${gpu.memoryType}</td></tr>`;
+                if (gpu.directX) part2Rows += `<tr><td>DirectX</td><td>${gpu.directX}</td></tr>`;
+                if (gpu.openGL) part2Rows += `<tr><td>OpenGL</td><td>${gpu.openGL}</td></tr>`;
+                if (gpu.multiMonitorSupport) part2Rows += `<tr><td>Поддержка нескольких мониторов</td><td>${gpu.multiMonitorSupport}</td></tr>`;
+                if (gpu.hdmiPorts) part2Rows += `<tr><td>HDMI порты</td><td>${gpu.hdmiPorts}</td></tr>`;
+                if (gpu.displayPorts) part2Rows += `<tr><td>DisplayPort порты</td><td>${gpu.displayPorts}</td></tr>`;
+                if (gpu.color) part2Rows += `<tr><td>Цвет</td><td>${gpu.color}</td></tr>`;
+                if (gpu.maxResolution) part2Rows += `<tr><td>Макс. разрешение</td><td>${gpu.maxResolution}</td></tr>`;
+                if (gpu.sliSupport) part2Rows += `<tr><td>Поддержка SLI/CrossFire</td><td>${gpu.sliSupport}</td></tr>`;
+                if (gpu.virtualRealityReady) part2Rows += `<tr><td>Готова к VR</td><td>${gpu.virtualRealityReady}</td></tr>`;
+                if (gpu.cooler) part2Rows += `<tr><td>Охлаждение</td><td>${gpu.cooler}</td></td>`;
+                if (gpu.thermalDesignPower) part2Rows += `<tr><td>TDP (Вт)</td><td>${gpu.thermalDesignPower}</td></tr>`;
+                if (gpu.recommendedPsuWattage) part2Rows += `<tr><td>Рекомендуемая мощность БП (Вт)</td><td>${gpu.recommendedPsuWattage}</td></tr>`;
+                if (gpu.powerConnector) part2Rows += `<tr><td>Разъём питания</td><td>${gpu.powerConnector}</td></tr>`;
+                if (gpu.hdcpReady) part2Rows += `<tr><td>Поддержка HDCP</td><td>${gpu.hdcpReady}</td></tr>`;
+                if (gpu.formFactor) part2Rows += `<tr><td>Форм-фактор</td><td>${gpu.formFactor}</td></tr>`;
+                if (gpu.maxGpuLength) part2Rows += `<tr><td>Длина (мм)</td><td>${gpu.maxGpuLength}</td></tr>`;
+                if (gpu.cardDimensions) part2Rows += `<tr><td>Размеры (Д x В x Ш, мм)</td><td>${gpu.cardDimensions}</td></tr>`;
 
                 const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
-                const title = `${processor.brand} ${processor.name}`;
-                const imageUrl = processor.imageUrl || '/images/placeholder.png';
-                const priceHtml = `<div class="price-large mb-2">${processor.price.toLocaleString()} ₽</div>`;
-                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${processor.id}" data-name="${title}" data-price="${processor.price}" data-tdp="${processor.thermalDesignPower}" data-image="${imageUrl}" data-type="Процессор"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                const title = `${gpu.brand} ${gpu.model}`;
+                const imageUrl = gpu.imageUrl || '/images/placeholder.png';
+                const priceHtml = `<div class="price-large mb-2">${gpu.price.toLocaleString()} ₽</div>`;
+                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${gpu.id}" data-name="${title}" data-price="${gpu.price}" data-tdp="${gpu.thermalDesignPower}" data-image="${imageUrl}" data-type="Видеокарта"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
 
                 contentDiv.innerHTML = `
                     <div class="d-flex justify-content-end mb-2">
@@ -622,9 +680,10 @@
                         parseInt(this.dataset.tdp) || 0,
                         this.dataset.image
                     );
+                    bootstrap.Modal.getInstance(document.getElementById('graphicsModal')).hide();
                 });
 
-                const modal = new bootstrap.Modal(document.getElementById('processorModal'));
+                const modal = new bootstrap.Modal(document.getElementById('graphicsModal'));
                 modal.show();
             } catch (error) {
                 contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
@@ -654,5 +713,5 @@
     body.classList.add('sidebar-collapsed');
 
     loadBuildFromSession();
-</script>
+    </script>
 }
