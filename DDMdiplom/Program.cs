@@ -32,8 +32,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.IdleTimeout = TimeSpan.FromDays(30);   // таймаут бездействия 30 дней
     options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.MaxAge = TimeSpan.FromDays(30); // явно задаём возраст cookie
 });
 
 var app = builder.Build();

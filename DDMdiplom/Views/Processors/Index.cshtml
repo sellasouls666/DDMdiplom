@@ -40,8 +40,7 @@
         transition: width 0.3s ease;
         z-index: 1050;
         font-family: 'Segoe UI', Roboto, sans-serif;
-        overflow-x: visible;
-        overflow-y: auto;
+        overflow: visible;  /* теперь панель ничего не обрезает */
     }
     .build-sidebar.collapsed { width: 240px; }
     .build-sidebar.expanded { width: 400px; }
@@ -77,6 +76,12 @@
         flex-direction: column;
         padding: 16px 12px;
         height: 100%;
+    }
+
+    .expanded-content,
+    .collapsed-content {
+        height: 100%;
+        overflow-y: auto;   /* скролл будет только внутри этих контейнеров */
     }
     .build-sidebar.collapsed .expanded-content { display: none; }
     .build-sidebar.expanded .collapsed-content { display: none; }
@@ -212,7 +217,32 @@
     .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
     .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
     .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
-    body { overflow-x: visible; }
+    html, body { overflow-x: visible; }
+
+    .total-stats div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .value-group {
+        display: inline-flex;
+        gap: 4px;
+    }
+
+    .collapsed-stats div {
+        font-weight: 700 !important;
+    }
+    .collapsed-stats div span:first-child {
+        font-weight: 700 !important;
+    }
+
+    .collapsed-stats div span:last-child {
+        font-weight: 700 !important;
+    }
+
+    .total-stats .value-group span:last-child {
+        font-weight: 700 !important;
+    }
 </style>
 }
 
@@ -283,8 +313,8 @@
     <div class="collapsed-content">
         <div class="collapsed-header">Конфигуратор ПК</div>
         <div class="collapsed-stats">
-            <div><span>💰</span><span id="collapsedPrice">0</span><span>₽</span></div>
-            <div><span>⚡</span><span id="collapsedWatts">0</span><span>Вт</span></div>
+            <div><span id="collapsedPrice">0</span><span>₽</span></div>
+            <div><span id="collapsedWatts">0</span><span>Вт</span></div>
         </div>
         <div id="collapsedCategoriesGrid" class="collapsed-grid"></div>
     </div>
@@ -298,8 +328,8 @@
         <div class="sidebar-footer">
             <div class="total-stats">
                 <div><span>Количество компонентов:</span> <strong id="selectedCount">0</strong></div>
-                <div><span>Суммарная мощность:</span> <strong id="totalWatts">0</strong> Вт</div>
-                <div><span>Общая цена:</span> <strong id="totalPriceSidebar">0</strong> ₽</div>
+                <div><span>Суммарная мощность:</span> <span class="value-group"><strong id="totalWatts">0</strong> <span>Вт</span></span></div>
+                <div><span>Общая цена:</span> <strong id="totalPriceSidebar">0</strong></div>
             </div>
             <button class="btn btn-outline-secondary btn-sidebar" id="resetBuildBtn">Сбросить сборку</button>
             <button class="btn btn-dark btn-sidebar" id="saveBuildBtn">Сохранить сборку</button>
@@ -399,7 +429,11 @@
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const type = btn.getAttribute('data-type');
-                alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
+                if (type === "Процессор") {
+                    window.location.href = '/Processors';
+                } else {
+                    alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
+                }
             });
         });
         document.querySelectorAll('.component-item').forEach(row => {
@@ -407,7 +441,11 @@
                 if (e.target.closest('.delete-component')) return;
                 if (e.target.closest('.select-component-sidebar')) return;
                 const type = row.getAttribute('data-type');
-                if (type) alert(`Переход на страницу ${type} (пока не реализовано)`);
+                if (type === "Процессор") {
+                    window.location.href = '/Processors';
+                } else if (type) {
+                    alert(`Переход на страницу ${type} (пока не реализовано)`);
+                }
             });
         });
     }
@@ -442,7 +480,11 @@
         document.querySelectorAll('.collapsed-category').forEach(el => {
             el.addEventListener('click', () => {
                 const type = el.getAttribute('data-type');
-                alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
+                if (type === "Процессор") {
+                    window.location.href = '/Processors';
+                } else {
+                    alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
+                }
             });
         });
     }
@@ -505,48 +547,43 @@
                 const response = await fetch(`/Processors/GetProcessor/${processorId}`);
                 const processor = await response.json();
 
-                const part1 = `
-                    <div class="mb-4">
-                        <h6 class="mb-2">Основная информация</h6>
-                        <table class="modal-specs-table">
-                            <tr><td>Бренд</td><td>${processor.brand}</td></tr>
-                            <tr><td>Тип процессора</td><td>${processor.processorsType || ''}</td></tr>
-                            <tr><td>Серия</td><td>${processor.series || ''}</td></tr>
-                            <tr><td>Название</td><td>${processor.name}</td></tr>
-                            <tr><td>Модель</td><td>${processor.model || ''}</td></tr>
-                        </table>
-                    </div>
-                `;
-                const part2 = `
-                    <div>
-                        <h6 class="mb-2">Детальные характеристики</h6>
-                        <table class="modal-specs-table">
-                            <tr><td>Сокет CPU</td><td>${processor.cpuSocketType || ''}</td></tr>
-                            <tr><td>Кодовое имя</td><td>${processor.coreName || ''}</td></tr>
-                            <tr><td>Количество ядер</td><td>${processor.cores}</td></tr>
-                            <tr><td>Количество потоков</td><td>${processor.threads}</td></tr>
-                            <tr><td>Базовая частота</td><td>${processor.operatingFrequency} GHz</td></tr>
-                            <tr><td>Макс. турбо частота</td><td>${processor.maxTurboFrequency} GHz</td></tr>
-                            <tr><td>L1 кэш</td><td>${processor.l1Cache || ''}</td></tr>
-                            <tr><td>L2 кэш</td><td>${processor.l2Cache || ''}</td></tr>
-                            <tr><td>L3 кэш</td><td>${processor.l3Cache || ''}</td></tr>
-                            <tr><td>Техпроцесс</td><td>${processor.manufacturingTech || ''}</td></tr>
-                            <tr><td>Набор инструкций</td><td>${processor.instructionSet || ''}</td></tr>
-                            <tr><td>Типы памяти</td><td>${processor.memoryTypes || ''}</td></tr>
-                            <tr><td>Каналов памяти</td><td>${processor.memoryChannel}</td></tr>
-                            <tr><td>Макс. объем памяти</td><td>${processor.maxMemorySize || ''}</td></tr>
-                            <tr><td>Встроенная графика</td><td>${processor.integratedGraphics || 'Нет'}</td></tr>
-                            <tr><td>Частота графики</td><td>${processor.graphicsBaseFrequency ? processor.graphicsBaseFrequency + ' MHz' : ''}</td></tr>
-                            <tr><td>Версия PCIe</td><td>${processor.pciExpressRevision || ''}</td></tr>
-                            <tr><td>Макс. линий PCIe</td><td>${processor.maxPciExpressLanes || ''}</td></tr>
-                            <tr><td>TDP</td><td>${processor.thermalDesignPower} Вт</td></tr>
-                            <tr><td>Охлаждение</td><td>${processor.coolingDevice || ''}</td></tr>
-                            <tr><td>Совместимые чипсеты</td><td>${processor.compatibleChipsets || ''}</td></td>
-                            <tr><td>Поддерживаемые ОС</td><td>${processor.supportedOperatingSystems || ''}</td></tr>
-                            <tr><td>Технологии</td><td>${processor.advancedTechnologies || ''}</td></tr>
-                        </table>
-                    </div>
-                `;
+                // Основная информация (только непустые поля)
+                let part1Rows = '';
+                if (processor.brand) part1Rows += `<tr><td>Бренд</td><td>${processor.brand}</td></tr>`;
+                if (processor.processorsType) part1Rows += `<tr><td>Тип процессора</td><td>${processor.processorsType}</td></tr>`;
+                if (processor.series) part1Rows += `<tr><td>Серия</td><td>${processor.series}</td></tr>`;
+                if (processor.name) part1Rows += `<tr><td>Название</td><td>${processor.name}</td></tr>`;
+                if (processor.model) part1Rows += `<tr><td>Модель</td><td>${processor.model}</td></tr>`;
+
+                const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
+
+                // Детальные характеристики (только непустые)
+                let part2Rows = '';
+                if (processor.cpuSocketType) part2Rows += `<tr><td>Сокет CPU</td><td>${processor.cpuSocketType}</td></tr>`;
+                if (processor.coreName) part2Rows += `<tr><td>Кодовое имя</td><td>${processor.coreName}</td></tr>`;
+                if (processor.cores) part2Rows += `<tr><td>Количество ядер</td><td>${processor.cores}</td></tr>`;
+                if (processor.threads) part2Rows += `<tr><td>Количество потоков</td><td>${processor.threads}</td></tr>`;
+                if (processor.operatingFrequency) part2Rows += `<tr><td>Базовая частота</td><td>${processor.operatingFrequency} GHz</td></tr>`;
+                if (processor.maxTurboFrequency) part2Rows += `<tr><td>Макс. турбо частота</td><td>${processor.maxTurboFrequency} GHz</td></tr>`;
+                if (processor.l1Cache) part2Rows += `<tr><td>L1 кэш</td><td>${processor.l1Cache}</td></tr>`;
+                if (processor.l2Cache) part2Rows += `<tr><td>L2 кш</td><td>${processor.l2Cache}</td></tr>`;
+                if (processor.l3Cache) part2Rows += `<tr><td>L3 кэш</td><td>${processor.l3Cache}</td></tr>`;
+                if (processor.manufacturingTech) part2Rows += `<tr><td>Техпроцесс</td><td>${processor.manufacturingTech}</td></tr>`;
+                if (processor.instructionSet) part2Rows += `<tr><td>Набор инструкций</td><td>${processor.instructionSet}</td></tr>`;
+                if (processor.memoryTypes) part2Rows += `<tr><td>Типы памяти</td><td>${processor.memoryTypes}</td></tr>`;
+                if (processor.memoryChannel) part2Rows += `<tr><td>Каналов памяти</td><td>${processor.memoryChannel}</td></tr>`;
+                if (processor.maxMemorySize) part2Rows += `<tr><td>Макс. объем памяти</td><td>${processor.maxMemorySize}</td></tr>`;
+                if (processor.integratedGraphics) part2Rows += `<tr><td>Встроенная графика</td><td>${processor.integratedGraphics}</td></tr>`;
+                if (processor.graphicsBaseFrequency) part2Rows += `<tr><td>Частота графики</td><td>${processor.graphicsBaseFrequency} MHz</td></tr>`;
+                if (processor.pciExpressRevision) part2Rows += `<tr><td>Версия PCIe</td><td>${processor.pciExpressRevision}</td></tr>`;
+                if (processor.maxPciExpressLanes) part2Rows += `<tr><td>Макс. линий PCIe</td><td>${processor.maxPciExpressLanes}</td></tr>`;
+                if (processor.thermalDesignPower) part2Rows += `<tr><td>TDP</td><td>${processor.thermalDesignPower} Вт</td></tr>`;
+                if (processor.coolingDevice) part2Rows += `<tr><td>Охлаждение</td><td>${processor.coolingDevice}</td></tr>`;
+                if (processor.compatibleChipsets) part2Rows += `<tr><td>Совместимые чипсеты</td><td>${processor.compatibleChipsets}</td></tr>`;
+                if (processor.supportedOperatingSystems) part2Rows += `<tr><td>Поддерживаемые ОС</td><td>${processor.supportedOperatingSystems}</td></tr>`;
+                if (processor.advancedTechnologies) part2Rows += `<tr><td>Технологии</td><td>${processor.advancedTechnologies}</td></tr>`;
+
+                const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
                 const title = `${processor.brand} ${processor.name}`;
                 const imageUrl = processor.imageUrl || '/images/placeholder.png';
                 const priceHtml = `<div class="price-large mb-2">${processor.price.toLocaleString()} ₽</div>`;
