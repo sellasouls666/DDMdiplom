@@ -115,5 +115,11 @@ namespace DDMdiplom.Models
 
         [Display(Name = "URL изображения")]
         public string? ImageUrl { get; set; }
+
+        [Display(Name = "Базовая частота (МГц)")]
+        public int? CoreClock { get; set; }
+
+        [Display(Name = "Потоковые процессоры")]
+        public int? StreamProcessors { get; set; }
     }
 }
