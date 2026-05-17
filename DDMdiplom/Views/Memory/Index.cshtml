@@ -1,0 +1,720 @@
+﻿@model IEnumerable<DDMdiplom.Models.Memory>
+
+@{
+    ViewData["Title"] = "Оперативная память";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+<style>
+    /* ========== Карточки оперативной памяти ========== */
+    .memory-card {
+        border-radius: 20px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        cursor: pointer;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+    }
+    .memory-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+    .card-img-container {
+        height: 220px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+    .card-img-top {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+    .memory-card:hover .card-img-top {
+        transform: scale(1.02);
+    }
+    .card-body {
+        padding: 12px 12px 4px 12px;
+    }
+    .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+    .spec-badge {
+        background: #f1f3f5;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        color: #495057;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    .card-specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e2a3e;
+        white-space: nowrap;
+    }
+    .btn-outline-add {
+        border-radius: 40px;
+        padding: 5px 14px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    .card-footer {
+        padding: 0 12px 14px 12px;
+        background: transparent;
+        border: none;
+    }
+    .card-footer .d-flex {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .memory-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 24px;
+    }
+    .memory-grid .col {
+        flex: 0 0 280px;
+        max-width: 280px;
+    }
+
+    /* ========== Боковая панель ========== */
+    .build-sidebar {
+        position: fixed;
+        top: 80px;
+        right: 0;
+        height: calc(100% - 80px);
+        background: white;
+        box-shadow: -2px 0 12px rgba(0,0,0,0.1);
+        transition: width 0.3s ease;
+        z-index: 1050;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        overflow: visible;
+    }
+    .build-sidebar.collapsed { width: 240px; }
+    .build-sidebar.expanded { width: 400px; }
+
+    .sidebar-toggle {
+        position: absolute;
+        left: -18px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1061;
+        border: 1px solid #dee2e6;
+        font-size: 1.2rem;
+        color: #000;
+    }
+
+    .expanded-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 20px 16px;
+    }
+    .collapsed-content {
+        display: flex;
+        flex-direction: column;
+        padding: 16px 12px;
+        height: 100%;
+    }
+    .expanded-content,
+    .collapsed-content {
+        height: 100%;
+        overflow-y: auto;
+    }
+    .build-sidebar.collapsed .expanded-content { display: none; }
+    .build-sidebar.expanded .collapsed-content { display: none; }
+
+    .sidebar-header {
+        flex-shrink: 0;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+    .build-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 12px; }
+
+    .sidebar-components {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        padding-right: 4px;
+    }
+    .component-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding: 8px;
+        border-radius: 12px;
+        background: #f8f9fa;
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    .component-item:hover { background: #e9ecef; }
+    .component-icon { width: 40px; text-align: center; font-size: 1.5rem; color: #495057; }
+    .component-details { flex: 1; }
+    .component-name { font-weight: 500; font-size: 0.85rem; margin-bottom: 2px; }
+    .component-price { font-size: 0.75rem; color: #1e2a3e; font-weight: 600; }
+    .delete-component { color: #dc3545; background: none; border: none; padding: 0; font-size: 1.2rem; cursor: pointer; }
+    .select-component-sidebar { border: 1px solid #ced4da; background: white; border-radius: 20px; padding: 2px 10px; font-size: 0.7rem; font-weight: 500; }
+    .component-img { width: 35px; height: 35px; object-fit: contain; border-radius: 6px; }
+
+    .sidebar-footer {
+        flex-shrink: 0;
+        border-top: 1px solid #dee2e6;
+        padding-top: 12px;
+    }
+    .total-stats {
+        background: #f1f3f5;
+        border-radius: 12px;
+        padding: 12px;
+        margin: 8px 0;
+    }
+    .total-stats div { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .btn-sidebar { border-radius: 30px; padding: 6px 12px; font-size: 0.8rem; width: 100%; margin-bottom: 8px; }
+
+    .collapsed-header {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .collapsed-stats {
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: #f1f3f5;
+        border-radius: 16px;
+        padding: 8px 12px;
+        margin-bottom: 12px;
+    }
+    .collapsed-stats div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        margin: 4px 0;
+    }
+    .collapsed-stats div span:first-child {
+        font-weight: normal;
+    }
+    .collapsed-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+        flex: 1;
+        padding: 4px 8px 8px 8px;
+        margin-top: 8px;
+    }
+    .collapsed-category {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        cursor: pointer;
+        padding: 8px 4px;
+        border-radius: 16px;
+        transition: background 0.2s;
+    }
+    .collapsed-category:hover { background: #f1f3f5; }
+    .collapsed-category-icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #e9ecef;
+    }
+    .collapsed-category-icon img {
+        max-width: 68px;
+        max-height: 68px;
+        object-fit: contain;
+    }
+    .collapsed-category-icon i {
+        font-size: 3rem;
+        color: #495057;
+    }
+    .collapsed-category-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        max-width: 100px;
+    }
+
+    body.sidebar-expanded .container { margin-right: 400px; transition: margin-right 0.3s; }
+    body.sidebar-collapsed .container { margin-right: 200px; transition: margin-right 0.3s; }
+
+    .modal-specs-table { width: 100%; margin-bottom: 20px; }
+    .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
+    .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
+    .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
+    .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
+    html, body { overflow-x: visible; }
+
+    .total-stats .value-group {
+        display: inline-flex;
+        gap: 4px;
+    }
+    .collapsed-stats div {
+        font-weight: 700 !important;
+    }
+</style>
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Оперативная память</h1>
+    </div>
+
+    <div class="memory-grid">
+        @foreach (var mem in Model)
+        {
+            var imageUrl = !string.IsNullOrEmpty(mem.ImageUrl) ? mem.ImageUrl : "/images/placeholder.png";
+            <div class="col">
+                <div class="card memory-card h-100" data-id="@mem.Id">
+                    <div class="card-img-container">
+                        <img src="@imageUrl" class="card-img-top" alt="@mem.Model">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@mem.Brand @mem.Model</h5>
+                        <div class="card-specs">
+                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @(mem.Speed ?? "—")</span>
+                            <span class="spec-badge"><i class="bi bi-memory"></i> @(mem.Capacity ?? "—")</span>
+                            <span class="spec-badge"><i class="bi bi-palette"></i> @(mem.Color ?? "—")</span>
+                            <span class="spec-badge"><i class="bi bi-layout-text-window"></i> @(mem.CasLatency ?? "—")</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", mem.Price) ₽</span>
+                            <button class="btn btn-outline-dark btn-outline-add select-component"
+                                data-id="@mem.Id"
+                                data-name="@mem.Brand @mem.Model"
+                                data-price="@mem.Price"
+                                data-tdp="0"
+                                data-image="@imageUrl"
+                                data-type="Оперативная память"
+                                data-module-count="@mem.ModuleCount">
+                            <i class="bi bi-plus-lg"></i> Выбрать
+                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="memoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="modalContent">
+                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Боковая панель сборки -->
+<div id="buildSidebar" class="build-sidebar collapsed">
+    <div class="sidebar-toggle" id="sidebarToggle">
+        <i class="bi bi-chevron-left"></i>
+    </div>
+    <div class="collapsed-content">
+        <div class="collapsed-header">Конфигуратор ПК</div>
+        <div class="collapsed-stats">
+            <div><span id="collapsedPrice">0</span> ₽</div>
+            <div><span id="collapsedWatts">0</span> Вт</div>
+        </div>
+        <div id="collapsedCategoriesGrid" class="collapsed-grid"></div>
+    </div>
+    <div class="expanded-content">
+        <div class="sidebar-header">
+            <div class="build-title">Конфигуратор ПК</div>
+            <label class="form-label small">Название сборки</label>
+            <input type="text" id="buildName" class="form-control form-control-sm" placeholder="Моя сборка" value="Моя сборка">
+        </div>
+        <div class="sidebar-components" id="componentsList"></div>
+        <div class="sidebar-footer">
+            <div class="total-stats">
+                <div><span>Количество компонентов:</span> <strong id="selectedCount">0</strong></div>
+                <div><span>Суммарная мощность:</span> <span class="value-group"><strong id="totalWatts">0</strong> <span>Вт</span></span></div>
+                <div><span>Общая цена:</span> <strong id="totalPriceSidebar">0</strong> ₽</div>
+            </div>
+            <button class="btn btn-outline-secondary btn-sidebar" id="resetBuildBtn">Сбросить сборку</button>
+            <button class="btn btn-dark btn-sidebar" id="saveBuildBtn">Сохранить сборку</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    // Все категории
+    const allCategories = [
+        { type: "Процессор", icon: "bi-cpu", defaultName: "Процессор" },
+        { type: "Видеокарта", icon: "bi-gpu-card", defaultName: "Видеокарта" },
+        { type: "Материнская плата", icon: "bi-motherboard", defaultName: "Материнская плата" },
+        { type: "Оперативная память", icon: "bi-memory", defaultName: "Оперативная память" },
+        { type: "Накопитель", icon: "bi-hdd-stack", defaultName: "Накопитель" },
+        { type: "Блок питания", icon: "bi-plug", defaultName: "Блок питания" },
+        { type: "Корпус", icon: "bi-pc-display", defaultName: "Корпус" },
+        { type: "Система охлаждения", icon: "bi-fan", defaultName: "Система охлаждения" },
+        { type: "Операционная система", icon: "bi-windows", defaultName: "ОС" },
+        { type: "Монитор", icon: "bi-display", defaultName: "Монитор" },
+        { type: "Источник бесперебойного питания", icon: "bi-battery-charging", defaultName: "UPS" },
+        { type: "Клавиатура", icon: "bi-keyboard", defaultName: "Клавиатура" },
+        { type: "Мышь", icon: "bi-mouse", defaultName: "Мышь" },
+        { type: "Аксессуары", icon: "bi-boxes", defaultName: "Аксессуары" }
+    ];
+
+    let currentBuild = [];
+
+    function loadBuildFromSession() {
+        fetch('/PcBuilder/GetBuild')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.build) {
+                    currentBuild = data.build;
+                    renderAll();
+                } else {
+                    renderAll();
+                }
+            });
+    }
+
+    function renderAll() {
+        renderSidebarExpanded();
+        renderSidebarCollapsed();
+    }
+
+    function renderSidebarExpanded() {
+        let totalPrice = 0, totalWatts = 0;
+        currentBuild.forEach(item => {
+            totalPrice += item.price;
+            if (item.tdp) totalWatts += item.tdp;
+        });
+        document.getElementById('totalPriceSidebar').innerText = totalPrice.toLocaleString() + ' ₽';
+        document.getElementById('totalWatts').innerText = totalWatts;
+        document.getElementById('selectedCount').innerText = currentBuild.length;
+
+        let html = '';
+        allCategories.forEach(cat => {
+            const selected = currentBuild.find(c => c.type === cat.type);
+            if (selected) {
+                html += `
+                    <div class="component-item" data-type="${cat.type}">
+                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                        <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
+                        <div class="component-details">
+                            <div class="component-name">${selected.name}</div>
+                            <div class="component-price">${selected.price.toLocaleString()} ₽</div>
+                        </div>
+                        <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="component-item" data-type="${cat.type}">
+                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                        <div class="component-details">
+                            <div class="component-name">${cat.defaultName}</div>
+                            <div class="component-price">—</div>
+                        </div>
+                        <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
+                    </div>
+                `;
+            }
+        });
+        document.getElementById('componentsList').innerHTML = html;
+
+        // Добавляем кнопку "Добавить ещё комплект памяти" сразу после последнего элемента оперативной памяти
+        const ramComponents = document.querySelectorAll('.component-item[data-type="Оперативная память"]');
+        if (ramComponents.length > 0) {
+            let ramModules = currentBuild.filter(c => c.type === "Оперативная память").reduce((sum, c) => sum + (c.moduleCount || 1), 0);
+            let maxRamModules = 4; // пока заглушка, потом нужно получать из материнской платы
+            // Если есть выбранная материнская плата, можно получить её слоты
+            const motherboard = currentBuild.find(c => c.type === "Материнская плата");
+            if (motherboard) {
+                // Здесь можно запросить данные о материнской плате через fetch, но проще сохранять MemorySlots в BuildComponent при выборе материнской платы
+                // Временно оставим 4
+            }
+            if (ramModules < maxRamModules) {
+                const lastRam = ramComponents[ramComponents.length - 1];
+                const addButtonHtml = `
+                    <div class="component-item" style="justify-content: center; background: transparent; cursor: default;">
+                        <button class="btn btn-sm btn-outline-secondary" id="addMoreRamBtn">+ Добавить ещё комплект памяти</button>
+                    </div>
+                `;
+                lastRam.insertAdjacentHTML('afterend', addButtonHtml);
+                document.getElementById('addMoreRamBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.location.href = '/Memory';
+                });
+            }
+        }
+
+        // Обработчики удаления и выбора (как были)
+        document.querySelectorAll('.delete-component').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = parseInt(btn.getAttribute('data-id'));
+                removeFromBuild(id);
+            });
+        });
+        document.querySelectorAll('.select-component-sidebar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const type = btn.getAttribute('data-type');
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else if (type === "Материнская плата") window.location.href = '/Motherboards';
+                else if (type === "Оперативная память") window.location.href = '/Memory';
+                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
+            });
+        });
+        document.querySelectorAll('.component-item').forEach(row => {
+            row.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-component')) return;
+                if (e.target.closest('.select-component-sidebar')) return;
+                const type = row.getAttribute('data-type');
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else if (type === "Материнская плата") window.location.href = '/Motherboards';
+                else if (type === "Оперативная память") window.location.href = '/Memory';
+                else if (type) alert(`Переход на страницу ${type} (пока не реализовано)`);
+            });
+        });
+    }
+
+    function renderSidebarCollapsed() {
+        let totalPrice = 0, totalWatts = 0;
+        currentBuild.forEach(item => {
+            totalPrice += item.price;
+            if (item.tdp) totalWatts += item.tdp;
+        });
+        document.getElementById('collapsedWatts').innerText = totalWatts;
+        document.getElementById('collapsedPrice').innerText = totalPrice.toLocaleString();
+
+        let gridHtml = '';
+        allCategories.forEach((cat, idx) => {
+            const selected = currentBuild.find(c => c.type === cat.type);
+            let iconHtml = '';
+            if (selected && selected.imageUrl) {
+                iconHtml = `<img src="${selected.imageUrl}" alt="${selected.name}">`;
+            } else {
+                iconHtml = `<i class="bi ${cat.icon}"></i>`;
+            }
+            const label = selected ? selected.name : cat.defaultName;
+            gridHtml += `
+                <div class="collapsed-category" data-type="${cat.type}" data-index="${idx}">
+                    <div class="collapsed-category-icon">${iconHtml}</div>
+                    <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
+                </div>
+            `;
+        });
+        document.getElementById('collapsedCategoriesGrid').innerHTML = gridHtml;
+        document.querySelectorAll('.collapsed-category').forEach(el => {
+            el.addEventListener('click', () => {
+                const type = el.getAttribute('data-type');
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else if (type === "Материнская плата") window.location.href = '/Motherboards';
+                else if (type === "Оперативная память") window.location.href = '/Memory';
+                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
+            });
+        });
+    }
+
+    function addToBuild(id, name, price, type, tdp, imageUrl, moduleCount = 1) {
+        fetch('/PcBuilder/AddComponent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, name, price, type, tdp, imageUrl, moduleCount })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentBuild = data.build;
+                renderAll();
+            } else {
+                alert(data.error || 'Ошибка добавления');
+            }
+        });
+    }
+
+    function removeFromBuild(id) {
+        fetch('/PcBuilder/RemoveComponent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentBuild = data.build;
+                renderAll();
+            }
+        });
+    }
+
+    // Кнопки "Выбрать" в карточках
+    document.querySelectorAll('.select-component').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            addToBuild(
+                parseInt(this.dataset.id),
+                this.dataset.name,
+                parseFloat(this.dataset.price),
+                this.dataset.type,
+                parseInt(this.dataset.tdp) || 0,
+                this.dataset.image,
+                parseInt(this.dataset.moduleCount) || 1   // добавить
+            );
+        });
+    });
+
+    // Открытие модального окна для оперативной памяти
+    document.querySelectorAll('.memory-card').forEach(card => {
+        card.addEventListener('click', async function(e) {
+            if (e.target.closest('.select-component')) return;
+            const memoryId = this.getAttribute('data-id');
+            const contentDiv = document.getElementById('modalContent');
+            contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+            try {
+                const response = await fetch(`/Memory/GetMemory/${memoryId}`);
+                const mem = await response.json();
+
+                // Основная информация (только непустые поля)
+                let part1Rows = '';
+                if (mem.brand) part1Rows += `<tr><td>Бренд</td><td>${mem.brand}</td></tr>`;
+                if (mem.series) part1Rows += `<tr><td>Серия</td><td>${mem.series}</td></tr>`;
+                if (mem.model) part1Rows += `<tr><td>Модель</td><td>${mem.model}</td></tr>`;
+                if (mem.capacity) part1Rows += `<tr><td>Объём (ГБ)</td><td>${mem.capacity}</td></tr>`;
+                if (mem.type) part1Rows += `<tr><td>Тип</td><td>${mem.type}</td></tr>`;
+                if (mem.speed) part1Rows += `<tr><td>Скорость</td><td>${mem.speed}</td></tr>`;
+                const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
+
+                // Детальные характеристики
+                let part2Rows = '';
+                if (mem.casLatency) part2Rows += `<tr><td>CAS Latency</td><td>${mem.casLatency}</td></tr>`;
+                if (mem.timing) part2Rows += `<tr><td>Тайминги</td><td>${mem.timing}</td></tr>`;
+                if (mem.voltage) part2Rows += `<tr><td>Напряжение (В)</td><td>${mem.voltage}</td></tr>`;
+                if (mem.multiChannelKit) part2Rows += `<tr><td>Многоканальный комплект</td><td>${mem.multiChannelKit}</td></tr>`;
+                if (mem.biosProfiles) part2Rows += `<tr><td>Профили BIOS</td><td>${mem.biosProfiles}</td></tr>`;
+                if (mem.color) part2Rows += `<tr><td>Цвет</td><td>${mem.color}</td></tr>`;
+                if (mem.heatSpreader) part2Rows += `<tr><td>Радиатор</td><td>${mem.heatSpreader}</td></tr>`;
+                if (mem.ledColor) part2Rows += `<tr><td>Цвет подсветки</td><td>${mem.ledColor}</td></tr>`;
+                if (mem.recommendUse) part2Rows += `<tr><td>Рекомендуемое использование</td><td>${mem.recommendUse}</td></tr>`;
+                if (mem.features) part2Rows += `<tr><td>Особенности</td><td>${mem.features}</td></tr>`;
+                const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
+
+                const title = `${mem.brand} ${mem.model}`;
+                const imageUrl = mem.imageUrl || '/images/placeholder.png';
+                const priceHtml = `<div class="price-large mb-2">${mem.price.toLocaleString()} ₽</div>`;
+                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${mem.id}" data-name="${title}" data-price="${mem.price}" data-tdp="0" data-image="${imageUrl}" data-type="Оперативная память"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                contentDiv.innerHTML = `
+                    <div class="d-flex justify-content-end mb-2">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
+                            <h5 class="mb-0">${title}</h5>
+                        </div>
+                        <div class="text-end">
+                            ${priceHtml}
+                            ${selectBtn}
+                        </div>
+                    </div>
+                    ${part1}
+                    ${part2}
+                `;
+
+                document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    addToBuild(
+                        parseInt(this.dataset.id),
+                        this.dataset.name,
+                        parseFloat(this.dataset.price),
+                        this.dataset.type,
+                        0,
+                        this.dataset.image
+                    );
+                    bootstrap.Modal.getInstance(document.getElementById('memoryModal')).hide();
+                });
+
+                const modal = new bootstrap.Modal(document.getElementById('memoryModal'));
+                modal.show();
+            } catch (error) {
+                console.error(error);
+                contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+            }
+        });
+    });
+
+    // Управление сворачиванием панели
+    const sidebar = document.getElementById('buildSidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        if (sidebar.classList.contains('collapsed')) {
+            sidebar.classList.remove('collapsed');
+            sidebar.classList.add('expanded');
+            body.classList.remove('sidebar-collapsed');
+            body.classList.add('sidebar-expanded');
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        } else {
+            sidebar.classList.remove('expanded');
+            sidebar.classList.add('collapsed');
+            body.classList.remove('sidebar-expanded');
+            body.classList.add('sidebar-collapsed');
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        }
+    });
+    body.classList.add('sidebar-collapsed');
+
+    loadBuildFromSession();
+    </script>
+}

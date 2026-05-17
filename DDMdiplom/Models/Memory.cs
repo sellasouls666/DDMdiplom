@@ -69,5 +69,9 @@ namespace DDMdiplom.Models
 
         [Display(Name = "URL изображения")]
         public string? ImageUrl { get; set; }
+
+        // В Models/Memory.cs
+        [Display(Name = "Количество модулей в комплекте")]
+        public int ModuleCount { get; set; } = 1; // по умолчанию 1
     }
 }

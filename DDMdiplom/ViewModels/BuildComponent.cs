@@ -6,4 +6,5 @@
     public string Type { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public int? Tdp { get; set; } // для процессора, видеокарты и т.д.
+    public int ModuleCount { get; set; } = 1; // для RAM
 }
