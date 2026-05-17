@@ -101,5 +101,12 @@ namespace DDMdiplom.Controllers
             SaveBuildToSession(build);
             return Json(new { success = true, build });
         }
+
+        [HttpPost]
+        public IActionResult ClearBuild()
+        {
+            HttpContext.Session.Remove(BuildSessionKey);
+            return Json(new { success = true });
+        }
     }
 }

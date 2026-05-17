@@ -100,7 +100,7 @@
         max-width: 280px;
     }
 
-    /* ========== Боковая панель (та же, что и для процессоров) ========== */
+    /* ========== Стили боковой панели (скопированы из страницы процессоров) ========== */
     .build-sidebar {
         position: fixed;
         top: 80px;
@@ -148,7 +148,6 @@
         padding: 16px 12px;
         height: 100%;
     }
-
     .expanded-content,
     .collapsed-content {
         height: 100%;
@@ -282,12 +281,6 @@
 
     body.sidebar-expanded .container { margin-right: 400px; transition: margin-right 0.3s; }
     body.sidebar-collapsed .container { margin-right: 200px; transition: margin-right 0.3s; }
-
-    .modal-specs-table { width: 100%; margin-bottom: 20px; }
-    .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
-    .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
-    .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
-    .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
     html, body { overflow-x: visible; }
 
     .total-stats div {
@@ -299,7 +292,6 @@
         display: inline-flex;
         gap: 4px;
     }
-
     .collapsed-stats div {
         font-weight: 700 !important;
     }
@@ -312,6 +304,13 @@
     .total-stats .value-group span:last-child {
         font-weight: 700 !important;
     }
+
+    /* Стили для модального окна */
+    .modal-specs-table { width: 100%; margin-bottom: 20px; }
+    .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
+    .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
+    .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
+    .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
 </style>
 }
 
@@ -358,7 +357,7 @@
     </div>
 </div>
 
-<!-- Модальное окно -->
+<!-- Модальное окно для видеокарты -->
 <div class="modal fade" id="graphicsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -371,353 +370,126 @@
     </div>
 </div>
 
-<!-- Боковая панель сборки (та же, что и в процессорах) -->
-<div id="buildSidebar" class="build-sidebar collapsed">
-    <div class="sidebar-toggle" id="sidebarToggle">
-        <i class="bi bi-chevron-left"></i>
-    </div>
-    <div class="collapsed-content">
-        <div class="collapsed-header">Конфигуратор ПК</div>
-        <div class="collapsed-stats">
-            <div><span id="collapsedPrice">0</span><span>₽</span></div>
-            <div><span id="collapsedWatts">0</span><span>Вт</span></div>
-        </div>
-        <div id="collapsedCategoriesGrid" class="collapsed-grid"></div>
-    </div>
-    <div class="expanded-content">
-        <div class="sidebar-header">
-            <div class="build-title">Конфигуратор ПК</div>
-            <label class="form-label small">Название сборки</label>
-            <input type="text" id="buildName" class="form-control form-control-sm" placeholder="Моя сборка" value="Моя сборка">
-        </div>
-        <div class="sidebar-components" id="componentsList"></div>
-        <div class="sidebar-footer">
-            <div class="total-stats">
-                <div><span>Количество компонентов:</span> <strong id="selectedCount">0</strong></div>
-                <div><span>Суммарная мощность:</span> <span class="value-group"><strong id="totalWatts">0</strong> <span>Вт</span></span></div>
-                <div><span>Общая цена:</span> <strong id="totalPriceSidebar">0</strong></div>
-            </div>
-            <button class="btn btn-outline-secondary btn-sidebar" id="resetBuildBtn">Сбросить сборку</button>
-            <button class="btn btn-dark btn-sidebar" id="saveBuildBtn">Сохранить сборку</button>
-        </div>
-    </div>
-</div>
+<!-- Подключаем общую боковую панель -->
+@await Html.PartialAsync("_BuildSidebar")
 
 @section Scripts {
     <script>
-    // Все категории (та же, что и раньше)
-    const allCategories = [
-        { type: "Процессор", icon: "bi-cpu", defaultName: "Процессор" },
-        { type: "Видеокарта", icon: "bi-gpu-card", defaultName: "Видеокарта" },
-        { type: "Материнская плата", icon: "bi-motherboard", defaultName: "Материнская плата" },
-        { type: "Оперативная память", icon: "bi-memory", defaultName: "Оперативная память" },
-        { type: "Накопитель", icon: "bi-hdd-stack", defaultName: "Накопитель" },
-        { type: "Блок питания", icon: "bi-plug", defaultName: "Блок питания" },
-        { type: "Корпус", icon: "bi-pc-display", defaultName: "Корпус" },
-        { type: "Система охлаждения", icon: "bi-fan", defaultName: "Система охлаждения" },
-        { type: "Операционная система", icon: "bi-windows", defaultName: "ОС" },
-        { type: "Монитор", icon: "bi-display", defaultName: "Монитор" },
-        { type: "Источник бесперебойного питания", icon: "bi-battery-charging", defaultName: "UPS" },
-        { type: "Клавиатура", icon: "bi-keyboard", defaultName: "Клавиатура" },
-        { type: "Мышь", icon: "bi-mouse", defaultName: "Мышь" }
-    ];
-
-    let currentBuild = [];
-
-    function loadBuildFromSession() {
-        fetch('/PcBuilder/GetBuild')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.build) {
-                    currentBuild = data.build;
-                    renderAll();
+        // Обработчики кнопок "Выбрать" в карточках
+        document.querySelectorAll('.select-component').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const component = {
+                    id: parseInt(this.dataset.id),
+                    name: this.dataset.name,
+                    price: parseFloat(this.dataset.price),
+                    type: this.dataset.type,
+                    tdp: parseInt(this.dataset.tdp) || 0,
+                    imageUrl: this.dataset.image
+                };
+                if (typeof addToBuild === 'function') {
+                    addToBuild(component);
                 } else {
-                    renderAll();
+                    console.error('addToBuild not defined');
                 }
             });
-    }
-
-    function renderAll() {
-        renderSidebarExpanded();
-        renderSidebarCollapsed();
-    }
-
-    function renderSidebarExpanded() {
-        let totalPrice = 0, totalWatts = 0;
-        currentBuild.forEach(item => {
-            totalPrice += item.price;
-            if (item.tdp) totalWatts += item.tdp;
         });
-        document.getElementById('totalPriceSidebar').innerText = totalPrice.toLocaleString() + ' ₽';
-        document.getElementById('totalWatts').innerText = totalWatts;
-        document.getElementById('selectedCount').innerText = currentBuild.length;
 
-        let html = '';
-        allCategories.forEach(cat => {
-            const selected = currentBuild.find(c => c.type === cat.type);
-            if (selected) {
-                html += `
-                    <div class="component-item" data-type="${cat.type}">
-                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
-                        <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
-                        <div class="component-details">
-                            <div class="component-name">${selected.name}</div>
-                            <div class="component-price">${selected.price.toLocaleString()} ₽</div>
-                        </div>
-                        <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="component-item" data-type="${cat.type}">
-                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
-                        <div class="component-details">
-                            <div class="component-name">${cat.defaultName}</div>
-                            <div class="component-price">—</div>
-                        </div>
-                        <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
-                    </div>
-                `;
-            }
-        });
-        document.getElementById('componentsList').innerHTML = html;
+        // Открытие модального окна с деталями видеокарты
+        document.querySelectorAll('.graphics-card').forEach(card => {
+            card.addEventListener('click', async function(e) {
+                if (e.target.closest('.select-component')) return;
+                const cardId = this.getAttribute('data-id');
+                const contentDiv = document.getElementById('modalContent');
+                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
 
-        document.querySelectorAll('.delete-component').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = parseInt(btn.getAttribute('data-id'));
-                removeFromBuild(id);
+                try {
+                    const response = await fetch(`/GraphicsCards/GetGraphicsCard/${cardId}`);
+                    const gpu = await response.json();
+
+                    // Основная информация (только непустые поля)
+                    let part1Rows = '';
+                    if (gpu.brand) part1Rows += `<tr><td>Бренд</td><td>${gpu.brand}</td></tr>`;
+                    if (gpu.series) part1Rows += `<tr><td>Серия</td><td>${gpu.series}</td></tr>`;
+                    if (gpu.model) part1Rows += `<tr><td>Модель</td><td>${gpu.model}</td></tr>`;
+                    if (gpu.partNumber) part1Rows += `<tr><td>Артикул</td><td>${gpu.partNumber}</td></tr>`;
+                    if (gpu.interface) part1Rows += `<tr><td>Интерфейс</td><td>${gpu.interface}</td></tr>`;
+                    if (gpu.chipsetManufacturer) part1Rows += `<tr><td>Производитель чипсета</td><td>${gpu.chipsetManufacturer}</td></tr>`;
+                    if (gpu.gpuSeries) part1Rows += `<tr><td>Серия GPU</td><td>${gpu.gpuSeries}</td></tr>`;
+                    if (gpu.gpu) part1Rows += `<tr><td>GPU</td><td>${gpu.gpu}</td></tr>`;
+                    const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
+
+                    // Детальные характеристики
+                    let part2Rows = '';
+                    if (gpu.boostClock) part2Rows += `<tr><td>Boost частота (МГц)</td><td>${gpu.boostClock}</td></tr>`;
+                    if (gpu.cudaCores) part2Rows += `<tr><td>CUDA ядра/Потоковые процессоры</td><td>${gpu.cudaCores}</td></tr>`;
+                    if (gpu.effectiveMemoryClock) part2Rows += `<tr><td>Эффективная частота памяти (МГц)</td><td>${gpu.effectiveMemoryClock}</td></tr>`;
+                    if (gpu.memorySize) part2Rows += `<tr><td>Объём памяти (ГБ)</td><td>${gpu.memorySize}</td></tr>`;
+                    if (gpu.memoryInterface) part2Rows += `<tr><td>Шина памяти (бит)</td><td>${gpu.memoryInterface}</td></tr>`;
+                    if (gpu.memoryType) part2Rows += `<tr><td>Тип памяти</td><td>${gpu.memoryType}</td></tr>`;
+                    if (gpu.directX) part2Rows += `<tr><td>DirectX</td><td>${gpu.directX}</td></tr>`;
+                    if (gpu.openGL) part2Rows += `<tr><td>OpenGL</td><td>${gpu.openGL}</td></tr>`;
+                    if (gpu.multiMonitorSupport) part2Rows += `<tr><td>Поддержка нескольких мониторов</td><td>${gpu.multiMonitorSupport}</td></tr>`;
+                    if (gpu.hdmiPorts) part2Rows += `<tr><td>HDMI порты</td><td>${gpu.hdmiPorts}</td></tr>`;
+                    if (gpu.displayPorts) part2Rows += `<tr><td>DisplayPort порты</td><td>${gpu.displayPorts}</td></tr>`;
+                    if (gpu.color) part2Rows += `<tr><td>Цвет</td><td>${gpu.color}</td></tr>`;
+                    if (gpu.maxResolution) part2Rows += `<tr><td>Макс. разрешение</td><td>${gpu.maxResolution}</td></tr>`;
+                    if (gpu.sliSupport) part2Rows += `<tr><td>Поддержка SLI/CrossFire</td><td>${gpu.sliSupport}</td></tr>`;
+                    if (gpu.virtualRealityReady) part2Rows += `<tr><td>Готова к VR</td><td>${gpu.virtualRealityReady}</td></tr>`;
+                    if (gpu.cooler) part2Rows += `<tr><td>Охлаждение</td><td>${gpu.cooler}</td></tr>`;
+                    if (gpu.thermalDesignPower) part2Rows += `<tr><td>TDP (Вт)</td><td>${gpu.thermalDesignPower}</td></tr>`;
+                    if (gpu.recommendedPsuWattage) part2Rows += `<tr><td>Рекомендуемая мощность БП (Вт)</td><td>${gpu.recommendedPsuWattage}</td></tr>`;
+                    if (gpu.powerConnector) part2Rows += `<tr><td>Разъём питания</td><td>${gpu.powerConnector}</td></tr>`;
+                    if (gpu.hdcpReady) part2Rows += `<tr><td>Поддержка HDCP</td><td>${gpu.hdcpReady}</td></tr>`;
+                    if (gpu.formFactor) part2Rows += `<tr><td>Форм-фактор</td><td>${gpu.formFactor}</td></tr>`;
+                    if (gpu.maxGpuLength) part2Rows += `<tr><td>Длина (мм)</td><td>${gpu.maxGpuLength}</td></tr>`;
+                    if (gpu.cardDimensions) part2Rows += `<tr><td>Размеры (Д x В x Ш, мм)</td><td>${gpu.cardDimensions}</td></tr>`;
+                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
+
+                    const title = `${gpu.brand} ${gpu.model}`;
+                    const imageUrl = gpu.imageUrl || '/images/placeholder.png';
+                    const priceHtml = `<div class="price-large mb-2">${gpu.price.toLocaleString()} ₽</div>`;
+                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${gpu.id}" data-name="${title}" data-price="${gpu.price}" data-tdp="${gpu.thermalDesignPower}" data-image="${imageUrl}" data-type="Видеокарта"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                    contentDiv.innerHTML = `
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
+                                <h5 class="mb-0">${title}</h5>
+                            </div>
+                            <div class="text-end">
+                                ${priceHtml}
+                                ${selectBtn}
+                            </div>
+                        </div>
+                        ${part1}
+                        ${part2}
+                    `;
+
+                    document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const component = {
+                            id: parseInt(this.dataset.id),
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price),
+                            type: this.dataset.type,
+                            tdp: parseInt(this.dataset.tdp) || 0,
+                            imageUrl: this.dataset.image
+                        };
+                        if (typeof addToBuild === 'function') addToBuild(component);
+                        bootstrap.Modal.getInstance(document.getElementById('graphicsModal')).hide();
+                    });
+
+                    const modal = new bootstrap.Modal(document.getElementById('graphicsModal'));
+                    modal.show();
+                } catch (error) {
+                    console.error(error);
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                }
             });
         });
-        // Обработчики на кнопки "Выбрать" (select-component-sidebar)
-        document.querySelectorAll('.select-component-sidebar').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const type = btn.getAttribute('data-type');
-                if (type === "Процессор") window.location.href = '/Processors';
-                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
-                else if (type === "Материнская плата") window.location.href = '/Motherboards';
-                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
-            });
-        });
-
-        // Клик по строке компонента (component-item)
-        document.querySelectorAll('.component-item').forEach(row => {
-            row.addEventListener('click', (e) => {
-                if (e.target.closest('.delete-component')) return;
-                if (e.target.closest('.select-component-sidebar')) return;
-                const type = row.getAttribute('data-type');
-                if (type === "Процессор") window.location.href = '/Processors';
-                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
-                else if (type === "Материнская плата") window.location.href = '/Motherboards';
-                else if (type) alert(`Переход на страницу ${type} (пока не реализовано)`);
-            });
-        });
-    }
-
-    function renderSidebarCollapsed() {
-        let totalPrice = 0, totalWatts = 0;
-        currentBuild.forEach(item => {
-            totalPrice += item.price;
-            if (item.tdp) totalWatts += item.tdp;
-        });
-        document.getElementById('collapsedWatts').innerText = totalWatts;
-        document.getElementById('collapsedPrice').innerText = totalPrice.toLocaleString();
-
-        let gridHtml = '';
-        allCategories.forEach((cat, idx) => {
-            const selected = currentBuild.find(c => c.type === cat.type);
-            let iconHtml = '';
-            if (selected && selected.imageUrl) {
-                iconHtml = `<img src="${selected.imageUrl}" alt="${selected.name}">`;
-            } else {
-                iconHtml = `<i class="bi ${cat.icon}"></i>`;
-            }
-            const label = selected ? selected.name : cat.defaultName;
-            gridHtml += `
-                <div class="collapsed-category" data-type="${cat.type}" data-index="${idx}">
-                    <div class="collapsed-category-icon">${iconHtml}</div>
-                    <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
-                </div>
-            `;
-        });
-        document.getElementById('collapsedCategoriesGrid').innerHTML = gridHtml;
-        document.querySelectorAll('.collapsed-category').forEach(el => {
-            el.addEventListener('click', () => {
-                const type = el.getAttribute('data-type');
-                if (type === "Процессор") window.location.href = '/Processors';
-                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
-                else if (type === "Материнская плата") window.location.href = '/Motherboards';
-                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
-            });
-        });
-    }
-
-    function addToBuild(id, name, price, type, tdp, imageUrl) {
-        fetch('/PcBuilder/AddComponent', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, name, price, type, tdp, imageUrl })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                currentBuild = data.build;
-                renderAll();
-            } else {
-                alert('Ошибка добавления');
-            }
-        });
-    }
-
-    function removeFromBuild(id) {
-        fetch('/PcBuilder/RemoveComponent', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                currentBuild = data.build;
-                renderAll();
-            }
-        });
-    }
-
-    // Кнопки "Выбрать" в карточках
-    document.querySelectorAll('.select-component').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            addToBuild(
-                parseInt(this.dataset.id),
-                this.dataset.name,
-                parseFloat(this.dataset.price),
-                this.dataset.type,
-                parseInt(this.dataset.tdp) || 0,
-                this.dataset.image
-            );
-        });
-    });
-
-    // Открытие модального окна
-    document.querySelectorAll('.graphics-card').forEach(card => {
-        card.addEventListener('click', async function(e) {
-            if (e.target.closest('.select-component')) return;
-            const cardId = this.getAttribute('data-id');
-            const contentDiv = document.getElementById('modalContent');
-            contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
-            try {
-                const response = await fetch(`/GraphicsCards/GetGraphicsCard/${cardId}`);
-                const gpu = await response.json();
-
-                // Основная информация (только непустые поля)
-                let part1Rows = '';
-                if (gpu.brand) part1Rows += `<tr><td>Бренд</td><td>${gpu.brand}</td></tr>`;
-                if (gpu.series) part1Rows += `<tr><td>Серия</td><td>${gpu.series}</td></tr>`;
-                if (gpu.model) part1Rows += `<tr><td>Модель</td><td>${gpu.model}</td></tr>`;
-                if (gpu.partNumber) part1Rows += `<tr><td>Артикул</td><td>${gpu.partNumber}</td></tr>`;
-                if (gpu.interface) part1Rows += `<tr><td>Интерфейс</td><td>${gpu.interface}</td></tr>`;
-                if (gpu.chipsetManufacturer) part1Rows += `<tr><td>Производитель чипсета</td><td>${gpu.chipsetManufacturer}</td></tr>`;
-                if (gpu.gpuSeries) part1Rows += `<tr><td>Серия GPU</td><td>${gpu.gpuSeries}</td></tr>`;
-                if (gpu.gpu) part1Rows += `<tr><td>GPU</td><td>${gpu.gpu}</td></tr>`;
-
-                const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
-
-                // Детальные характеристики
-                let part2Rows = '';
-                if (gpu.coreClock) part2Rows += `<tr><td>Базовая частота (МГц)</td><td>${gpu.coreClock}</td></tr>`;
-                if (gpu.boostClock) part2Rows += `<tr><td>Boost частота (МГц)</td><td>${gpu.boostClock}</td></tr>`;
-                if (gpu.cudaCores) part2Rows += `<tr><td>CUDA ядра/Потоковые процессоры</td><td>${gpu.cudaCores}</td></tr>`;
-                if (gpu.effectiveMemoryClock) part2Rows += `<tr><td>Эффективная частота памяти (МГц)</td><td>${gpu.effectiveMemoryClock}</td></tr>`;
-                if (gpu.memorySize) part2Rows += `<tr><td>Объём памяти (ГБ)</td><td>${gpu.memorySize}</td></tr>`;
-                if (gpu.memoryInterface) part2Rows += `<tr><td>Шина памяти (бит)</td><td>${gpu.memoryInterface}</td></tr>`;
-                if (gpu.memoryType) part2Rows += `<tr><td>Тип памяти</td><td>${gpu.memoryType}</td></tr>`;
-                if (gpu.directX) part2Rows += `<tr><td>DirectX</td><td>${gpu.directX}</td></tr>`;
-                if (gpu.openGL) part2Rows += `<tr><td>OpenGL</td><td>${gpu.openGL}</td></tr>`;
-                if (gpu.multiMonitorSupport) part2Rows += `<tr><td>Поддержка нескольких мониторов</td><td>${gpu.multiMonitorSupport}</td></tr>`;
-                if (gpu.hdmiPorts) part2Rows += `<tr><td>HDMI порты</td><td>${gpu.hdmiPorts}</td></tr>`;
-                if (gpu.displayPorts) part2Rows += `<tr><td>DisplayPort порты</td><td>${gpu.displayPorts}</td></tr>`;
-                if (gpu.color) part2Rows += `<tr><td>Цвет</td><td>${gpu.color}</td></tr>`;
-                if (gpu.maxResolution) part2Rows += `<tr><td>Макс. разрешение</td><td>${gpu.maxResolution}</td></tr>`;
-                if (gpu.sliSupport) part2Rows += `<tr><td>Поддержка SLI/CrossFire</td><td>${gpu.sliSupport}</td></tr>`;
-                if (gpu.virtualRealityReady) part2Rows += `<tr><td>Готова к VR</td><td>${gpu.virtualRealityReady}</td></tr>`;
-                if (gpu.cooler) part2Rows += `<tr><td>Охлаждение</td><td>${gpu.cooler}</td></td>`;
-                if (gpu.thermalDesignPower) part2Rows += `<tr><td>TDP (Вт)</td><td>${gpu.thermalDesignPower}</td></tr>`;
-                if (gpu.recommendedPsuWattage) part2Rows += `<tr><td>Рекомендуемая мощность БП (Вт)</td><td>${gpu.recommendedPsuWattage}</td></tr>`;
-                if (gpu.powerConnector) part2Rows += `<tr><td>Разъём питания</td><td>${gpu.powerConnector}</td></tr>`;
-                if (gpu.hdcpReady) part2Rows += `<tr><td>Поддержка HDCP</td><td>${gpu.hdcpReady}</td></tr>`;
-                if (gpu.formFactor) part2Rows += `<tr><td>Форм-фактор</td><td>${gpu.formFactor}</td></tr>`;
-                if (gpu.maxGpuLength) part2Rows += `<tr><td>Длина (мм)</td><td>${gpu.maxGpuLength}</td></tr>`;
-                if (gpu.cardDimensions) part2Rows += `<tr><td>Размеры (Д x В x Ш, мм)</td><td>${gpu.cardDimensions}</td></tr>`;
-
-                const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
-
-                const title = `${gpu.brand} ${gpu.model}`;
-                const imageUrl = gpu.imageUrl || '/images/placeholder.png';
-                const priceHtml = `<div class="price-large mb-2">${gpu.price.toLocaleString()} ₽</div>`;
-                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${gpu.id}" data-name="${title}" data-price="${gpu.price}" data-tdp="${gpu.thermalDesignPower}" data-image="${imageUrl}" data-type="Видеокарта"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
-
-                contentDiv.innerHTML = `
-                    <div class="d-flex justify-content-end mb-2">
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="d-flex align-items-center gap-3">
-                            <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
-                            <h5 class="mb-0">${title}</h5>
-                        </div>
-                        <div class="text-end">
-                            ${priceHtml}
-                            ${selectBtn}
-                        </div>
-                    </div>
-                    ${part1}
-                    ${part2}
-                `;
-
-                document.querySelector('.select-from-modal').addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    addToBuild(
-                        parseInt(this.dataset.id),
-                        this.dataset.name,
-                        parseFloat(this.dataset.price),
-                        this.dataset.type,
-                        parseInt(this.dataset.tdp) || 0,
-                        this.dataset.image
-                    );
-                    bootstrap.Modal.getInstance(document.getElementById('graphicsModal')).hide();
-                });
-
-                const modal = new bootstrap.Modal(document.getElementById('graphicsModal'));
-                modal.show();
-            } catch (error) {
-                contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
-            }
-        });
-    });
-
-    // Управление сворачиванием панели
-    const sidebar = document.getElementById('buildSidebar');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const body = document.body;
-    toggleBtn.addEventListener('click', () => {
-        if (sidebar.classList.contains('collapsed')) {
-            sidebar.classList.remove('collapsed');
-            sidebar.classList.add('expanded');
-            body.classList.remove('sidebar-collapsed');
-            body.classList.add('sidebar-expanded');
-            toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
-        } else {
-            sidebar.classList.remove('expanded');
-            sidebar.classList.add('collapsed');
-            body.classList.remove('sidebar-expanded');
-            body.classList.add('sidebar-collapsed');
-            toggleBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
-        }
-    });
-    body.classList.add('sidebar-collapsed');
-
-    loadBuildFromSession();
     </script>
 }
