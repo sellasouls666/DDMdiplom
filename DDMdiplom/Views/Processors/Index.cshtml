@@ -424,31 +424,28 @@
                 removeFromBuild(id);
             });
         });
+        // Обработчики на кнопки "Выбрать" (select-component-sidebar)
         document.querySelectorAll('.select-component-sidebar').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const type = btn.getAttribute('data-type');
-                if (type === "Процессор") {
-                    window.location.href = '/Processors';
-                } else if (type === "Видеокарта") {
-                    window.location.href = '/GraphicsCards';
-                } else {
-                    alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
-                }
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else if (type === "Материнская плата") window.location.href = '/Motherboards';
+                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
             });
         });
+
+        // Клик по строке компонента (component-item)
         document.querySelectorAll('.component-item').forEach(row => {
             row.addEventListener('click', (e) => {
                 if (e.target.closest('.delete-component')) return;
                 if (e.target.closest('.select-component-sidebar')) return;
                 const type = row.getAttribute('data-type');
-                if (type === "Процессор") {
-                    window.location.href = '/Processors';
-                } else if (type === "Видеокарта") {
-                    window.location.href = '/GraphicsCards';
-                } else if (type) {
-                    alert(`Переход на страницу ${type} (пока не реализовано)`);
-                }
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else if (type === "Материнская плата") window.location.href = '/Motherboards';
+                else if (type) alert(`Переход на страницу ${type} (пока не реализовано)`);
             });
         });
     }
@@ -483,13 +480,10 @@
         document.querySelectorAll('.collapsed-category').forEach(el => {
             el.addEventListener('click', () => {
                 const type = el.getAttribute('data-type');
-                if (type === "Процессор") {
-                    window.location.href = '/Processors';
-                } else if (type === "Видеокарта") {
-                    window.location.href = '/GraphicsCards';
-                } else {
-                    alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
-                }
+                if (type === "Процессор") window.location.href = '/Processors';
+                else if (type === "Видеокарта") window.location.href = '/GraphicsCards';
+                else if (type === "Материнская плата") window.location.href = '/Motherboards';
+                else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
             });
         });
     }

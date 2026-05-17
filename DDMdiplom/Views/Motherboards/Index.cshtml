@@ -1,14 +1,14 @@
-﻿@model IEnumerable<DDMdiplom.Models.GraphicsCard>
+﻿@model IEnumerable<DDMdiplom.Models.Motherboard>
 
 @{
-    ViewData["Title"] = "Видеокарты";
+    ViewData["Title"] = "Материнские платы";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Styles {
 <style>
-    /* ========== Карточки видеокарт ========== */
-    .graphics-card {
+    /* ========== Карточки материнских плат ========== */
+    .motherboard-card {
         border-radius: 20px;
         overflow: hidden;
         transition: transform 0.2s, box-shadow 0.2s;
@@ -20,7 +20,7 @@
         display: flex;
         flex-direction: column;
     }
-    .graphics-card:hover {
+    .motherboard-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 12px 24px rgba(0,0,0,0.1);
     }
@@ -39,7 +39,7 @@
         height: auto;
         object-fit: contain;
     }
-    .graphics-card:hover .card-img-top {
+    .motherboard-card:hover .card-img-top {
         transform: scale(1.02);
     }
     .card-body {
@@ -89,18 +89,18 @@
         justify-content: space-between;
         align-items: center;
     }
-    .graphics-grid {
+    .motherboards-grid {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
         gap: 24px;
     }
-    .graphics-grid .col {
+    .motherboards-grid .col {
         flex: 0 0 280px;
         max-width: 280px;
     }
 
-    /* ========== Боковая панель (та же, что и для процессоров) ========== */
+    /* ========== Боковая панель (та же, что и для других страниц) ========== */
     .build-sidebar {
         position: fixed;
         top: 80px;
@@ -317,37 +317,54 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Видеокарты</h1>
+        <h1>Материнские платы</h1>
     </div>
 
-    <div class="graphics-grid">
-        @foreach (var card in Model)
+    <div class="motherboards-grid">
+        @foreach (var mb in Model)
         {
-            var imageUrl = !string.IsNullOrEmpty(card.ImageUrl) ? card.ImageUrl : "/images/placeholder.png";
+            var imageUrl = !string.IsNullOrEmpty(mb.ImageUrl) ? mb.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card graphics-card h-100" data-id="@card.Id">
+                <div class="card motherboard-card h-100" data-id="@mb.Id">
                     <div class="card-img-container">
-                        <img src="@imageUrl" class="card-img-top" alt="@card.Model">
+                        <img src="@imageUrl" class="card-img-top" alt="@mb.Model">
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">@card.Brand @card.Model</h5>
+                        <h5 class="card-title">@mb.Brand @mb.Model</h5>
                         <div class="card-specs">
-                            <span class="spec-badge"><i class="bi bi-gpu-card"></i> @(card.Gpu ?? "GPU")</span>
-                            <span class="spec-badge"><i class="bi bi-memory"></i> @card.MemorySize ГБ</span>
-                            <span class="spec-badge"><i class="bi bi-fan"></i> @(string.IsNullOrEmpty(card.Cooler) ? "Не указано" : card.Cooler)</span>
-                            <span class="spec-badge"><i class="bi bi-lightning-charge"></i> @card.ThermalDesignPower Вт</span>
+                            <span class="spec-badge"><i class="bi bi-cpu"></i> @mb.CpuSocketType</span>
+                            <span class="spec-badge"><i class="bi bi-pc-display"></i> @(string.IsNullOrEmpty(mb.FormFactor) ? "—" : mb.FormFactor)</span>
+                            <span class="spec-badge"><i class="bi bi-memory"></i> @(mb.MaxMemorySize.HasValue ? mb.MaxMemorySize.Value.ToString() + " ГБ" : "—")</span>
+                            <span class="spec-badge"><i class="bi bi-motherboard"></i> @mb.Chipset</span>
+                            <span class="spec-badge"><i class="bi bi-layers"></i> 
+                                @{
+                                    var slots = mb.MemorySlots.HasValue ? mb.MemorySlots.Value.ToString() : "?";
+                                    var memoryType = "";
+                                    if (!string.IsNullOrEmpty(mb.MemoryStandard))
+                                    {
+                                        // Извлекаем тип DDR (DDR3, DDR4, DDR5 и т.д.)
+                                        var match = System.Text.RegularExpressions.Regex.Match(mb.MemoryStandard, @"\bDDR\d+\b");
+                                        if (match.Success)
+                                            memoryType = match.Value;
+                                    }
+                                    var displayText = $"{slots} слота";
+                                    if (!string.IsNullOrEmpty(memoryType))
+                                        displayText += $" ({memoryType})";
+                                }
+                                @displayText
+                            </span>
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3 pt-0">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="price">@string.Format("{0:N0}", card.Price) ₽</span>
+                            <span class="price">@string.Format("{0:N0}", mb.Price) ₽</span>
                             <button class="btn btn-outline-dark btn-outline-add select-component"
-                                    data-id="@card.Id"
-                                    data-name="@card.Brand @card.Model"
-                                    data-price="@card.Price"
-                                    data-tdp="@card.ThermalDesignPower"
+                                    data-id="@mb.Id"
+                                    data-name="@mb.Brand @mb.Model"
+                                    data-price="@mb.Price"
+                                    data-tdp="0"
                                     data-image="@imageUrl"
-                                    data-type="Видеокарта">
+                                    data-type="Материнская плата">
                                 <i class="bi bi-plus-lg"></i> Выбрать
                             </button>
                         </div>
@@ -359,7 +376,7 @@
 </div>
 
 <!-- Модальное окно -->
-<div class="modal fade" id="graphicsModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="motherboardModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -371,7 +388,7 @@
     </div>
 </div>
 
-<!-- Боковая панель сборки (та же, что и в процессорах) -->
+<!-- Боковая панель сборки -->
 <div id="buildSidebar" class="build-sidebar collapsed">
     <div class="sidebar-toggle" id="sidebarToggle">
         <i class="bi bi-chevron-left"></i>
@@ -395,7 +412,7 @@
             <div class="total-stats">
                 <div><span>Количество компонентов:</span> <strong id="selectedCount">0</strong></div>
                 <div><span>Суммарная мощность:</span> <span class="value-group"><strong id="totalWatts">0</strong> <span>Вт</span></span></div>
-                <div><span>Общая цена:</span> <strong id="totalPriceSidebar">0</strong></div>
+                <div><span>Общая цена:</span> <strong id="totalPriceSidebar">0</strong> ₽</div>
             </div>
             <button class="btn btn-outline-secondary btn-sidebar" id="resetBuildBtn">Сбросить сборку</button>
             <button class="btn btn-dark btn-sidebar" id="saveBuildBtn">Сохранить сборку</button>
@@ -405,7 +422,7 @@
 
 @section Scripts {
     <script>
-    // Все категории (та же, что и раньше)
+    // Все категории
     const allCategories = [
         { type: "Процессор", icon: "bi-cpu", defaultName: "Процессор" },
         { type: "Видеокарта", icon: "bi-gpu-card", defaultName: "Видеокарта" },
@@ -489,7 +506,6 @@
                 removeFromBuild(id);
             });
         });
-        // Обработчики на кнопки "Выбрать" (select-component-sidebar)
         document.querySelectorAll('.select-component-sidebar').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -500,8 +516,6 @@
                 else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
             });
         });
-
-        // Клик по строке компонента (component-item)
         document.querySelectorAll('.component-item').forEach(row => {
             row.addEventListener('click', (e) => {
                 if (e.target.closest('.delete-component')) return;
@@ -600,63 +614,59 @@
         });
     });
 
-    // Открытие модального окна
-    document.querySelectorAll('.graphics-card').forEach(card => {
+    // Открытие модального окна для материнской платы
+    document.querySelectorAll('.motherboard-card').forEach(card => {
         card.addEventListener('click', async function(e) {
             if (e.target.closest('.select-component')) return;
-            const cardId = this.getAttribute('data-id');
+            const mbId = this.getAttribute('data-id');
             const contentDiv = document.getElementById('modalContent');
             contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
             try {
-                const response = await fetch(`/GraphicsCards/GetGraphicsCard/${cardId}`);
-                const gpu = await response.json();
+                const response = await fetch(`/Motherboards/GetMotherboard/${mbId}`);
+                const mb = await response.json();
 
                 // Основная информация (только непустые поля)
                 let part1Rows = '';
-                if (gpu.brand) part1Rows += `<tr><td>Бренд</td><td>${gpu.brand}</td></tr>`;
-                if (gpu.series) part1Rows += `<tr><td>Серия</td><td>${gpu.series}</td></tr>`;
-                if (gpu.model) part1Rows += `<tr><td>Модель</td><td>${gpu.model}</td></tr>`;
-                if (gpu.partNumber) part1Rows += `<tr><td>Артикул</td><td>${gpu.partNumber}</td></tr>`;
-                if (gpu.interface) part1Rows += `<tr><td>Интерфейс</td><td>${gpu.interface}</td></tr>`;
-                if (gpu.chipsetManufacturer) part1Rows += `<tr><td>Производитель чипсета</td><td>${gpu.chipsetManufacturer}</td></tr>`;
-                if (gpu.gpuSeries) part1Rows += `<tr><td>Серия GPU</td><td>${gpu.gpuSeries}</td></tr>`;
-                if (gpu.gpu) part1Rows += `<tr><td>GPU</td><td>${gpu.gpu}</td></tr>`;
+                if (mb.brand) part1Rows += `<tr><td>Бренд</td><td>${mb.brand}</td></td>`;
+                if (mb.model) part1Rows += `<tr><td>Модель</td><td>${mb.model}</td></tr>`;
+                if (mb.cpuSocketType) part1Rows += `<tr><td>Сокет CPU</td><td>${mb.cpuSocketType}</td></td>`;
+                if (mb.cpuType) part1Rows += `<tr><td>Поддерживаемые CPU</td><td>${mb.cpuType}</td></tr>`;
+                if (mb.chipset) part1Rows += `<tr><td>Чипсет</td><td>${mb.chipset}</td></tr>`;
+                if (mb.formFactor) part1Rows += `<tr><td>Форм-фактор</td><td>${mb.formFactor}</td></tr>`;
 
                 const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
 
                 // Детальные характеристики
                 let part2Rows = '';
-                if (gpu.coreClock) part2Rows += `<tr><td>Базовая частота (МГц)</td><td>${gpu.coreClock}</td></tr>`;
-                if (gpu.boostClock) part2Rows += `<tr><td>Boost частота (МГц)</td><td>${gpu.boostClock}</td></tr>`;
-                if (gpu.cudaCores) part2Rows += `<tr><td>CUDA ядра/Потоковые процессоры</td><td>${gpu.cudaCores}</td></tr>`;
-                if (gpu.effectiveMemoryClock) part2Rows += `<tr><td>Эффективная частота памяти (МГц)</td><td>${gpu.effectiveMemoryClock}</td></tr>`;
-                if (gpu.memorySize) part2Rows += `<tr><td>Объём памяти (ГБ)</td><td>${gpu.memorySize}</td></tr>`;
-                if (gpu.memoryInterface) part2Rows += `<tr><td>Шина памяти (бит)</td><td>${gpu.memoryInterface}</td></tr>`;
-                if (gpu.memoryType) part2Rows += `<tr><td>Тип памяти</td><td>${gpu.memoryType}</td></tr>`;
-                if (gpu.directX) part2Rows += `<tr><td>DirectX</td><td>${gpu.directX}</td></tr>`;
-                if (gpu.openGL) part2Rows += `<tr><td>OpenGL</td><td>${gpu.openGL}</td></tr>`;
-                if (gpu.multiMonitorSupport) part2Rows += `<tr><td>Поддержка нескольких мониторов</td><td>${gpu.multiMonitorSupport}</td></tr>`;
-                if (gpu.hdmiPorts) part2Rows += `<tr><td>HDMI порты</td><td>${gpu.hdmiPorts}</td></tr>`;
-                if (gpu.displayPorts) part2Rows += `<tr><td>DisplayPort порты</td><td>${gpu.displayPorts}</td></tr>`;
-                if (gpu.color) part2Rows += `<tr><td>Цвет</td><td>${gpu.color}</td></tr>`;
-                if (gpu.maxResolution) part2Rows += `<tr><td>Макс. разрешение</td><td>${gpu.maxResolution}</td></tr>`;
-                if (gpu.sliSupport) part2Rows += `<tr><td>Поддержка SLI/CrossFire</td><td>${gpu.sliSupport}</td></tr>`;
-                if (gpu.virtualRealityReady) part2Rows += `<tr><td>Готова к VR</td><td>${gpu.virtualRealityReady}</td></tr>`;
-                if (gpu.cooler) part2Rows += `<tr><td>Охлаждение</td><td>${gpu.cooler}</td></td>`;
-                if (gpu.thermalDesignPower) part2Rows += `<tr><td>TDP (Вт)</td><td>${gpu.thermalDesignPower}</td></tr>`;
-                if (gpu.recommendedPsuWattage) part2Rows += `<tr><td>Рекомендуемая мощность БП (Вт)</td><td>${gpu.recommendedPsuWattage}</td></tr>`;
-                if (gpu.powerConnector) part2Rows += `<tr><td>Разъём питания</td><td>${gpu.powerConnector}</td></tr>`;
-                if (gpu.hdcpReady) part2Rows += `<tr><td>Поддержка HDCP</td><td>${gpu.hdcpReady}</td></tr>`;
-                if (gpu.formFactor) part2Rows += `<tr><td>Форм-фактор</td><td>${gpu.formFactor}</td></tr>`;
-                if (gpu.maxGpuLength) part2Rows += `<tr><td>Длина (мм)</td><td>${gpu.maxGpuLength}</td></tr>`;
-                if (gpu.cardDimensions) part2Rows += `<tr><td>Размеры (Д x В x Ш, мм)</td><td>${gpu.cardDimensions}</td></tr>`;
+                if (mb.memorySlots) part2Rows += `<tr><td>Слотов памяти</td><td>${mb.memorySlots}</td></tr>`;
+                if (mb.memoryStandard) part2Rows += `<tr><td>Стандарт памяти</td><td>${mb.memoryStandard}</td></tr>`;
+                if (mb.maxMemorySize) part2Rows += `<tr><td>Макс. объём памяти (ГБ)</td><td>${mb.maxMemorySize}</td></tr>`;
+                if (mb.eccSupported) part2Rows += `<tr><td>Поддержка ECC</td><td>${mb.eccSupported}</td></tr>`;
+                if (mb.pciExpress50x16) part2Rows += `<tr><td>PCI Express 5.0 x16</td><td>${mb.pciExpress50x16}</td></tr>`;
+                if (mb.pciExpressX4) part2Rows += `<tr><td>PCI Express x4</td><td>${mb.pciExpressX4}</td></tr>`;
+                if (mb.pciExpressX1) part2Rows += `<tr><td>PCI Express x1</td><td>${mb.pciExpressX1}</td></tr>`;
+                if (mb.sataPorts) part2Rows += `<tr><td>SATA порты</td><td>${mb.sataPorts}</td></tr>`;
+                if (mb.m2Slots) part2Rows += `<tr><td>M.2 слоты</td><td>${mb.m2Slots}</td></tr>`;
+                if (mb.audioChipset) part2Rows += `<tr><td>Аудио чипсет</td><td>${mb.audioChipset}</td></tr>`;
+                if (mb.audioChannels) part2Rows += `<tr><td>Аудио каналы</td><td>${mb.audioChannels}</td></tr>`;
+                if (mb.lanChipset) part2Rows += `<tr><td>LAN чипсет</td><td>${mb.lanChipset}</td></tr>`;
+                if (mb.maxLanSpeed) part2Rows += `<tr><td>Скорость LAN (Мбит/с)</td><td>${mb.maxLanSpeed}</td></tr>`;
+                if (mb.wirelessLan) part2Rows += `<tr><td>Wi-Fi</td><td>${mb.wirelessLan}</td></tr>`;
+                if (mb.bluetooth) part2Rows += `<tr><td>Bluetooth</td><td>${mb.bluetooth}</td></tr>`;
+                if (mb.rearPanelPorts) part2Rows += `<tr><td>Задние порты IO</td><td>${mb.rearPanelPorts}</td></tr>`;
+                if (mb.internalIoConnectors) part2Rows += `<tr><td>Внутренние разъёмы IO</td><td>${mb.internalIoConnectors}</td></tr>`;
+                if (mb.ledLighting) part2Rows += `<tr><td>Подсветка</td><td>${mb.ledLighting}</td></tr>`;
+                if (mb.dimensions) part2Rows += `<tr><td>Размеры (Д x Ш, дюймы)</td><td>${mb.dimensions}</td></tr>`;
+                if (mb.powerConnectors) part2Rows += `<tr><td>Разъёмы питания</td><td>${mb.powerConnectors}</td></tr>`;
+                if (mb.biosFeature) part2Rows += `<tr><td>Особенности BIOS</td><td>${mb.biosFeature}</td></tr>`;
+                if (mb.features) part2Rows += `<tr><td>Особенности</td><td>${mb.features}</td></tr>`;
 
                 const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
 
-                const title = `${gpu.brand} ${gpu.model}`;
-                const imageUrl = gpu.imageUrl || '/images/placeholder.png';
-                const priceHtml = `<div class="price-large mb-2">${gpu.price.toLocaleString()} ₽</div>`;
-                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${gpu.id}" data-name="${title}" data-price="${gpu.price}" data-tdp="${gpu.thermalDesignPower}" data-image="${imageUrl}" data-type="Видеокарта"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+                const title = `${mb.brand} ${mb.model}`;
+                const imageUrl = mb.imageUrl || '/images/placeholder.png';
+                const priceHtml = `<div class="price-large mb-2">${mb.price.toLocaleString()} ₽</div>`;
+                const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${mb.id}" data-name="${title}" data-price="${mb.price}" data-tdp="0" data-image="${imageUrl}" data-type="Материнская плата"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
 
                 contentDiv.innerHTML = `
                     <div class="d-flex justify-content-end mb-2">
@@ -686,10 +696,10 @@
                         parseInt(this.dataset.tdp) || 0,
                         this.dataset.image
                     );
-                    bootstrap.Modal.getInstance(document.getElementById('graphicsModal')).hide();
+                    bootstrap.Modal.getInstance(document.getElementById('motherboardModal')).hide();
                 });
 
-                const modal = new bootstrap.Modal(document.getElementById('graphicsModal'));
+                const modal = new bootstrap.Modal(document.getElementById('motherboardModal'));
                 modal.show();
             } catch (error) {
                 contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
