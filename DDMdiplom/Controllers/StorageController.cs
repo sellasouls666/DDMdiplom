@@ -1,24 +1,48 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DDMdiplom.Data;
+using DDMdiplom.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DDMdiplom.Controllers
 {
     public class StorageController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public StorageController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: /Storage (страница выбора типа накопителя)
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult HardDrives()
+        // GET: /Storage/HardDrives
+        public async Task<IActionResult> HardDrives()
         {
-            // Пока просто возвращаем пустую страницу, потом заменим на список HDD
-            return View();
+            var hardDrives = await _context.Storages
+                .Where(s => s.DeviceType == "HDD")
+                .ToListAsync();
+            return View(hardDrives);
         }
 
+        // GET: /Storage/Ssds (заглушка)
         public IActionResult Ssds()
         {
-            // Пока просто возвращаем пустую страницу, потом заменим на список SSD
-            return View();
+            // Позже реализуем
+            return Content("Страница со списком SSD будет позже");
+        }
+
+        // GET: /Storage/GetHardDrive/{id}
+        [HttpGet]
+        public async Task<IActionResult> GetHardDrive(int id)
+        {
+            var drive = await _context.Storages.FindAsync(id);
+            if (drive == null) return NotFound();
+            return Ok(drive);
         }
     }
 }

@@ -1,0 +1,267 @@
+﻿@model IEnumerable<DDMdiplom.Models.Storage>
+
+@{
+    ViewData["Title"] = "Жёсткие диски (HDD)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* ========== Карточки HDD ========== */
+        .hdd-card {
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            cursor: pointer;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .hdd-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        .card-img-container {
+            height: 220px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        .card-img-top {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        .hdd-card:hover .card-img-top {
+            transform: scale(1.02);
+        }
+        .card-body {
+            padding: 12px 12px 4px 12px;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        .spec-badge {
+            background: #f1f3f5;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #495057;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .card-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e2a3e;
+            white-space: nowrap;
+        }
+        .btn-outline-add {
+            border-radius: 40px;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .card-footer {
+            padding: 0 12px 14px 12px;
+            background: transparent;
+            border: none;
+        }
+        .card-footer .d-flex {
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hdd-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 24px;
+        }
+        .hdd-grid .col {
+            flex: 0 0 280px;
+            max-width: 280px;
+        }
+
+        /* Модальное окно */
+        .modal-specs-table { width: 100%; margin-bottom: 20px; }
+        .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
+        .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
+        .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
+        .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
+    </style>
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Жёсткие диски (HDD)</h1>
+    </div>
+
+    <div class="hdd-grid">
+        @foreach (var drive in Model)
+        {
+            var imageUrl = !string.IsNullOrEmpty(drive.ImageUrl) ? drive.ImageUrl : "/images/placeholder.png";
+            <div class="col">
+                <div class="card hdd-card h-100" data-id="@drive.Id">
+                    <div class="card-img-container">
+                        <img src="@imageUrl" class="card-img-top" alt="@drive.Model">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@drive.Brand @drive.Model</h5>
+                        <div class="card-specs">
+                            <span class="spec-badge"><i class="bi bi-hdd"></i> @(drive.Capacity ?? "—")</span>
+                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @(drive.Rpm.HasValue ? drive.Rpm + " RPM" : "—")</span>
+                            <span class="spec-badge"><i class="bi bi-database"></i> @(drive.Cache.HasValue ? drive.Cache + " MB" : "—")</span>
+                            <span class="spec-badge"><i class="bi bi-interface"></i> @(drive.Interface ?? "—")</span>
+                            <span class="spec-badge"><i class="bi bi-diagram-3"></i> @(drive.FormFactor ?? "—")</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", drive.Price) ₽</span>
+                            <button class="btn btn-outline-dark btn-outline-add select-component"
+                                    data-id="@drive.Id"
+                                    data-name="@drive.Brand @drive.Model"
+                                    data-price="@drive.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Накопитель">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Модальное окно для деталей HDD -->
+<div class="modal fade" id="hddModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="modalContent">
+                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_BuildSidebar")
+
+@section Scripts {
+    <script>
+        // Обработчики для карточек HDD
+        document.querySelectorAll('.select-component').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const component = {
+                    id: parseInt(this.dataset.id),
+                    name: this.dataset.name,
+                    price: parseFloat(this.dataset.price),
+                    type: this.dataset.type,
+                    tdp: parseInt(this.dataset.tdp) || 0,
+                    imageUrl: this.dataset.image
+                };
+                if (typeof addToBuild === 'function') {
+                    addToBuild(component);
+                } else {
+                    console.error('addToBuild not defined');
+                }
+            });
+        });
+
+        // Открытие модального окна с деталями HDD
+        document.querySelectorAll('.hdd-card').forEach(card => {
+            card.addEventListener('click', async function(e) {
+                if (e.target.closest('.select-component')) return;
+                const driveId = this.getAttribute('data-id');
+                const contentDiv = document.getElementById('modalContent');
+                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+                try {
+                    const response = await fetch(`/Storage/GetHardDrive/${driveId}`);
+                    const drive = await response.json();
+
+                    let part1Rows = '';
+                    if (drive.brand) part1Rows += `<tr><td>Бренд</td><td>${drive.brand}</td></tr>`;
+                    if (drive.series) part1Rows += `<tr><td>Серия</td><td>${drive.series}</td></tr>`;
+                    if (drive.model) part1Rows += `<tr><td>Модель</td><td>${drive.model}</td></tr>`;
+                    if (drive.deviceType) part1Rows += `<tr><td>Тип устройства</td><td>${drive.deviceType}</td></tr>`;
+                    if (drive.formFactor) part1Rows += `<tr><td>Форм-фактор</td><td>${drive.formFactor}</td></tr>`;
+                    if (drive.capacity) part1Rows += `<tr><td>Ёмкость</td><td>${drive.capacity}</td></tr>`;
+                    if (drive.interface) part1Rows += `<tr><td>Интерфейс</td><td>${drive.interface}</td></tr>`;
+                    const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</td></div>` : '';
+
+                    let part2Rows = '';
+                    if (drive.rpm) part2Rows += `<tr><td>Скорость вращения (RPM)</td><td>${drive.rpm}</td></tr>`;
+                    if (drive.cache) part2Rows += `<tr><td>Кэш (MB)</td><td>${drive.cache}</td></tr>`;
+                    if (drive.recordingTechnology) part2Rows += `<tr><td>Технология записи</td><td>${drive.recordingTechnology}</td></tr>`;
+                    if (drive.dimensions) part2Rows += `<tr><td>Размеры (Д×Ш×В, мм)</td><td>${drive.dimensions}</td></tr>`;
+                    if (drive.usage) part2Rows += `<tr><td>Рекомендуемое использование</td><td>${drive.usage}</td></tr>`;
+                    if (drive.features) part2Rows += `<tr><td>Особенности</td><td>${drive.features}</td></tr>`;
+                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
+
+                    const title = `${drive.brand} ${drive.model}`;
+                    const imageUrl = drive.imageUrl || '/images/placeholder.png';
+                    const priceHtml = `<div class="price-large mb-2">${drive.price.toLocaleString()} ₽</div>`;
+                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${drive.id}" data-name="${title}" data-price="${drive.price}" data-tdp="0" data-image="${imageUrl}" data-type="Накопитель"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                    contentDiv.innerHTML = `
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
+                                <h5 class="mb-0">${title}</h5>
+                            </div>
+                            <div class="text-end">
+                                ${priceHtml}
+                                ${selectBtn}
+                            </div>
+                        </div>
+                        ${part1}
+                        ${part2}
+                    `;
+
+                    document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const component = {
+                            id: parseInt(this.dataset.id),
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price),
+                            type: this.dataset.type,
+                            tdp: 0,
+                            imageUrl: this.dataset.image
+                        };
+                        if (typeof addToBuild === 'function') addToBuild(component);
+                    });
+
+                    const modal = new bootstrap.Modal(document.getElementById('hddModal'));
+                    modal.show();
+                } catch (error) {
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                }
+            });
+        });
+    </script>
+}

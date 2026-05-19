@@ -318,8 +318,37 @@
                         </div>
                     `;
                 }
+            } else if (cat.type === "Накопитель") {
+                // Все выбранные накопители
+                const storageItems = currentBuild.filter(c => c.type === cat.type);
+                if (storageItems.length > 0) {
+                    storageItems.forEach(selected => {
+                        html += `
+                            <div class="component-item" data-type="${cat.type}" data-id="${selected.id}">
+                                <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                                <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
+                                <div class="component-details">
+                                    <div class="component-name">${selected.name}</div>
+                                    <div class="component-price">${selected.price.toLocaleString()} ₽</div>
+                                </div>
+                                <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="component-item" data-type="${cat.type}">
+                            <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                            <div class="component-details">
+                                <div class="component-name">${cat.defaultName}</div>
+                                <div class="component-price">—</div>
+                            </div>
+                            <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
+                        </div>
+                    `;
+                }
             } else {
-                // Остальные категории – как раньше (только один компонент)
+                // Остальные категории – только один компонент
                 const selected = currentBuild.find(c => c.type === cat.type);
                 if (selected) {
                     html += `
@@ -349,6 +378,7 @@
         });
         document.getElementById('componentsList').innerHTML = html;
 
+        // Обработчики удаления и выбора
         document.querySelectorAll('.delete-component').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -408,6 +438,34 @@
                 }
             }
         }
+
+        // Логика для накопителей (добавление кнопки)
+        const storageComponents = Array.from(document.querySelectorAll('.component-item[data-type="Накопитель"]'))
+            .filter(el => el.querySelector('.delete-component'));
+        if (storageComponents.length > 0) {
+            let currentDrives = currentBuild.filter(c => c.type === "Накопитель").length;
+            let maxDrives = 2; // по умолчанию
+            const motherboardComponent = currentBuild.find(c => c.type === "Материнская плата");
+            if (motherboardComponent && motherboardComponent.sataPorts) {
+                // предполагается, что в BuildComponent есть поле sataPorts (число)
+                maxDrives = motherboardComponent.sataPorts;
+            }
+            if (currentDrives < maxDrives) {
+                const lastStorage = storageComponents[storageComponents.length - 1];
+                if (!document.getElementById('addMoreStorageBtn')) {
+                    const addButtonHtml = `
+                        <div class="component-item" style="justify-content: center; background: transparent; cursor: default;">
+                            <button class="btn btn-sm btn-outline-secondary" id="addMoreStorageBtn">+ Добавить ещё накопитель</button>
+                        </div>
+                    `;
+                    lastStorage.insertAdjacentHTML('afterend', addButtonHtml);
+                    document.getElementById('addMoreStorageBtn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        window.location.href = '/Storage';
+                    });
+                }
+            }
+        }
     }
 
     function renderSidebarCollapsed() {
@@ -422,20 +480,40 @@
         let gridHtml = '';
         allCategories.forEach((cat, idx) => {
             if (cat.type === "Оперативная память") {
-                const memoryItems = currentBuild.filter(c => c.type === cat.type);
-                if (memoryItems.length > 0) {
-                    memoryItems.forEach((mem, memIdx) => {
-                        const iconHtml = mem.imageUrl ? `<img src="${mem.imageUrl}" alt="${mem.name}">` : `<i class="bi ${cat.icon}"></i>`;
-                        const label = `${mem.name}${mem.moduleCount > 1 ? ' x' + mem.moduleCount : ''}`;
+                const items = currentBuild.filter(c => c.type === cat.type);
+                if (items.length > 0) {
+                    items.forEach((item, itemIdx) => {
+                        const iconHtml = item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}">` : `<i class="bi ${cat.icon}"></i>`;
+                        const label = `${item.name}${item.moduleCount > 1 ? ' x' + item.moduleCount : ''}`;
                         gridHtml += `
-                            <div class="collapsed-category" data-type="${cat.type}" data-id="${mem.id}" data-index="mem_${memIdx}">
+                            <div class="collapsed-category" data-type="${cat.type}" data-id="${item.id}" data-index="mem_${itemIdx}">
                                 <div class="collapsed-category-icon">${iconHtml}</div>
                                 <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
                             </div>
                         `;
                     });
                 } else {
-                    // Пустая память – одна иконка
+                    gridHtml += `
+                        <div class="collapsed-category" data-type="${cat.type}" data-index="empty">
+                            <div class="collapsed-category-icon"><i class="bi ${cat.icon}"></i></div>
+                            <div class="collapsed-category-label">${cat.defaultName}</div>
+                        </div>
+                    `;
+                }
+            } else if (cat.type === "Накопитель") {
+                const items = currentBuild.filter(c => c.type === cat.type);
+                if (items.length > 0) {
+                    items.forEach((item, itemIdx) => {
+                        const iconHtml = item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}">` : `<i class="bi ${cat.icon}"></i>`;
+                        const label = item.name;
+                        gridHtml += `
+                            <div class="collapsed-category" data-type="${cat.type}" data-id="${item.id}" data-index="storage_${itemIdx}">
+                                <div class="collapsed-category-icon">${iconHtml}</div>
+                                <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
+                            </div>
+                        `;
+                    });
+                } else {
                     gridHtml += `
                         <div class="collapsed-category" data-type="${cat.type}" data-index="empty">
                             <div class="collapsed-category-icon"><i class="bi ${cat.icon}"></i></div>
@@ -457,7 +535,6 @@
         });
         document.getElementById('collapsedCategoriesGrid').innerHTML = gridHtml;
 
-        // Обработчики кликов
         document.querySelectorAll('.collapsed-category').forEach(el => {
             el.addEventListener('click', () => {
                 const type = el.getAttribute('data-type');
