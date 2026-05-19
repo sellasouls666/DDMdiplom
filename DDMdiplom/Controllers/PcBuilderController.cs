@@ -51,40 +51,43 @@ namespace DDMdiplom.Controllers
             // Специальная обработка для оперативной памяти
             if (component.Type == "Оперативная память")
             {
-                // Найти выбранную материнскую плату в сборке
+                // Определяем максимальное количество слотов памяти (из материнской платы или по умолчанию 4)
+                int maxModules = 4;
                 var motherboardComponent = build.FirstOrDefault(c => c.Type == "Материнская плата");
-                int maxModules = 4; // значение по умолчанию, если материнской платы нет или слоты не указаны
                 if (motherboardComponent != null)
                 {
                     var motherboard = await _context.Motherboards.FindAsync(motherboardComponent.Id);
                     if (motherboard != null && motherboard.MemorySlots.HasValue)
-                    {
                         maxModules = motherboard.MemorySlots.Value;
-                    }
                 }
 
-                // Подсчитать уже выбранные модули RAM
+                // Считаем текущее количество модулей
                 int currentModules = build
                     .Where(c => c.Type == "Оперативная память")
                     .Sum(c => c.ModuleCount);
+                int newModules = component.ModuleCount;
+                int totalModules = currentModules + newModules;
 
-                if (currentModules + component.ModuleCount > maxModules)
+                if (totalModules > maxModules)
                 {
-                    return Json(new { success = false, error = $"Превышено количество слотов памяти (максимум {maxModules})" });
+                    // Если лимит превышен – удаляем самый старый комплект памяти (первый в списке)
+                    var oldestRam = build.FirstOrDefault(c => c.Type == "Оперативная память");
+                    if (oldestRam != null)
+                        build.Remove(oldestRam);
+                    // Добавляем новый комплект
+                    build.Add(component);
                 }
-            }
-
-            // Обработка добавления/замены компонента
-            if (component.Type != "Оперативная память")
-            {
-                // Для остальных компонентов заменяем старый тем же типом
-                var existing = build.FirstOrDefault(c => c.Type == component.Type);
-                if (existing != null) build.Remove(existing);
-                build.Add(component);
+                else
+                {
+                    build.Add(component);
+                }
             }
             else
             {
-                // Для памяти добавляем новый комплект, не удаляя предыдущие
+                // Для остальных компонентов: заменяем старый тем же типом
+                var existing = build.FirstOrDefault(c => c.Type == component.Type);
+                if (existing != null)
+                    build.Remove(existing);
                 build.Add(component);
             }
 

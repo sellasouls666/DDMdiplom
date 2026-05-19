@@ -289,30 +289,62 @@
 
         let html = '';
         allCategories.forEach(cat => {
-            const selected = currentBuild.find(c => c.type === cat.type);
-            if (selected) {
-                html += `
-                    <div class="component-item" data-type="${cat.type}">
-                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
-                        <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
-                        <div class="component-details">
-                            <div class="component-name">${selected.name}</div>
-                            <div class="component-price">${selected.price.toLocaleString()} ₽</div>
+            if (cat.type === "Оперативная память") {
+                // Все выбранные комплекты памяти
+                const memoryItems = currentBuild.filter(c => c.type === cat.type);
+                if (memoryItems.length > 0) {
+                    memoryItems.forEach(selected => {
+                        html += `
+                            <div class="component-item" data-type="${cat.type}" data-id="${selected.id}">
+                                <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                                <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
+                                <div class="component-details">
+                                    <div class="component-name">${selected.name}${selected.moduleCount > 1 ? ' x' + selected.moduleCount : ''}</div>
+                                    <div class="component-price">${selected.price.toLocaleString()} ₽</div>
+                                </div>
+                                <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="component-item" data-type="${cat.type}">
+                            <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                            <div class="component-details">
+                                <div class="component-name">${cat.defaultName}</div>
+                                <div class="component-price">—</div>
+                            </div>
+                            <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
                         </div>
-                        <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
-                    </div>
-                `;
+                    `;
+                }
             } else {
-                html += `
-                    <div class="component-item" data-type="${cat.type}">
-                        <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
-                        <div class="component-details">
-                            <div class="component-name">${cat.defaultName}</div>
-                            <div class="component-price">—</div>
+                // Остальные категории – как раньше (только один компонент)
+                const selected = currentBuild.find(c => c.type === cat.type);
+                if (selected) {
+                    html += `
+                        <div class="component-item" data-type="${cat.type}">
+                            <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                            <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
+                            <div class="component-details">
+                                <div class="component-name">${selected.name}</div>
+                                <div class="component-price">${selected.price.toLocaleString()} ₽</div>
+                            </div>
+                            <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
                         </div>
-                        <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
-                    </div>
-                `;
+                    `;
+                } else {
+                    html += `
+                        <div class="component-item" data-type="${cat.type}">
+                            <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                            <div class="component-details">
+                                <div class="component-name">${cat.defaultName}</div>
+                                <div class="component-price">—</div>
+                            </div>
+                            <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
+                        </div>
+                    `;
+                }
             }
         });
         document.getElementById('componentsList').innerHTML = html;
@@ -387,22 +419,43 @@
 
         let gridHtml = '';
         allCategories.forEach((cat, idx) => {
-            const selected = currentBuild.find(c => c.type === cat.type);
-            let iconHtml = '';
-            if (selected && selected.imageUrl) {
-                iconHtml = `<img src="${selected.imageUrl}" alt="${selected.name}">`;
+            if (cat.type === "Оперативная память") {
+                const memoryItems = currentBuild.filter(c => c.type === cat.type);
+                if (memoryItems.length > 0) {
+                    memoryItems.forEach((mem, memIdx) => {
+                        const iconHtml = mem.imageUrl ? `<img src="${mem.imageUrl}" alt="${mem.name}">` : `<i class="bi ${cat.icon}"></i>`;
+                        const label = `${mem.name}${mem.moduleCount > 1 ? ' x' + mem.moduleCount : ''}`;
+                        gridHtml += `
+                            <div class="collapsed-category" data-type="${cat.type}" data-id="${mem.id}" data-index="mem_${memIdx}">
+                                <div class="collapsed-category-icon">${iconHtml}</div>
+                                <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // Пустая память – одна иконка
+                    gridHtml += `
+                        <div class="collapsed-category" data-type="${cat.type}" data-index="empty">
+                            <div class="collapsed-category-icon"><i class="bi ${cat.icon}"></i></div>
+                            <div class="collapsed-category-label">${cat.defaultName}</div>
+                        </div>
+                    `;
+                }
             } else {
-                iconHtml = `<i class="bi ${cat.icon}"></i>`;
+                const selected = currentBuild.find(c => c.type === cat.type);
+                const iconHtml = (selected && selected.imageUrl) ? `<img src="${selected.imageUrl}" alt="${selected.name}">` : `<i class="bi ${cat.icon}"></i>`;
+                const label = selected ? selected.name : cat.defaultName;
+                gridHtml += `
+                    <div class="collapsed-category" data-type="${cat.type}" data-index="${idx}">
+                        <div class="collapsed-category-icon">${iconHtml}</div>
+                        <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
+                    </div>
+                `;
             }
-            const label = selected ? selected.name : cat.defaultName;
-            gridHtml += `
-                <div class="collapsed-category" data-type="${cat.type}" data-index="${idx}">
-                    <div class="collapsed-category-icon">${iconHtml}</div>
-                    <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
-                </div>
-            `;
         });
         document.getElementById('collapsedCategoriesGrid').innerHTML = gridHtml;
+
+        // Обработчики кликов
         document.querySelectorAll('.collapsed-category').forEach(el => {
             el.addEventListener('click', () => {
                 const type = el.getAttribute('data-type');
