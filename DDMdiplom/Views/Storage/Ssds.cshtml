@@ -1,14 +1,14 @@
 ﻿@model IEnumerable<DDMdiplom.Models.Storage>
 
 @{
-    ViewData["Title"] = "Жёсткие диски (HDD)";
+    ViewData["Title"] = "Твердотельные накопители (SSD)";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Styles {
     <style>
-        /* ========== Карточки HDD ========== */
-        .hdd-card {
+        /* ========== Карточки SSD ========== */
+        .ssd-card {
             border-radius: 20px;
             overflow: hidden;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -20,7 +20,7 @@
             display: flex;
             flex-direction: column;
         }
-        .hdd-card:hover {
+        .ssd-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 24px rgba(0,0,0,0.1);
         }
@@ -39,7 +39,7 @@
             height: auto;
             object-fit: contain;
         }
-        .hdd-card:hover .card-img-top {
+        .ssd-card:hover .card-img-top {
             transform: scale(1.02);
         }
         .card-body {
@@ -89,13 +89,13 @@
             justify-content: space-between;
             align-items: center;
         }
-        .hdd-grid {
+        .ssd-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-start;
             gap: 24px;
         }
-        .hdd-grid .col {
+        .ssd-grid .col {
             flex: 0 0 280px;
             max-width: 280px;
         }
@@ -111,24 +111,24 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Жёсткие диски (HDD)</h1>
+        <h1>Твердотельные накопители (SSD)</h1>
     </div>
 
-    <div class="hdd-grid">
+    <div class="ssd-grid">
         @foreach (var drive in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(drive.ImageUrl) ? drive.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card hdd-card h-100" data-id="@drive.Id">
+                <div class="card ssd-card h-100" data-id="@drive.Id">
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@drive.Model">
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">@drive.Brand @drive.Model</h5>
                         <div class="card-specs">
-                            <span class="spec-badge"><i class="bi bi-hdd"></i> @(drive.Capacity ?? "—")</span>
-                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @(drive.Rpm.HasValue ? drive.Rpm + " RPM" : "—")</span>
-                            <span class="spec-badge"><i class="bi bi-database"></i> @(drive.Cache.HasValue ? drive.Cache + " MB" : "—")</span>
+                            <span class="spec-badge"><i class="bi bi-memory"></i> @(drive.Capacity ?? "—")</span>
+                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @(drive.MaxSequentialRead.HasValue ? drive.MaxSequentialRead + " MB/s" : "—")</span>
+                            <span class="spec-badge"><i class="bi bi-arrow-repeat"></i> @(drive.MaxSequentialWrite.HasValue ? drive.MaxSequentialWrite + " MB/s" : "—")</span>
                             <span class="spec-badge"><i class="bi bi-interface"></i> @(drive.Interface ?? "—")</span>
                             <span class="spec-badge"><i class="bi bi-diagram-3"></i> @(drive.FormFactor ?? "—")</span>
                         </div>
@@ -153,8 +153,8 @@
     </div>
 </div>
 
-<!-- Модальное окно для деталей HDD -->
-<div class="modal fade" id="hddModal" tabindex="-1" aria-hidden="true">
+<!-- Модальное окно для деталей SSD -->
+<div class="modal fade" id="ssdModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -170,7 +170,7 @@
 
 @section Scripts {
     <script>
-        // Обработчики для карточек HDD
+        // Обработчики для карточек SSD
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -179,7 +179,7 @@
                     name: this.dataset.name,
                     price: parseFloat(this.dataset.price),
                     type: this.dataset.type,
-                    tdp: parseInt(this.dataset.tdp) || 0,
+                    tdp: 0,
                     imageUrl: this.dataset.image
                 };
                 if (typeof addToBuild === 'function') {
@@ -190,8 +190,8 @@
             });
         });
 
-        // Открытие модального окна с деталями HDD
-        document.querySelectorAll('.hdd-card').forEach(card => {
+        // Открытие модального окна с деталями SSD
+        document.querySelectorAll('.ssd-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
                 const driveId = this.getAttribute('data-id');
@@ -205,20 +205,22 @@
                     if (drive.brand) part1Rows += `<tr><td>Бренд</td><td>${drive.brand}</td></tr>`;
                     if (drive.series) part1Rows += `<tr><td>Серия</td><td>${drive.series}</td></tr>`;
                     if (drive.model) part1Rows += `<tr><td>Модель</td><td>${drive.model}</td></tr>`;
-                    if (drive.deviceType) part1Rows += `<tr><td>Тип устройства</td><td>${drive.deviceType}</td></tr>`;
-                    if (drive.formFactor) part1Rows += `<tr><td>Форм-фактор</td><td>${drive.formFactor}</td></tr>`;
-                    if (drive.capacity) part1Rows += `<tr><td>Ёмкость</td><td>${drive.capacity}</td></tr>`;
-                    if (drive.interface) part1Rows += `<tr><td>Интерфейс</td><td>${drive.interface}</td></tr>`;
+                    if (drive.deviceType) part1Rows += `<tr><td>Тип устройства\n}\n                            <td>${drive.deviceType}</td></tr>`;
+                    if (drive.formFactor) part1Rows += `<tr><td>Форм-фактор\n}\n                            <td>${drive.formFactor}</td>\n                        </tr>`;
+                    if (drive.capacity) part1Rows += `<tr><td>Ёмкость\n}\n                            <td>${drive.capacity}</td>\n                        </tr>`;
+                    if (drive.interface) part1Rows += `<tr><td>Интерфейс\n}\n                            <td>${drive.interface}</td>\n                        </tr>`;
+                    if (drive.protocol) part1Rows += `<tr><td>Протокол\n}\n                            <td>${drive.protocol}</td>\n                        </tr>`;
                     const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
 
                     let part2Rows = '';
-                    if (drive.rpm) part2Rows += `<tr><td>Скорость вращения (RPM)</td><td>${drive.rpm}</td></tr>`;
-                    if (drive.cache) part2Rows += `<tr><td>Кэш (MB)</td><td>${drive.cache}</td></tr>`;
-                    if (drive.recordingTechnology) part2Rows += `<tr><td>Технология записи</td><td>${drive.recordingTechnology}</td></tr>`;
-                    if (drive.dimensions) part2Rows += `<tr><td>Размеры (Д×Ш×В, мм)</td><td>${drive.dimensions}</td></tr>`;
-                    if (drive.usage) part2Rows += `<tr><td>Рекомендуемое использование</td><td>${drive.usage}</td></tr>`;
-                    if (drive.features) part2Rows += `<tr><td>Особенности</td><td>${drive.features}</td></tr>`;
-                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
+                    if (drive.maxSequentialRead) part2Rows += `<tr><td>Макс. чтение (MB/s)</td><td>${drive.maxSequentialRead}</td></tr>`;
+                    if (drive.maxSequentialWrite) part2Rows += `<tr><td>Макс. запись (MB/s)</td><td>${drive.maxSequentialWrite}</td></tr>`;
+                    if (drive.heatSink) part2Rows += `<tr><td>Радиатор\n}\n                            <td>${drive.heatSink}</td>\n                        </tr>`;
+                    if (drive.dimensions) part2Rows += `<tr><td>Размеры (Д×Ш×В, мм)</td><td>${drive.dimensions}</td>\n                        </tr>`;
+                    if (drive.weight.HasValue) part2Rows += `<tr><td>Вес (г)</td><td>${drive.Weight * 1000} г</td>\n                        </tr>`;
+                    if (drive.usage) part2Rows += `<tr><td>Рекомендуемое использование\n}\n                            <td>${drive.usage}</td>\n                        </tr>`;
+                    if (drive.features) part2Rows += `<tr><td>Особенности\n}\n                            <td>${drive.features}</td>\n                        </tr>`;
+                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}<td></div>` : '';
 
                     const title = `${drive.brand} ${drive.model}`;
                     const imageUrl = drive.imageUrl || '/images/placeholder.png';
@@ -256,7 +258,7 @@
                         if (typeof addToBuild === 'function') addToBuild(component);
                     });
 
-                    const modal = new bootstrap.Modal(document.getElementById('hddModal'));
+                    const modal = new bootstrap.Modal(document.getElementById('ssdModal'));
                     modal.show();
                 } catch (error) {
                     contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';

@@ -29,20 +29,22 @@ namespace DDMdiplom.Controllers
             return View(hardDrives);
         }
 
-        // GET: /Storage/Ssds (заглушка)
-        public IActionResult Ssds()
+        // GET: /Storage/Ssds
+        public async Task<IActionResult> Ssds()
         {
-            // Позже реализуем
-            return Content("Страница со списком SSD будет позже");
+            var ssds = await _context.Storages
+                .Where(s => s.DeviceType == "SSD" || s.DeviceType == "NVMe")
+                .ToListAsync();
+            return View(ssds);
         }
 
-        // GET: /Storage/GetHardDrive/{id}
+        // GET: /Storage/GetStorage/{id} (универсальный метод для деталей)
         [HttpGet]
-        public async Task<IActionResult> GetHardDrive(int id)
+        public async Task<IActionResult> GetStorage(int id)
         {
-            var drive = await _context.Storages.FindAsync(id);
-            if (drive == null) return NotFound();
-            return Ok(drive);
+            var storage = await _context.Storages.FindAsync(id);
+            if (storage == null) return NotFound();
+            return Ok(storage);
         }
     }
 }
