@@ -33,7 +33,8 @@ namespace DDMdiplom.Controllers
         public async Task<IActionResult> Ssds()
         {
             var ssds = await _context.Storages
-                .Where(s => s.DeviceType == "SSD" || s.DeviceType == "NVMe")
+                .Where(s => s.DeviceType != null &&
+                            (s.DeviceType.Contains("SSD") || s.DeviceType.Contains("NVMe")))
                 .ToListAsync();
             return View(ssds);
         }

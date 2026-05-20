@@ -170,7 +170,7 @@
 
 @section Scripts {
     <script>
-        // Обработчики для карточек SSD
+        // Обработчики кнопок "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -205,22 +205,22 @@
                     if (drive.brand) part1Rows += `<tr><td>Бренд</td><td>${drive.brand}</td></tr>`;
                     if (drive.series) part1Rows += `<tr><td>Серия</td><td>${drive.series}</td></tr>`;
                     if (drive.model) part1Rows += `<tr><td>Модель</td><td>${drive.model}</td></tr>`;
-                    if (drive.deviceType) part1Rows += `<tr><td>Тип устройства\n}\n                            <td>${drive.deviceType}</td></tr>`;
-                    if (drive.formFactor) part1Rows += `<tr><td>Форм-фактор\n}\n                            <td>${drive.formFactor}</td>\n                        </tr>`;
-                    if (drive.capacity) part1Rows += `<tr><td>Ёмкость\n}\n                            <td>${drive.capacity}</td>\n                        </tr>`;
-                    if (drive.interface) part1Rows += `<tr><td>Интерфейс\n}\n                            <td>${drive.interface}</td>\n                        </tr>`;
-                    if (drive.protocol) part1Rows += `<tr><td>Протокол\n}\n                            <td>${drive.protocol}</td>\n                        </tr>`;
+                    if (drive.deviceType) part1Rows += `<tr><td>Тип устройства</td><td>${drive.deviceType}</td></tr>`;
+                    if (drive.formFactor) part1Rows += `<tr><td>Форм-фактор</td><td>${drive.formFactor}</td></tr>`;
+                    if (drive.capacity) part1Rows += `<tr><td>Ёмкость</td><td>${drive.capacity}</td></tr>`;
+                    if (drive.interface) part1Rows += `<tr><td>Интерфейс</td><td>${drive.interface}</td></tr>`;
+                    if (drive.protocol) part1Rows += `<tr><td>Протокол</td><td>${drive.protocol}</td></tr>`;
                     const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
 
                     let part2Rows = '';
                     if (drive.maxSequentialRead) part2Rows += `<tr><td>Макс. чтение (MB/s)</td><td>${drive.maxSequentialRead}</td></tr>`;
                     if (drive.maxSequentialWrite) part2Rows += `<tr><td>Макс. запись (MB/s)</td><td>${drive.maxSequentialWrite}</td></tr>`;
-                    if (drive.heatSink) part2Rows += `<tr><td>Радиатор\n}\n                            <td>${drive.heatSink}</td>\n                        </tr>`;
-                    if (drive.dimensions) part2Rows += `<tr><td>Размеры (Д×Ш×В, мм)</td><td>${drive.dimensions}</td>\n                        </tr>`;
-                    if (drive.weight.HasValue) part2Rows += `<tr><td>Вес (г)</td><td>${drive.Weight * 1000} г</td>\n                        </tr>`;
-                    if (drive.usage) part2Rows += `<tr><td>Рекомендуемое использование\n}\n                            <td>${drive.usage}</td>\n                        </tr>`;
-                    if (drive.features) part2Rows += `<tr><td>Особенности\n}\n                            <td>${drive.features}</td>\n                        </tr>`;
-                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}<td></div>` : '';
+                    if (drive.heatSink) part2Rows += `<tr><td>Радиатор</td><td>${drive.heatSink}</td></tr>`;
+                    if (drive.dimensions) part2Rows += `<tr><td>Размеры (Д×Ш×В, мм)</td><td>${drive.dimensions}</td></tr>`;
+                    if (drive.weight) part2Rows += `<tr><td>Вес (г)</td><td>${(drive.weight * 1000).toFixed(0)} г</td></tr>`;
+                    if (drive.usage) part2Rows += `<tr><td>Рекомендуемое использование</td><td>${drive.usage}</td></tr>`;
+                    if (drive.features) part2Rows += `<tr><td>Особенности</td><td>${drive.features}</td></tr>`;
+                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
 
                     const title = `${drive.brand} ${drive.model}`;
                     const imageUrl = drive.imageUrl || '/images/placeholder.png';
@@ -261,6 +261,7 @@
                     const modal = new bootstrap.Modal(document.getElementById('ssdModal'));
                     modal.show();
                 } catch (error) {
+                    console.error(error);
                     contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
                 }
             });
