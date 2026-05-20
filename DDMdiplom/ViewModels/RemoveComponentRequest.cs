@@ -1,7 +1,4 @@
-﻿namespace DDMdiplom.ViewModels
+﻿public class RemoveComponentRequest
 {
-    public class RemoveComponentRequest
-    {
-        public int Id { get; set; }
-    }
+    public Guid InstanceId { get; set; }
 }

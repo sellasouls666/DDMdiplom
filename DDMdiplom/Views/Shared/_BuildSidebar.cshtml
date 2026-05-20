@@ -302,7 +302,7 @@
                                     <div class="component-name">${selected.name}${selected.moduleCount > 1 ? ' x' + selected.moduleCount : ''}</div>
                                     <div class="component-price">${selected.price.toLocaleString()} ₽</div>
                                 </div>
-                                <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
+                                <button class="delete-component" data-instance-id="${selected.instanceId}" title="Удалить"><i class="bi bi-trash"></i></button>
                             </div>
                         `;
                     });
@@ -331,7 +331,7 @@
                                     <div class="component-name">${selected.name}</div>
                                     <div class="component-price">${selected.price.toLocaleString()} ₽</div>
                                 </div>
-                                <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
+                                <button class="delete-component" data-instance-id="${selected.instanceId}" title="Удалить"><i class="bi bi-trash"></i></button>
                             </div>
                         `;
                     });
@@ -359,7 +359,7 @@
                                 <div class="component-name">${selected.name}</div>
                                 <div class="component-price">${selected.price.toLocaleString()} ₽</div>
                             </div>
-                            <button class="delete-component" data-id="${selected.id}" title="Удалить"><i class="bi bi-trash"></i></button>
+                            <button class="delete-component" data-instance-id="${selected.instanceId}" title="Удалить"><i class="bi bi-trash"></i></button>
                         </div>
                     `;
                 } else {
@@ -382,8 +382,8 @@
         document.querySelectorAll('.delete-component').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const id = parseInt(btn.getAttribute('data-id'));
-                removeFromBuild(id);
+                const instanceId = btn.getAttribute('data-instance-id');
+                removeFromBuild(instanceId);
             });
         });
         document.querySelectorAll('.select-component-sidebar').forEach(btn => {
@@ -549,6 +549,9 @@
     }
 
     function addToBuild(component) {
+        // Генерируем уникальный идентификатор для этого экземпляра
+        component.instanceId = crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '-' + Math.random());
+    
         fetch('/PcBuilder/AddComponent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -565,11 +568,11 @@
         });
     }
 
-    function removeFromBuild(id) {
+    function removeFromBuild(instanceId) {
         fetch('/PcBuilder/RemoveComponent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ instanceId: instanceId })
         })
         .then(response => response.json())
         .then(data => {

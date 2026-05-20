@@ -148,7 +148,7 @@ namespace DDMdiplom.Controllers
         public IActionResult RemoveComponent([FromBody] RemoveComponentRequest request)
         {
             var build = GetBuildFromSession();
-            var item = build.FirstOrDefault(c => c.Id == request.Id);
+            var item = build.FirstOrDefault(c => c.InstanceId == request.InstanceId);
             if (item != null) build.Remove(item);
             SaveBuildToSession(build);
             return Json(new { success = true, build });
