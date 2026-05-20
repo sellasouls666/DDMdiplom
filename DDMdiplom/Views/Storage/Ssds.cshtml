@@ -136,13 +136,18 @@
                     <div class="card-footer bg-transparent border-0 pb-3 pt-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="price">@string.Format("{0:N0}", drive.Price) ₽</span>
+                                @{
+                                    var isM2 = drive.FormFactor != null && drive.FormFactor.Contains("M.2");
+                                    var storageInterface = isM2 ? "M.2" : "SATA";
+                                }
                             <button class="btn btn-outline-dark btn-outline-add select-component"
                                     data-id="@drive.Id"
                                     data-name="@drive.Brand @drive.Model"
                                     data-price="@drive.Price"
                                     data-tdp="0"
                                     data-image="@imageUrl"
-                                    data-type="Накопитель">
+                                    data-type="Накопитель"
+                                    data-storage-interface="@storageInterface">
                                 <i class="bi bi-plus-lg"></i> Выбрать
                             </button>
                         </div>
@@ -180,7 +185,8 @@
                     price: parseFloat(this.dataset.price),
                     type: this.dataset.type,
                     tdp: 0,
-                    imageUrl: this.dataset.image
+                    imageUrl: this.dataset.image,
+                    storageInterface: this.dataset.storageInterface
                 };
                 if (typeof addToBuild === 'function') {
                     addToBuild(component);
@@ -225,7 +231,16 @@
                     const title = `${drive.brand} ${drive.model}`;
                     const imageUrl = drive.imageUrl || '/images/placeholder.png';
                     const priceHtml = `<div class="price-large mb-2">${drive.price.toLocaleString()} ₽</div>`;
-                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${drive.id}" data-name="${title}" data-price="${drive.price}" data-tdp="0" data-image="${imageUrl}" data-type="Накопитель"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal"
+                        data-id="${drive.id}"
+                        data-name="${title}"
+                        data-price="${drive.price}"
+                        data-tdp="0"
+                        data-image="${imageUrl}"
+                        data-type="Накопитель"
+                        data-storage-interface="${drive.storageInterface || 'SATA'}">
+                        <i class="bi bi-plus-lg"></i> Выбрать
+                    </button>`;
 
                     contentDiv.innerHTML = `
                         <div class="d-flex justify-content-end mb-2">
@@ -253,7 +268,8 @@
                             price: parseFloat(this.dataset.price),
                             type: this.dataset.type,
                             tdp: 0,
-                            imageUrl: this.dataset.image
+                            imageUrl: this.dataset.image,
+                            storageInterface: this.dataset.storageInterface
                         };
                         if (typeof addToBuild === 'function') addToBuild(component);
                     });

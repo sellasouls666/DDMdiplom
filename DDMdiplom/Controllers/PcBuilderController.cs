@@ -3,6 +3,7 @@ using DDMdiplom.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DDMdiplom.Controllers
 {
@@ -48,6 +49,30 @@ namespace DDMdiplom.Controllers
         {
             var build = GetBuildFromSession();
 
+            if (component.Type == "Материнская плата")
+            {
+                var motherboard = await _context.Motherboards.FindAsync(component.Id);
+                if (motherboard != null)
+                {
+                    // Количество SATA-портов
+                    if (!string.IsNullOrEmpty(motherboard.SataPorts))
+                    {
+                        var matchSata = Regex.Match(motherboard.SataPorts, @"(\d+)\s*x\s*SATA");
+                        if (matchSata.Success)
+                            component.SataPorts = int.Parse(matchSata.Groups[1].Value);
+                    }
+                    // Количество слотов M.2
+                    if (!string.IsNullOrEmpty(motherboard.SataPorts))
+                    {
+                        var matchM2 = Regex.Match(motherboard.SataPorts, @"(\d+)\s*x\s*M\.2", RegexOptions.IgnoreCase);
+                        if (matchM2.Success)
+                            component.M2Slots = int.Parse(matchM2.Groups[1].Value);
+                    }
+                    // Количество слотов памяти
+                    component.MemorySlots = motherboard.MemorySlots;
+                }
+            }
+
             // Специальная обработка для оперативной памяти
             if (component.Type == "Оперативная память")
             {
@@ -84,58 +109,61 @@ namespace DDMdiplom.Controllers
             // Специальная обработка для накопителей
             else if (component.Type == "Накопитель")
             {
-                int maxDrives = 2; // значение по умолчанию
+                // Проверяем, выбрана ли материнская плата
                 var motherboardComponent = build.FirstOrDefault(c => c.Type == "Материнская плата");
-                if (motherboardComponent != null && motherboardComponent.SataPorts.HasValue)
-                {
-                    maxDrives = motherboardComponent.SataPorts.Value;
-                }
-                else if (motherboardComponent != null)
-                {
-                    var motherboard = await _context.Motherboards.FindAsync(motherboardComponent.Id);
-                    if (motherboard != null && !string.IsNullOrEmpty(motherboard.SataPorts))
-                    {
-                        var match = System.Text.RegularExpressions.Regex.Match(motherboard.SataPorts, @"(\d+)\s*x\s*SATA");
-                        if (match.Success)
-                            maxDrives = int.Parse(match.Groups[1].Value);
-                    }
-                }
 
-                int currentDrives = build.Count(c => c.Type == "Накопитель");
-                if (currentDrives >= maxDrives)
+                if (motherboardComponent == null)
                 {
-                    var oldestDrive = build.FirstOrDefault(c => c.Type == "Накопитель");
-                    if (oldestDrive != null) build.Remove(oldestDrive);
+                    // Без материнки: общий лимит накопителей = 2 (любые)
+                    int totalDrives = build.Count(c => c.Type == "Накопитель");
+                    if (totalDrives >= 2)
+                    {
+                        var oldest = build.FirstOrDefault(c => c.Type == "Накопитель");
+                        if (oldest != null) build.Remove(oldest);
+                    }
                     build.Add(component);
                 }
                 else
                 {
-                    build.Add(component);
-                }
-            }
-            else
-            {
-                // Обработка всех остальных компонентов (включая материнскую плату)
-                var existing = build.FirstOrDefault(c => c.Type == component.Type);
-                if (existing != null) build.Remove(existing);
+                    // С материнской платой: разделяем SATA и M.2
+                    int maxSata = motherboardComponent.SataPorts ?? 2; // значение по умолчанию
+                    int maxM2 = motherboardComponent.M2Slots ?? 2;
 
-                // Если добавляется материнская плата – сохраняем дополнительные параметры
-                if (component.Type == "Материнская плата")
-                {
-                    var motherboard = await _context.Motherboards.FindAsync(component.Id);
-                    if (motherboard != null)
+                    // Подсчитываем текущее количество накопителей каждого интерфейса
+                    int currentSata = build.Count(c => c.Type == "Накопитель" &&
+                        (c.StorageInterface == "SATA" || string.IsNullOrEmpty(c.StorageInterface))); // HDD без указания интерфейса считаем SATA
+                    int currentM2 = build.Count(c => c.Type == "Накопитель" && c.StorageInterface == "M.2");
+
+                    // Определяем интерфейс нового компонента (если не задан – считаем SATA для HDD)
+                    string newInterface = component.StorageInterface ?? "SATA";
+
+                    if (newInterface == "SATA")
                     {
-                        // Количество SATA-портов
-                        if (!string.IsNullOrEmpty(motherboard.SataPorts))
+                        if (currentSata >= maxSata)
                         {
-                            var matchSata = System.Text.RegularExpressions.Regex.Match(motherboard.SataPorts, @"(\d+)\s*x\s*SATA");
-                            if (matchSata.Success)
-                                component.SataPorts = int.Parse(matchSata.Groups[1].Value);
+                            var oldestSata = build.FirstOrDefault(c => c.Type == "Накопитель" &&
+                                (c.StorageInterface == "SATA" || string.IsNullOrEmpty(c.StorageInterface)));
+                            if (oldestSata != null) build.Remove(oldestSata);
                         }
-                        // Количество слотов памяти
-                        component.MemorySlots = motherboard.MemorySlots;
+                        build.Add(component);
+                    }
+                    else if (newInterface == "M.2")
+                    {
+                        if (currentM2 >= maxM2)
+                        {
+                            var oldestM2 = build.FirstOrDefault(c => c.Type == "Накопитель" && c.StorageInterface == "M.2");
+                            if (oldestM2 != null) build.Remove(oldestM2);
+                        }
+                        build.Add(component);
                     }
                 }
+            }
+            else // Все остальные компоненты, включая материнскую плату
+            {
+                // Заменяем существующий компонент того же типа (кроме ОЗУ и накопителей)
+                var existing = build.FirstOrDefault(c => c.Type == component.Type);
+                if (existing != null)
+                    build.Remove(existing);
 
                 build.Add(component);
             }

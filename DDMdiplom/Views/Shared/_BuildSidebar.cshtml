@@ -443,27 +443,50 @@
         const storageComponents = Array.from(document.querySelectorAll('.component-item[data-type="Накопитель"]'))
             .filter(el => el.querySelector('.delete-component'));
         if (storageComponents.length > 0) {
-            let currentDrives = currentBuild.filter(c => c.type === "Накопитель").length;
-            let maxDrives = 2; // по умолчанию
             const motherboardComponent = currentBuild.find(c => c.type === "Материнская плата");
-            if (motherboardComponent && motherboardComponent.sataPorts) {
-                // предполагается, что в BuildComponent есть поле sataPorts (число)
-                maxDrives = motherboardComponent.sataPorts;
+
+            // Подсчитываем текущее использование
+            const usedSata = currentBuild.filter(c => c.type === "Накопитель" &&
+                (c.storageInterface === "SATA" || !c.storageInterface)).length;
+            const usedM2 = currentBuild.filter(c => c.type === "Накопитель" &&
+                c.storageInterface === "M.2").length;
+
+            // Определяем лимиты
+            let maxSata = 2;
+            let maxM2 = 2;
+            if (motherboardComponent) {
+                maxSata = motherboardComponent.sataPorts || 2;
+                maxM2 = motherboardComponent.m2Slots || 2;
             }
-            if (currentDrives < maxDrives) {
-                const lastStorage = storageComponents[storageComponents.length - 1];
-                if (!document.getElementById('addMoreStorageBtn')) {
-                    const addButtonHtml = `
-                        <div class="component-item" style="justify-content: center; background: transparent; cursor: default;">
-                            <button class="btn btn-sm btn-outline-secondary" id="addMoreStorageBtn">+ Добавить ещё накопитель</button>
-                        </div>
-                    `;
-                    lastStorage.insertAdjacentHTML('afterend', addButtonHtml);
-                    document.getElementById('addMoreStorageBtn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        window.location.href = '/Storage';
-                    });
+
+            // Есть ли свободные слоты?
+            let canAdd = false;
+            if (motherboardComponent) {
+                canAdd = (usedSata < maxSata) || (usedM2 < maxM2);
+            } else {
+                const totalDrives = currentBuild.filter(c => c.type === "Накопитель").length;
+                canAdd = totalDrives < 2;
+            }
+
+            if (canAdd) {
+                // Удаляем старую кнопку, если она уже существует
+                const oldBtn = document.getElementById('addMoreStorageBtn');
+                if (oldBtn) {
+                    oldBtn.parentElement.remove();
                 }
+                const lastStorage = storageComponents[storageComponents.length - 1];
+                const addButtonHtml = `
+                    <div class="component-item" style="justify-content: center; background: transparent; cursor: default;">
+                        <button class="btn btn-sm btn-outline-secondary" id="addMoreStorageBtn">
+                            + Добавить ещё накопитель
+                        </button>
+                    </div>
+                `;
+                lastStorage.insertAdjacentHTML('afterend', addButtonHtml);
+                document.getElementById('addMoreStorageBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.location.href = '/Storage';
+                });
             }
         }
     }

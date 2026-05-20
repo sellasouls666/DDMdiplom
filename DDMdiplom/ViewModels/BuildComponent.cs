@@ -10,4 +10,7 @@
     public int ModuleCount { get; set; } = 1;
     public int? MemorySlots { get; set; }
     public int? SataPorts { get; set; }
+
+    public string StorageInterface { get; set; }   // "SATA" или "M.2"
+    public int? M2Slots { get; set; }
 }
