@@ -30,10 +30,14 @@ namespace DDMdiplom.Controllers
             return View(monitors);
         }
 
-        // GET: /Monitors/LcdMonitors – LCD/LED мониторы (заглушка)
-        public IActionResult LcdMonitors()
+        // GET: /Monitors/LcdMonitors – LCD/LED мониторы
+        public async Task<IActionResult> LcdMonitors()
         {
-            return View();
+            var monitors = await _context.Monitors
+                .Where(m => m.MonitorType != null &&
+                            (m.MonitorType.Contains("LCD") || m.MonitorType.Contains("LED")))
+                .ToListAsync();
+            return View(monitors);
         }
 
         // GET: /Monitors/GetMonitor/{id} – JSON для модального окна

@@ -1,0 +1,300 @@
+﻿@model IEnumerable<DDMdiplom.Models.Monitor>
+
+@{
+    ViewData["Title"] = "LCD / LED мониторы";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* ========== Карточки мониторов ========== */
+        .monitor-card {
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            cursor: pointer;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .monitor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        .card-img-container {
+            height: 220px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        .card-img-top {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        .monitor-card:hover .card-img-top {
+            transform: scale(1.02);
+        }
+        .card-body {
+            padding: 12px 12px 4px 12px;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        .spec-badge {
+            background: #f1f3f5;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #495057;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .card-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e2a3e;
+            white-space: nowrap;
+        }
+        .btn-outline-add {
+            border-radius: 40px;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .card-footer {
+            padding: 0 12px 14px 12px;
+            background: transparent;
+            border: none;
+        }
+        .card-footer .d-flex {
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .monitor-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 24px;
+        }
+        .monitor-grid .col {
+            flex: 0 0 280px;
+            max-width: 280px;
+        }
+
+        /* Модальное окно */
+        .modal-specs-table { width: 100%; margin-bottom: 20px; }
+        .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
+        .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
+        .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
+        .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
+    </style>
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>LCD / LED мониторы</h1>
+    </div>
+
+    <div class="monitor-grid">
+        @foreach (var item in Model)
+        {
+            var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
+            <div class="col">
+                <div class="card monitor-card h-100" data-id="@item.Id">
+                    <div class="card-img-container">
+                        <img src="@imageUrl" class="card-img-top" alt="@item.Model">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Brand @item.Model</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(item.ScreenSize))
+                            {
+                                <span class="spec-badge"><i class="bi bi-arrows-angle-expand"></i> @item.ScreenSize</span>
+                            }
+                            @if (item.RefreshRate.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-speedometer2"></i> @item.RefreshRate Гц</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.ResponseTime))
+                            {
+                                <span class="spec-badge"><i class="bi bi-lightning-charge"></i> @item.ResponseTime</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.Resolution))
+                            {
+                                <span class="spec-badge"><i class="bi bi-grid-3x3-gap"></i> @item.Resolution</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.Panel))
+                            {
+                                <span class="spec-badge"><i class="bi bi-tv"></i> @item.Panel</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", item.Price) ₽</span>
+                            <button class="btn btn-outline-dark btn-outline-add select-component"
+                                    data-id="@item.Id"
+                                    data-name="@item.Brand @item.Model"
+                                    data-price="@item.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Монитор">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Модальное окно для деталей монитора -->
+<div class="modal fade" id="monitorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="modalContent">
+                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_BuildSidebar")
+
+@section Scripts {
+    <script>
+        // Обработчики для кнопок "Выбрать"
+        document.querySelectorAll('.select-component').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const component = {
+                    id: parseInt(this.dataset.id),
+                    name: this.dataset.name,
+                    price: parseFloat(this.dataset.price),
+                    type: this.dataset.type,
+                    tdp: 0,
+                    imageUrl: this.dataset.image
+                };
+                if (typeof addToBuild === 'function') {
+                    addToBuild(component);
+                } else {
+                    console.error('addToBuild not defined');
+                }
+            });
+        });
+
+        // Открытие модального окна по клику на карточку
+        document.querySelectorAll('.monitor-card').forEach(card => {
+            card.addEventListener('click', async function(e) {
+                if (e.target.closest('.select-component')) return;
+                const itemId = this.getAttribute('data-id');
+                const contentDiv = document.getElementById('modalContent');
+                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+                try {
+                    const response = await fetch(`/Monitors/GetMonitor/${itemId}`);
+                    const item = await response.json();
+
+                    // Основная информация
+                    let part1Rows = '';
+                    if (item.brand) part1Rows += `<tr><td>Бренд</td><td>${item.brand}</td></tr>`;
+                    if (item.model) part1Rows += `<tr><td>Модель</td><td>${item.model}</td></tr>`;
+                    if (item.screenSize) part1Rows += `<tr><td>Размер экрана</td><td>${item.screenSize}</td></tr>`;
+                    if (item.panel) part1Rows += `<tr><td>Тип матрицы</td><td>${item.panel}</td></tr>`;
+                    if (item.displayType) part1Rows += `<tr><td>Тип дисплея</td><td>${item.displayType}</td></tr>`;
+                    if (item.resolution) part1Rows += `<tr><td>Разрешение</td><td>${item.resolution}</td></tr>`;
+                    if (item.refreshRate) part1Rows += `<tr><td>Частота обновления</td><td>${item.refreshRate} Гц</td></tr>`;
+                    if (item.responseTime) part1Rows += `<tr><td>Время отклика</td><td>${item.responseTime}</td></tr>`;
+                    if (item.adaptiveSyncTechnology) part1Rows += `<tr><td>Адаптивная синхронизация</td><td>${item.adaptiveSyncTechnology}</td></tr>`;
+                    const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
+
+                    // Детальные характеристики
+                    let part2Rows = '';
+                    if (item.brightnessSdr) part2Rows += `<tr><td>Яркость SDR</td><td>${item.brightnessSdr} кд/м²</td></tr>`;
+                    if (item.brightnessHdr) part2Rows += `<tr><td>Яркость HDR</td><td>${item.brightnessHdr} кд/м²</td></tr>`;
+                    if (item.contrastRatio) part2Rows += `<tr><td>Контрастность</td><td>${item.contrastRatio}</td></tr>`;
+                    if (item.viewingAngle) part2Rows += `<tr><td>Углы обзора</td><td>${item.viewingAngle}</td></tr>`;
+                    if (item.aspectRatio) part2Rows += `<tr><td>Соотношение сторон</td><td>${item.aspectRatio}</td></tr>`;
+                    if (item.colorGamut) part2Rows += `<tr><td>Цветовой охват</td><td>${item.colorGamut}</td></tr>`;
+                    if (item.displayColors) part2Rows += `<tr><td>Количество цветов</td><td>${item.displayColors}</td></tr>`;
+                    if (item.hdrStandard) part2Rows += `<tr><td>Стандарт HDR</td><td>${item.hdrStandard}</td></tr>`;
+                    if (item.curvedSurfaceScreen) part2Rows += `<tr><td>Изогнутый экран</td><td>${item.curvedSurfaceScreen}</td></tr>`;
+                    if (item.hdmiPorts) part2Rows += `<tr><td>HDMI</td><td>${item.hdmiPorts}</td></tr>`;
+                    if (item.displayPort) part2Rows += `<tr><td>DisplayPort</td><td>${item.displayPort}</td></tr>`;
+                    if (item.videoPorts) part2Rows += `<tr><td>Видео порты</td><td>${item.videoPorts}</td></tr>`;
+                    if (item.headphone) part2Rows += `<tr><td>Выход на наушники</td><td>${item.headphone}</td></tr>`;
+                    if (item.standAdjustments) part2Rows += `<tr><td>Регулировки подставки</td><td>${item.standAdjustments}</td></tr>`;
+                    if (item.vesaCompatibility) part2Rows += `<tr><td>Крепление VESA</td><td>${item.vesaCompatibility}</td></tr>`;
+                    if (item.dimensions) part2Rows += `<tr><td>Размеры</td><td>${item.dimensions}</td></tr>`;
+                    if (item.weight) part2Rows += `<tr><td>Вес</td><td>${item.weight}</td></tr>`;
+                    if (item.builtInSpeakers) part2Rows += `<tr><td>Встроенные динамики</td><td>${item.builtInSpeakers}</td></tr>`;
+                    if (item.builtInWebcam) part2Rows += `<tr><td>Веб-камера</td><td>${item.builtInWebcam}</td></tr>`;
+                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
+
+                    const title = `${item.brand} ${item.model}`;
+                    const imageUrl = item.imageUrl || '/images/placeholder.png';
+                    const priceHtml = `<div class="price-large mb-2">${item.price.toLocaleString()} ₽</div>`;
+                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${item.id}" data-name="${title}" data-price="${item.price}" data-tdp="0" data-image="${imageUrl}" data-type="Монитор"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                    contentDiv.innerHTML = `
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
+                                <h5 class="mb-0">${title}</h5>
+                            </div>
+                            <div class="text-end">
+                                ${priceHtml}
+                                ${selectBtn}
+                            </div>
+                        </div>
+                        ${part1}
+                        ${part2}
+                    `;
+
+                    document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const component = {
+                            id: parseInt(this.dataset.id),
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price),
+                            type: this.dataset.type,
+                            tdp: 0,
+                            imageUrl: this.dataset.image
+                        };
+                        if (typeof addToBuild === 'function') addToBuild(component);
+                    });
+
+                    const modal = new bootstrap.Modal(document.getElementById('monitorModal'));
+                    modal.show();
+                } catch (error) {
+                    console.error(error);
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                }
+            });
+        });
+    </script>
+}
