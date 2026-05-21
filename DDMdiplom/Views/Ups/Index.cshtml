@@ -1,0 +1,294 @@
+﻿@model IEnumerable<DDMdiplom.Models.Ups>
+
+@{
+    ViewData["Title"] = "Источники бесперебойного питания";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* ========== Карточки UPS ========== */
+        .ups-card {
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            cursor: pointer;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .ups-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        .card-img-container {
+            height: 220px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        .card-img-top {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        .ups-card:hover .card-img-top {
+            transform: scale(1.02);
+        }
+        .card-body {
+            padding: 12px 12px 4px 12px;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        .spec-badge {
+            background: #f1f3f5;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #495057;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .card-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e2a3e;
+            white-space: nowrap;
+        }
+        .btn-outline-add {
+            border-radius: 40px;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .card-footer {
+            padding: 0 12px 14px 12px;
+            background: transparent;
+            border: none;
+        }
+        .card-footer .d-flex {
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ups-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 24px;
+        }
+        .ups-grid .col {
+            flex: 0 0 280px;
+            max-width: 280px;
+        }
+
+        /* Модальное окно */
+        .modal-specs-table { width: 100%; margin-bottom: 20px; }
+        .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
+        .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
+        .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
+        .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
+    </style>
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Источники бесперебойного питания (UPS)</h1>
+    </div>
+
+    <div class="ups-grid">
+        @foreach (var device in Model)
+        {
+            var imageUrl = !string.IsNullOrEmpty(device.ImageUrl) ? device.ImageUrl : "/images/placeholder.png";
+            <div class="col">
+                <div class="card ups-card h-100" data-id="@device.Id">
+                    <div class="card-img-container">
+                        <img src="@imageUrl" class="card-img-top" alt="@device.Model">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@device.Brand @device.Model</h5>
+                        <div class="card-specs">
+                            @if (device.Watts.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-plug"></i> @device.Watts Вт</span>
+                            }
+                            @if (device.VaRating.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-lightning-charge"></i> @device.VaRating VA</span>
+                            }
+                            @if (!string.IsNullOrEmpty(device.BatteryRunTimeHalfLoad))
+                            {
+                                <span class="spec-badge"><i class="bi bi-clock"></i> @device.BatteryRunTimeHalfLoad</span>
+                            }
+                            else if (!string.IsNullOrEmpty(device.BatteryRunTimeFullLoad))
+                            {
+                                <span class="spec-badge"><i class="bi bi-clock"></i> @device.BatteryRunTimeFullLoad</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", device.Price) ₽</span>
+                            <button class="btn btn-outline-dark btn-outline-add select-component"
+                                    data-id="@device.Id"
+                                    data-name="@device.Brand @device.Model"
+                                    data-price="@device.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Источник бесперебойного питания">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Модальное окно для деталей UPS -->
+<div class="modal fade" id="upsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="modalContent">
+                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_BuildSidebar")
+
+@section Scripts {
+    <script>
+        // Обработчики для кнопок "Выбрать"
+        document.querySelectorAll('.select-component').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const component = {
+                    id: parseInt(this.dataset.id),
+                    name: this.dataset.name,
+                    price: parseFloat(this.dataset.price),
+                    type: this.dataset.type,
+                    tdp: 0,
+                    imageUrl: this.dataset.image
+                };
+                if (typeof addToBuild === 'function') {
+                    addToBuild(component);
+                } else {
+                    console.error('addToBuild not defined');
+                }
+            });
+        });
+
+        // Открытие модального окна по клику на карточку
+        document.querySelectorAll('.ups-card').forEach(card => {
+            card.addEventListener('click', async function(e) {
+                if (e.target.closest('.select-component')) return;
+                const deviceId = this.getAttribute('data-id');
+                const contentDiv = document.getElementById('modalContent');
+                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+                try {
+                    const response = await fetch(`/Ups/GetUps/${deviceId}`);
+                    const device = await response.json();
+
+                    // Основная информация
+                    let part1Rows = '';
+                    if (device.brand) part1Rows += `<tr><td>Бренд</td><td>${device.brand}</td></tr>`;
+                    if (device.series) part1Rows += `<tr><td>Серия</td><td>${device.series}</td></tr>`;
+                    if (device.model) part1Rows += `<tr><td>Модель</td><td>${device.model}</td></tr>`;
+                    if (device.vaRating) part1Rows += `<tr><td>Мощность (VA)</td><td>${device.vaRating}</td></tr>`;
+                    if (device.watts) part1Rows += `<tr><td>Мощность (Вт)</td><td>${device.watts}</td></tr>`;
+                    if (device.outlets) part1Rows += `<tr><td>Количество розеток</td><td>${device.outlets}</td></tr>`;
+                    if (device.outletType) part1Rows += `<tr><td>Тип розеток</td><td>${device.outletType}</td></tr>`;
+                    const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
+
+                    // Детальные характеристики
+                    let part2Rows = '';
+                    if (device.batteryType) part2Rows += `<tr><td>Тип батареи</td><td>${device.batteryType}</td></tr>`;
+                    if (device.batteryRunTimeHalfLoad) part2Rows += `<tr><td>Время при половинной нагрузке</td><td>${device.batteryRunTimeHalfLoad}</td></tr>`;
+                    if (device.batteryRunTimeFullLoad) part2Rows += `<tr><td>Время при полной нагрузке</td><td>${device.batteryRunTimeFullLoad}</td></tr>`;
+                    if (device.batteryRechargeTime) part2Rows += `<tr><td>Время зарядки (ч)</td><td>${device.batteryRechargeTime}</td></tr>`;
+                    if (device.batteryReplaceable) part2Rows += `<tr><td>Заменяемая батарея</td><td>${device.batteryReplaceable}</td></tr>`;
+                    if (device.inputVoltageRange) part2Rows += `<tr><td>Входное напряжение</td><td>${device.inputVoltageRange}</td></tr>`;
+                    if (device.inputFrequency) part2Rows += `<tr><td>Входная частота</td><td>${device.inputFrequency}</td></tr>`;
+                    if (device.outputVoltage) part2Rows += `<tr><td>Выходное напряжение</td><td>${device.outputVoltage}</td></tr>`;
+                    if (device.outputFrequency) part2Rows += `<tr><td>Выходная частота</td><td>${device.outputFrequency}</td></tr>`;
+                    if (device.alarms) part2Rows += `<tr><td>Сигналы</td><td>${device.alarms}</td></tr>`;
+                    if (device.interfacePort) part2Rows += `<tr><td>Интерфейс</td><td>${device.interfacePort}</td></tr>`;
+                    if (device.managementSoftware) part2Rows += `<tr><td>ПО управления</td><td>${device.managementSoftware}</td></tr>`;
+                    if (device.approvals) part2Rows += `<tr><td>Сертификаты</td><td>${device.approvals}</td></tr>`;
+                    if (device.dataLineProtection) part2Rows += `<tr><td>Защита линии данных</td><td>${device.dataLineProtection}</td></tr>`;
+                    if (device.surgeEnergyRating) part2Rows += `<tr><td>Энергоёмкость защиты (Дж)</td><td>${device.surgeEnergyRating}</td></tr>`;
+                    if (device.protection) part2Rows += `<tr><td>Тип защиты</td><td>${device.protection}</td></tr>`;
+                    if (device.features) part2Rows += `<tr><td>Особенности</td><td>${device.features}</td></tr>`;
+                    if (device.dimensions) part2Rows += `<tr><td>Габариты</td><td>${device.dimensions}</td></tr>`;
+                    if (device.weight) part2Rows += `<tr><td>Вес</td><td>${device.weight}</td></tr>`;
+                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
+
+                    const title = `${device.brand} ${device.model}`;
+                    const imageUrl = device.imageUrl || '/images/placeholder.png';
+                    const priceHtml = `<div class="price-large mb-2">${device.price.toLocaleString()} ₽</div>`;
+                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${device.id}" data-name="${title}" data-price="${device.price}" data-tdp="0" data-image="${imageUrl}" data-type="Источник бесперебойного питания"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                    contentDiv.innerHTML = `
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
+                                <h5 class="mb-0">${title}</h5>
+                            </div>
+                            <div class="text-end">
+                                ${priceHtml}
+                                ${selectBtn}
+                            </div>
+                        </div>
+                        ${part1}
+                        ${part2}
+                    `;
+
+                    document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const component = {
+                            id: parseInt(this.dataset.id),
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price),
+                            type: this.dataset.type,
+                            tdp: 0,
+                            imageUrl: this.dataset.image
+                        };
+                        if (typeof addToBuild === 'function') addToBuild(component);
+                    });
+
+                    const modal = new bootstrap.Modal(document.getElementById('upsModal'));
+                    modal.show();
+                } catch (error) {
+                    console.error(error);
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                }
+            });
+        });
+    </script>
+}
