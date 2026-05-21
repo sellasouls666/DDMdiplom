@@ -1,0 +1,81 @@
+﻿@{
+    ViewData["Title"] = "Мониторы";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .monitor-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 50px;
+        }
+
+        .monitor-card {
+            background: white;
+            border-radius: 32px;
+            padding: 40px 32px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            width: 280px;
+            cursor: pointer;
+        }
+
+            .monitor-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+                border-color: #dee2e6;
+                background-color: #fafcff;
+            }
+
+        .monitor-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        .monitor-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1e2a3e;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-icon {
+            font-size: 3rem;
+            color: #495057;
+            margin-bottom: 12px;
+        }
+    </style>
+}
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-icon"><i class="bi bi-display"></i></div>
+        <h1 class="display-5">Мониторы</h1>
+        <p class="text-muted">Выберите тип монитора для вашего компьютера</p>
+    </div>
+
+    <div class="monitor-selector">
+        <a asp-controller="Monitors" asp-action="GamingMonitors" class="monitor-card">
+            <div class="monitor-icon"><i class="bi bi-joystick"></i></div>
+            <div class="monitor-title">Игровые мониторы<br /><small style="font-weight:400;">Gaming Monitors</small></div>
+        </a>
+
+        <a asp-controller="Monitors" asp-action="LcdMonitors" class="monitor-card">
+            <div class="monitor-icon"><i class="bi bi-tv"></i></div>
+            <div class="monitor-title">LCD / LED мониторы<br /><small style="font-weight:400;">LCD / LED Monitors</small></div>
+        </a>
+    </div>
+</div>
