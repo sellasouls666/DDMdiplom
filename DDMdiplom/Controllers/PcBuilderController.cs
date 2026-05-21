@@ -158,6 +158,17 @@ namespace DDMdiplom.Controllers
                     }
                 }
             }
+            else if (component.Type == "Монитор")
+            {
+                const int maxMonitors = 2;
+                int currentMonitors = build.Count(c => c.Type == "Монитор");
+                if (currentMonitors >= maxMonitors)
+                {
+                    var oldestMonitor = build.FirstOrDefault(c => c.Type == "Монитор");
+                    if (oldestMonitor != null) build.Remove(oldestMonitor);
+                }
+                build.Add(component);
+            }
             else // Все остальные компоненты, включая материнскую плату
             {
                 // Заменяем существующий компонент того же типа (кроме ОЗУ и накопителей)

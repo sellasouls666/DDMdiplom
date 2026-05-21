@@ -347,6 +347,35 @@
                         </div>
                     `;
                 }
+            } else if (cat.type === "Монитор") {
+                // Все выбранные мониторы
+                const monitorItems = currentBuild.filter(c => c.type === cat.type);
+                if (monitorItems.length > 0) {
+                    monitorItems.forEach(selected => {
+                        html += `
+                            <div class="component-item" data-type="${cat.type}" data-id="${selected.id}">
+                                <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                                <img src="${selected.imageUrl || '/images/placeholder.png'}" class="component-img">
+                                <div class="component-details">
+                                    <div class="component-name">${selected.name}</div>
+                                    <div class="component-price">${selected.price.toLocaleString()} ₽</div>
+                                </div>
+                                <button class="delete-component" data-instance-id="${selected.instanceId}" title="Удалить"><i class="bi bi-trash"></i></button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="component-item" data-type="${cat.type}">
+                            <div class="component-icon"><i class="bi ${cat.icon}"></i></div>
+                            <div class="component-details">
+                                <div class="component-name">${cat.defaultName}</div>
+                                <div class="component-price">—</div>
+                            </div>
+                            <button class="btn btn-sm select-component-sidebar" data-type="${cat.type}">Выбрать</button>
+                        </div>
+                    `;
+                }
             } else {
                 // Остальные категории – только один компонент
                 const selected = currentBuild.find(c => c.type === cat.type);
@@ -499,6 +528,31 @@
                 });
             }
         }
+
+        // Логика для мониторов (добавление кнопки)
+        const monitorComponents = Array.from(document.querySelectorAll('.component-item[data-type="Монитор"]'))
+            .filter(el => el.querySelector('.delete-component'));
+        if (monitorComponents.length > 0) {
+            let currentMonitors = currentBuild.filter(c => c.type === "Монитор").length;
+            const maxMonitors = 2;
+            if (currentMonitors < maxMonitors) {
+                const oldBtn = document.getElementById('addMoreMonitorBtn');
+                if (oldBtn) oldBtn.parentElement.remove();
+                const lastMonitor = monitorComponents[monitorComponents.length - 1];
+                const addButtonHtml = `
+                    <div class="component-item" style="justify-content: center; background: transparent; cursor: default;">
+                        <button class="btn btn-sm btn-outline-secondary" id="addMoreMonitorBtn">
+                            + Добавить ещё монитор
+                        </button>
+                    </div>
+                `;
+                lastMonitor.insertAdjacentHTML('afterend', addButtonHtml);
+                document.getElementById('addMoreMonitorBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.location.href = '/Monitors';
+                });
+            }
+        }
     }
 
     function renderSidebarCollapsed() {
@@ -541,6 +595,27 @@
                         const label = item.name;
                         gridHtml += `
                             <div class="collapsed-category" data-type="${cat.type}" data-id="${item.id}" data-index="storage_${itemIdx}">
+                                <div class="collapsed-category-icon">${iconHtml}</div>
+                                <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    gridHtml += `
+                        <div class="collapsed-category" data-type="${cat.type}" data-index="empty">
+                            <div class="collapsed-category-icon"><i class="bi ${cat.icon}"></i></div>
+                            <div class="collapsed-category-label">${cat.defaultName}</div>
+                        </div>
+                    `;
+                }
+            } else if (cat.type === "Монитор") {
+                const items = currentBuild.filter(c => c.type === cat.type);
+                if (items.length > 0) {
+                    items.forEach((item, itemIdx) => {
+                        const iconHtml = item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}">` : `<i class="bi ${cat.icon}"></i>`;
+                        const label = item.name;
+                        gridHtml += `
+                            <div class="collapsed-category" data-type="${cat.type}" data-id="${item.id}" data-index="monitor_${itemIdx}">
                                 <div class="collapsed-category-icon">${iconHtml}</div>
                                 <div class="collapsed-category-label">${label.length > 20 ? label.substring(0,18)+'…' : label}</div>
                             </div>
