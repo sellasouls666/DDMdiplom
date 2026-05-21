@@ -85,5 +85,8 @@ namespace DDMdiplom.Models
 
         [Display(Name = "URL изображения")]
         public string? ImageUrl { get; set; }
+
+        [Required]
+        public string Model { get; set; } = string.Empty;
     }
 }

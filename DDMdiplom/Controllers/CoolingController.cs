@@ -36,10 +36,21 @@ namespace DDMdiplom.Controllers
             return Json(cooler);
         }
 
-        // Заглушка для жидкостного охлаждения (пока без БД)
-        public IActionResult LiquidCoolers()
+        // ======== ЖИДКОСТНОЕ ОХЛАЖДЕНИЕ ========
+        // GET: /Cooling/LiquidCoolers
+        public async Task<IActionResult> LiquidCoolers()
         {
-            return View();
+            var waterCoolers = await _context.WaterCoolers.ToListAsync();
+            return View(waterCoolers);
+        }
+
+        // GET: /Cooling/GetWaterCooler/{id}
+        [HttpGet]
+        public async Task<IActionResult> GetWaterCooler(int id)
+        {
+            var waterCooler = await _context.WaterCoolers.FindAsync(id);
+            if (waterCooler == null) return NotFound();
+            return Json(waterCooler);
         }
     }
 }
