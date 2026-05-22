@@ -1,0 +1,294 @@
+﻿@model IEnumerable<DDMdiplom.Models.Mouse>
+
+@{
+    ViewData["Title"] = "Мыши";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* ========== Карточки мышей ========== */
+        .mouse-card {
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            cursor: pointer;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .mouse-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        .card-img-container {
+            height: 220px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        .card-img-top {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        .mouse-card:hover .card-img-top {
+            transform: scale(1.02);
+        }
+        .card-body {
+            padding: 12px 12px 4px 12px;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        .spec-badge {
+            background: #f1f3f5;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #495057;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .card-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e2a3e;
+            white-space: nowrap;
+        }
+        .btn-outline-add {
+            border-radius: 40px;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .card-footer {
+            padding: 0 12px 14px 12px;
+            background: transparent;
+            border: none;
+        }
+        .card-footer .d-flex {
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mouse-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 24px;
+        }
+        .mouse-grid .col {
+            flex: 0 0 280px;
+            max-width: 280px;
+        }
+
+        /* Модальное окно */
+        .modal-specs-table { width: 100%; margin-bottom: 20px; }
+        .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
+        .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
+        .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
+        .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
+    </style>
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Мыши</h1>
+    </div>
+
+    <div class="mouse-grid">
+        @foreach (var item in Model)
+        {
+            var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
+            <div class="col">
+                <div class="card mouse-card h-100" data-id="@item.Id">
+                    <div class="card-img-container">
+                        <img src="@imageUrl" class="card-img-top" alt="@item.Name">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Brand @item.Name</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(item.TrackingMethod))
+                            {
+                                <span class="spec-badge"><i class="bi bi-crosshair"></i> @item.TrackingMethod</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.Type))
+                            {
+                                <span class="spec-badge"><i class="bi bi-mouse"></i> @item.ConnectionType</span>
+                            }
+                            @if (item.MaxDpi.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-speedometer2"></i> @item.MaxDpi DPI</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.HandOrientation))
+                            {
+                                <span class="spec-badge"><i class="bi bi-hand-index"></i> @item.HandOrientation</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.Color))
+                            {
+                                <span class="spec-badge"><i class="bi bi-palette"></i> @item.Color</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", item.Price) ₽</span>
+                            <button class="btn btn-outline-dark btn-outline-add select-component"
+                                    data-id="@item.Id"
+                                    data-name="@item.Brand @item.Name"
+                                    data-price="@item.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Мышь">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Модальное окно для деталей мыши -->
+<div class="modal fade" id="mouseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="modalContent">
+                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_BuildSidebar")
+
+@section Scripts {
+    <script>
+        // Обработчики для кнопок "Выбрать"
+        document.querySelectorAll('.select-component').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const component = {
+                    id: parseInt(this.dataset.id),
+                    name: this.dataset.name,
+                    price: parseFloat(this.dataset.price),
+                    type: this.dataset.type,
+                    tdp: 0,
+                    imageUrl: this.dataset.image
+                };
+                if (typeof addToBuild === 'function') {
+                    addToBuild(component);
+                } else {
+                    console.error('addToBuild not defined');
+                }
+            });
+        });
+
+        // Открытие модального окна по клику на карточку
+        document.querySelectorAll('.mouse-card').forEach(card => {
+            card.addEventListener('click', async function(e) {
+                if (e.target.closest('.select-component')) return;
+                const itemId = this.getAttribute('data-id');
+                const contentDiv = document.getElementById('modalContent');
+                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+                try {
+                    const response = await fetch(`/Mice/GetMouse/${itemId}`);
+                    const item = await response.json();
+
+                    // Основная информация
+                    let part1Rows = '';
+                    if (item.brand) part1Rows += `<tr><td>Бренд</td><td>${item.brand}</td></tr>`;
+                    if (item.name) part1Rows += `<tr><td>Название</td><td>${item.name}</td></tr>`;
+                    if (item.model) part1Rows += `<tr><td>Модель</td><td>${item.model}</td></tr>`;
+                    if (item.type) part1Rows += `<tr><td>Тип мыши</td><td>${item.type}</td></tr>`;
+                    if (item.connectionType) part1Rows += `<tr><td>Тип подключения</td><td>${item.connectionType}</td></tr>`;
+                    if (item.interface) part1Rows += `<tr><td>Интерфейс</td><td>${item.interface}</td></tr>`;
+                    if (item.maxDpi) part1Rows += `<tr><td>Макс. DPI</td><td>${item.maxDpi}</td></tr>`;
+                    if (item.buttonsCount) part1Rows += `<tr><td>Количество кнопок</td><td>${item.buttonsCount}</td></tr>`;
+                    if (item.color) part1Rows += `<tr><td>Цвет</td><td>${item.color}</td></tr>`;
+                    const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
+
+                    // Детальные характеристики
+                    let part2Rows = '';
+                    if (item.gripStyle) part2Rows += `<tr><td>Стиль хвата</td><td>${item.gripStyle}</td></tr>`;
+                    if (item.trackingMethod) part2Rows += `<tr><td>Метод отслеживания</td><td>${item.trackingMethod}</td></tr>`;
+                    if (item.handOrientation) part2Rows += `<tr><td>Ориентация</td><td>${item.handOrientation}</td></tr>`;
+                    if (item.scrollingCapability) part2Rows += `<tr><td>Тип прокрутки</td><td>${item.scrollingCapability}</td></tr>`;
+                    if (item.adjustableWeight) part2Rows += `<tr><td>Регулируемый вес</td><td>${item.adjustableWeight}</td></tr>`;
+                    if (item.lighting) part2Rows += `<tr><td>Подсветка</td><td>${item.lighting}</td></tr>`;
+                    if (item.powerSource) part2Rows += `<tr><td>Источник питания</td><td>${item.powerSource}</td></tr>`;
+                    if (item.batteryLife) part2Rows += `<tr><td>Время работы от батареи</td><td>${item.batteryLife}</td></tr>`;
+                    if (item.wirelessRange) part2Rows += `<tr><td>Дальность беспроводной связи</td><td>${item.wirelessRange}</td></tr>`;
+                    if (item.supportedOperatingSystems) part2Rows += `<tr><td>Поддерживаемые ОС</td><td>${item.supportedOperatingSystems}</td></tr>`;
+                    if (item.systemRequirement) part2Rows += `<tr><td>Системные требования</td><td>${item.systemRequirement}</td></tr>`;
+                    if (item.features) part2Rows += `<tr><td>Особенности</td><td>${item.features}</td></tr>`;
+                    if (item.packageContents) part2Rows += `<tr><td>Комплектация</td><td>${item.packageContents}</td></tr>`;
+                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
+
+                    const title = `${item.brand} ${item.name}`;
+                    const imageUrl = item.imageUrl || '/images/placeholder.png';
+                    const priceHtml = `<div class="price-large mb-2">${item.price.toLocaleString()} ₽</div>`;
+                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${item.id}" data-name="${title}" data-price="${item.price}" data-tdp="0" data-image="${imageUrl}" data-type="Мышь"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+
+                    contentDiv.innerHTML = `
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
+                                <h5 class="mb-0">${title}</h5>
+                            </div>
+                            <div class="text-end">
+                                ${priceHtml}
+                                ${selectBtn}
+                            </div>
+                        </div>
+                        ${part1}
+                        ${part2}
+                    `;
+
+                    document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const component = {
+                            id: parseInt(this.dataset.id),
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price),
+                            type: this.dataset.type,
+                            tdp: 0,
+                            imageUrl: this.dataset.image
+                        };
+                        if (typeof addToBuild === 'function') addToBuild(component);
+                    });
+
+                    const modal = new bootstrap.Modal(document.getElementById('mouseModal'));
+                    modal.show();
+                } catch (error) {
+                    console.error(error);
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                }
+            });
+        });
+    </script>
+}
