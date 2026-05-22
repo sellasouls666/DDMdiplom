@@ -1,9 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DDMdiplom.Data;
+using DDMdiplom.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DDMdiplom.Controllers
 {
     public class MiceController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public MiceController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         // GET: /Mice – выбор типа мыши
         public IActionResult Index()
         {
@@ -11,16 +21,32 @@ namespace DDMdiplom.Controllers
         }
 
         // GET: /Mice/GamingMice – игровые мыши
-        public IActionResult GamingMice()
+        public async Task<IActionResult> GamingMice()
         {
-            // Временно без БД – позже можно загрузить из контекста
-            return View();
+            var mice = await _context.Mice
+                .Where(m => m.Type != null &&
+                            (m.Type.Contains("Gaming") || m.Type.Contains("Игровая")))
+                .ToListAsync();
+            return View(mice);
         }
 
         // GET: /Mice/Mice – обычные мыши
-        public IActionResult Mice()
+        public async Task<IActionResult> Mice()
         {
-            return View();
+            var mice = await _context.Mice
+                .Where(m => m.Type != null &&
+                            !m.Type.Contains("Gaming") && !m.Type.Contains("Игровая"))
+                .ToListAsync();
+            return View(mice);
+        }
+
+        // GET: /Mice/GetMouse/{id} – JSON для модального окна
+        [HttpGet]
+        public async Task<IActionResult> GetMouse(int id)
+        {
+            var mouse = await _context.Mice.FindAsync(id);
+            if (mouse == null) return NotFound();
+            return Json(mouse);
         }
     }
 }
