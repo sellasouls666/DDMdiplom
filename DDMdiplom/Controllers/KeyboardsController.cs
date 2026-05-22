@@ -34,8 +34,8 @@ namespace DDMdiplom.Controllers
         public async Task<IActionResult> Keyboards()
         {
             var keyboards = await _context.Keyboards
-                .Where(k => k.Type == null ||
-                            (!k.Type.Contains("Gaming") && !k.Type.Contains("Игровая")))
+                .Where(k => k.Type != null &&
+                            !k.Type.Contains("Gaming") && !k.Type.Contains("Игровая"))
                 .ToListAsync();
             return View(keyboards);
         }
