@@ -243,10 +243,15 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Процессоры</h1>
+    <h1 class="mb-3">Процессоры</h1>
+    
+    <!-- Переключатель под заголовком -->
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
     </div>
 
+    <!-- Сетка карточек как обычно -->
     <div class="processors-grid">
         @foreach (var proc in Model)
         {
@@ -254,7 +259,11 @@
             var lastMemory = memoryTypes.Contains('/') ? memoryTypes.Split('/').Last().Trim() : memoryTypes;
             var imageUrl = !string.IsNullOrEmpty(proc.ImageUrl) ? proc.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card processor-card h-100" data-id="@proc.Id">
+                <div class="card processor-card h-100"
+                     data-id="@proc.Id"
+                     data-socket="@proc.CpuSocketType"
+                     data-memory-types="@proc.MemoryTypes">
+                    <!-- содержимое карточки без изменений -->
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@proc.Name">
                     </div>
@@ -287,7 +296,6 @@
         }
     </div>
 </div>
-
 <!-- Модальное окно для деталей процессора -->
 <div class="modal fade" id="processorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -306,7 +314,9 @@
 
 @section Scripts {
     <script>
-        // Обработчики для карточек процессоров
+        // === Глобальная функция addToBuild уже доступна из _BuildSidebar ===
+
+        // Обработчики кнопок "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -318,7 +328,6 @@
                     tdp: parseInt(this.dataset.tdp) || 0,
                     imageUrl: this.dataset.image
                 };
-                // Используем глобальную функцию addToBuild из _BuildSidebar
                 if (typeof addToBuild === 'function') {
                     addToBuild(component);
                 } else {
@@ -327,7 +336,7 @@
             });
         });
 
-        // Открытие модального окна с деталями процессора
+        // Открытие модального окна с деталями процессора (без изменений)
         document.querySelectorAll('.processor-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
@@ -415,5 +424,96 @@
                 }
             });
         });
+
+        // ========== НОВАЯ ЛОГИКА ФИЛЬТРАЦИИ ПО СОВМЕСТИМОСТИ ==========
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const processorCards = document.querySelectorAll('.processor-card');
+
+        // Функция извлечения типа памяти из строки Speed (например "DDR5 6400")
+        function extractMemoryType(memorySpeed) {
+            if (!memorySpeed) return null;
+            const match = memorySpeed.match(/DDR\d+/i);
+            return match ? match[0].toUpperCase() : null;
+        }
+
+        async function applyCompatibilityFilter() {
+            if (!compatibilitySwitch.checked) {
+                // Показать все карточки
+                processorCards.forEach(card => {
+                    card.closest('.col').style.display = '';
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                const build = data.success ? data.build : [];
+
+                // Извлекаем компоненты
+                const motherboard = build.find(c => c.type === "Материнская плата");
+                const memoryModules = build.filter(c => c.type === "Оперативная память");
+                const cpuCooler = build.find(c => c.type === "Система охлаждения");
+
+                // Собираем условия
+                const socketRequired = motherboard?.cpuSocketType;  // теперь доступно
+                let memoryTypesRequired = [];
+                if (memoryModules.length > 0) {
+                    memoryTypesRequired = memoryModules.map(m => extractMemoryType(m.speed)).filter(Boolean);
+                }
+                let coolerSocketRequired = null;
+                if (cpuCooler) {
+                    if (cpuCooler.cpuSocketCompatibility) {
+                        coolerSocketRequired = cpuCooler.cpuSocketCompatibility;
+                    } else if (cpuCooler.blockCompatibility) {
+                        coolerSocketRequired = cpuCooler.blockCompatibility;
+                    }
+                }
+
+                // Фильтруем карточки
+                processorCards.forEach(card => {
+                    const col = card.closest('.col');
+                    const processorSocket = card.dataset.socket || '';
+                    const processorMemoryTypes = (card.dataset.memoryTypes || '').toUpperCase();
+
+                    let visible = true;
+
+                    // Проверка сокета материнской платы
+                    if (socketRequired && processorSocket && !processorSocket.includes(socketRequired)) {
+                        visible = false;
+                    }
+
+                    // Проверка типов памяти (если выбраны модули памяти)
+                    if (visible && memoryTypesRequired.length > 0) {
+                        // Процессор должен поддерживать хотя бы один из требуемых типов
+                        const supportsMemory = memoryTypesRequired.some(memType =>
+                            processorMemoryTypes.includes(memType)
+                        );
+                        if (!supportsMemory) visible = false;
+                    }
+
+                    // Проверка совместимости с охлаждением
+                    if (visible && coolerSocketRequired) {
+                        // Проверяем, содержит ли строка совместимости кулера сокет процессора
+                        if (!coolerSocketRequired.includes(processorSocket)) {
+                            visible = false;
+                        }
+                    }
+
+                    col.style.display = visible ? '' : 'none';
+                });
+            } catch (error) {
+                console.error('Ошибка при получении сборки:', error);
+                // В случае ошибки показываем все
+                processorCards.forEach(card => {
+                    card.closest('.col').style.display = '';
+                });
+            }
+        }
+
+        // Обработчик переключения
+        compatibilitySwitch.addEventListener('change', applyCompatibilityFilter);
+        // Применить фильтр сразу при загрузке (переключатель включен по умолчанию)
+        applyCompatibilityFilter();
     </script>
 }

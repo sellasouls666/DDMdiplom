@@ -13,4 +13,10 @@
 
     public string StorageInterface { get; set; }   // "SATA" или "M.2"
     public int? M2Slots { get; set; }
+
+    // ⬇️ Новые поля для совместимости
+    public string? CpuSocketType { get; set; }          // сокет материнской платы
+    public string? Speed { get; set; }                 // скорость/тип памяти (например "DDR5 6400")
+    public string? CpuSocketCompatibility { get; set; } // для воздушного кулера
+    public string? BlockCompatibility { get; set; }    // для водяного охлаждения
 }

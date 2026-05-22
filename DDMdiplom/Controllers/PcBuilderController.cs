@@ -70,12 +70,18 @@ namespace DDMdiplom.Controllers
                     }
                     // Количество слотов памяти
                     component.MemorySlots = motherboard.MemorySlots;
+                    component.CpuSocketType = motherboard.CpuSocketType;
                 }
             }
 
             // Специальная обработка для оперативной памяти
             if (component.Type == "Оперативная память")
             {
+                var memory = await _context.Memories.FindAsync(component.Id);
+                if (memory != null)
+                {
+                    component.Speed = memory.Speed;  // сохраняем строку типа "DDR5 6400"
+                }
                 int maxModules = 4;
                 var motherboardComponent = build.FirstOrDefault(c => c.Type == "Материнская плата");
                 if (motherboardComponent != null && motherboardComponent.MemorySlots.HasValue)
@@ -169,9 +175,28 @@ namespace DDMdiplom.Controllers
                 }
                 build.Add(component);
             }
-            else // Все остальные компоненты, включая материнскую плату
+            else // все остальные компоненты (в том числе кулеры)
             {
-                // Заменяем существующий компонент того же типа (кроме ОЗУ и накопителей)
+                // если это система охлаждения – сохраняем совместимость
+                if (component.Type == "Система охлаждения")
+                {
+                    // пробуем найти воздушный кулер
+                    var airCooler = await _context.CpuCoolers.FindAsync(component.Id);
+                    if (airCooler != null)
+                    {
+                        component.CpuSocketCompatibility = airCooler.CpuSocketCompatibility;
+                    }
+                    else
+                    {
+                        // ищем водяное охлаждение
+                        var waterCooler = await _context.WaterCoolers.FindAsync(component.Id);
+                        if (waterCooler != null)
+                        {
+                            component.BlockCompatibility = waterCooler.BlockCompatibility;
+                        }
+                    }
+                }
+
                 var existing = build.FirstOrDefault(c => c.Type == component.Type);
                 if (existing != null)
                     build.Remove(existing);
