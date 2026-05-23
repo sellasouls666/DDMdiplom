@@ -114,6 +114,11 @@
         <h1>Жёсткие диски (HDD)</h1>
     </div>
 
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+    </div>
+
     <div class="hdd-grid">
         @foreach (var drive in Model)
         {
