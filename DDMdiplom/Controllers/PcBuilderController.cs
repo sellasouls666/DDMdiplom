@@ -70,6 +70,7 @@ namespace DDMdiplom.Controllers
                     }
                     // Количество слотов памяти
                     component.MemorySlots = motherboard.MemorySlots;
+                    component.MbMemoryStandard = motherboard.MemoryStandard;
                     component.CpuSocketType = motherboard.CpuSocketType;
                 }
             }

@@ -21,4 +21,5 @@
     public string? ProcessorSocket { get; set; }       // сокет выбранного процессора
     public string? ProcessorMemoryTypes { get; set; }  // поддерживаемые типы памяти процессора
     public string? CaseMotherboardFormFactors { get; set; } // совместимые форм‑факторы корпуса
+    public string? MbMemoryStandard { get; set; } // стандарт памяти материнской платы
 }
