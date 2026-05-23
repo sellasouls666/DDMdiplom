@@ -19,4 +19,6 @@
     public string? Speed { get; set; }                 // скорость/тип памяти (например "DDR5 6400")
     public string? CpuSocketCompatibility { get; set; } // для воздушного кулера
     public string? BlockCompatibility { get; set; }    // для водяного охлаждения
+
+    public int? MaxGpuLength { get; set; }  // максимальная длина видеокарты, поддерживаемая корпусом
 }

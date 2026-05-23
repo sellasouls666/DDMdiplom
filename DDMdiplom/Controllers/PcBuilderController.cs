@@ -177,6 +177,15 @@ namespace DDMdiplom.Controllers
             }
             else // все остальные компоненты (в том числе кулеры)
             {
+                if (component.Type == "Корпус")
+                {
+                    var pcCase = await _context.Cases.FindAsync(component.Id);
+                    if (pcCase != null)
+                    {
+                        component.MaxGpuLength = pcCase.MaxGpuLength;
+                    }
+                }
+
                 // если это система охлаждения – сохраняем совместимость
                 if (component.Type == "Система охлаждения")
                 {
