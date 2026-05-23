@@ -114,12 +114,23 @@
         <h1>Твердотельные накопители (SSD)</h1>
     </div>
 
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+    </div>
+
     <div class="ssd-grid">
         @foreach (var drive in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(drive.ImageUrl) ? drive.ImageUrl : "/images/placeholder.png";
+            // Вычисляем интерфейс до использования
+            var isM2 = drive.FormFactor != null && drive.FormFactor.Contains("M.2");
+            var storageInterface = isM2 ? "M.2" : "SATA";
+    
             <div class="col">
-                <div class="card ssd-card h-100" data-id="@drive.Id">
+                <div class="card ssd-card h-100"
+                     data-id="@drive.Id"
+                     data-storage-interface="@storageInterface">
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@drive.Model">
                     </div>
@@ -136,10 +147,6 @@
                     <div class="card-footer bg-transparent border-0 pb-3 pt-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="price">@string.Format("{0:N0}", drive.Price) ₽</span>
-                                @{
-                                    var isM2 = drive.FormFactor != null && drive.FormFactor.Contains("M.2");
-                                    var storageInterface = isM2 ? "M.2" : "SATA";
-                                }
                             <button class="btn btn-outline-dark btn-outline-add select-component"
                                     data-id="@drive.Id"
                                     data-name="@drive.Brand @drive.Model"
@@ -282,5 +289,42 @@
                 }
             });
         });
+
+        // ========== ФИЛЬТР СОВМЕСТИМОСТИ SSD ==========
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const ssdCards = document.querySelectorAll('.ssd-card');
+
+        async function applyStorageFilter() {
+            if (!compatibilitySwitch.checked) {
+                ssdCards.forEach(card => card.closest('.col').style.display = '');
+                return;
+            }
+
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                const build = data.success ? data.build : [];
+
+                const motherboard = build.find(c => c.type === "Материнская плата");
+                const hasM2Slots = motherboard && motherboard.m2Slots && motherboard.m2Slots > 0;
+
+                ssdCards.forEach(card => {
+                    const col = card.closest('.col');
+                    const interfaceType = card.dataset.storageInterface;
+
+                    if (interfaceType === "M.2" && motherboard && !hasM2Slots) {
+                        col.style.display = 'none';   // материнка выбрана, но нет M.2 слотов
+                    } else {
+                        col.style.display = '';       // SATA или материнка не выбрана / слоты есть
+                    }
+                });
+            } catch (error) {
+                console.error('Ошибка фильтра SSD:', error);
+                ssdCards.forEach(card => card.closest('.col').style.display = '');
+            }
+        }
+
+        compatibilitySwitch.addEventListener('change', applyStorageFilter);
+        applyStorageFilter();
     </script>
 }
