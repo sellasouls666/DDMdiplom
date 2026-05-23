@@ -177,12 +177,23 @@ namespace DDMdiplom.Controllers
             }
             else // все остальные компоненты (в том числе кулеры)
             {
+                if (component.Type == "Процессор")
+                {
+                    var processor = await _context.Processors.FindAsync(component.Id);
+                    if (processor != null)
+                    {
+                        component.ProcessorSocket = processor.CpuSocketType;
+                        component.ProcessorMemoryTypes = processor.MemoryTypes;
+                    }
+                }
+
                 if (component.Type == "Корпус")
                 {
                     var pcCase = await _context.Cases.FindAsync(component.Id);
                     if (pcCase != null)
                     {
                         component.MaxGpuLength = pcCase.MaxGpuLength;
+                        component.CaseMotherboardFormFactors = pcCase.MotherboardCompatibility;
                     }
                 }
 

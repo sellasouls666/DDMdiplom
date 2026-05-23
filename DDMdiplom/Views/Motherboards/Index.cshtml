@@ -114,12 +114,21 @@
         <h1>Материнские платы</h1>
     </div>
 
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+    </div>
+
     <div class="motherboards-grid">
         @foreach (var mb in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(mb.ImageUrl) ? mb.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card motherboard-card h-100" data-id="@mb.Id">
+                <div class="card motherboard-card h-100"
+                     data-id="@mb.Id"
+                     data-socket="@mb.CpuSocketType"
+                     data-memory-standard="@mb.MemoryStandard"
+                     data-form-factor="@mb.FormFactor">
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@mb.Model">
                     </div>
@@ -301,5 +310,72 @@
                 }
             });
         });
+
+        // ========== ФИЛЬТРАЦИЯ ПО СОВМЕСТИМОСТИ ==========
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const mbCards = document.querySelectorAll('.motherboard-card');
+
+        function extractMemoryType(memSpeed) {
+            if (!memSpeed) return null;
+            const match = memSpeed.match(/DDR\d+/i);
+            return match ? match[0].toUpperCase() : null;
+        }
+
+        async function applyCompatibilityFilter() {
+            if (!compatibilitySwitch.checked) {
+                mbCards.forEach(card => card.closest('.col').style.display = '');
+                return;
+            }
+
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                const build = data.success ? data.build : [];
+
+                const processor = build.find(c => c.type === "Процессор");
+                const memoryModules = build.filter(c => c.type === "Оперативная память");
+                const pcCase = build.find(c => c.type === "Корпус");
+
+                mbCards.forEach(card => {
+                    const col = card.closest('.col');
+                    const mbSocket = card.dataset.socket || '';
+                    const mbMemoryStandard = (card.dataset.memoryStandard || '').toUpperCase();
+                    const mbFormFactor = (card.dataset.formFactor || '').trim();
+
+                    let visible = true;
+
+                    // 1. Проверка сокета процессора
+                    if (processor && processor.processorSocket) {
+                        if (!mbSocket.includes(processor.processorSocket.replace('Socket ', ''))) {
+                            visible = false;
+                        }
+                    }
+
+                    // 2. Проверка типа памяти
+                    if (visible && memoryModules.length > 0) {
+                        const memTypes = memoryModules.map(m => extractMemoryType(m.speed)).filter(Boolean);
+                        if (memTypes.length > 0) {
+                            const supportsMemory = memTypes.some(mt => mbMemoryStandard.includes(mt));
+                            if (!supportsMemory) visible = false;
+                        }
+                    }
+
+                    // 3. Проверка форм‑фактора корпуса
+                    if (visible && pcCase && pcCase.caseMotherboardFormFactors) {
+                        if (!pcCase.caseMotherboardFormFactors.toLowerCase().includes(mbFormFactor.toLowerCase())) {
+                            visible = false;
+                        }
+                    }
+
+                    col.style.display = visible ? '' : 'none';
+                });
+            } catch (error) {
+                console.error('Ошибка при получении сборки:', error);
+                mbCards.forEach(card => card.closest('.col').style.display = '');
+            }
+        }
+
+        compatibilitySwitch.addEventListener('change', applyCompatibilityFilter);
+        applyCompatibilityFilter();
     </script>
 }
