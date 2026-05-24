@@ -72,6 +72,7 @@ namespace DDMdiplom.Controllers
                     component.MemorySlots = motherboard.MemorySlots;
                     component.MbMemoryStandard = motherboard.MemoryStandard;
                     component.CpuSocketType = motherboard.CpuSocketType;
+                    component.MbFormFactor = motherboard.FormFactor;
                 }
             }
 
@@ -164,6 +165,24 @@ namespace DDMdiplom.Controllers
                         build.Add(component);
                     }
                 }
+            }
+            // Видеокарта
+            else if (component.Type == "Видеокарта")
+            {
+                var gpu = await _context.GraphicsCards.FindAsync(component.Id);
+                if (gpu != null) component.GpuLength = gpu.MaxGpuLength;
+                var existing = build.FirstOrDefault(c => c.Type == component.Type);
+                if (existing != null) build.Remove(existing);
+                build.Add(component);
+            }
+            // Блок питания
+            else if (component.Type == "Блок питания")
+            {
+                var psu = await _context.PowerSupplies.FindAsync(component.Id);
+                if (psu != null) component.PsuLength = psu.MaxPsuLength;
+                var existing = build.FirstOrDefault(c => c.Type == component.Type);
+                if (existing != null) build.Remove(existing);
+                build.Add(component);
             }
             else if (component.Type == "Монитор")
             {

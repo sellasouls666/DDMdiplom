@@ -23,4 +23,7 @@
     public string? CaseMotherboardFormFactors { get; set; } // совместимые форм‑факторы корпуса
     public string? MbMemoryStandard { get; set; } // стандарт памяти материнской платы
     public int? MaxPsuLength { get; set; }  // максимальная длина БП, поддерживаемая корпусом (из Case)
+    public int? GpuLength { get; set; }          // длина выбранной видеокарты (из GraphicsCard.MaxGpuLength)
+    public int? PsuLength { get; set; }         // длина выбранного БП (из PowerSupply.MaxPsuLength)
+    public string? MbFormFactor { get; set; }   // форм-фактор выбранной материнской платы (из Motherboard.FormFactor)
 }

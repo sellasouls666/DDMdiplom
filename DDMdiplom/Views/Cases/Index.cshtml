@@ -110,8 +110,12 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Корпуса</h1>
+    <h1 class="mb-3">Корпуса</h1>
+    
+    <!-- Переключатель совместимости -->
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
     </div>
 
     <div class="case-grid">
@@ -119,7 +123,11 @@
         {
             var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card case-card h-100" data-id="@item.Id">
+                <div class="card case-card h-100"
+                     data-id="@item.Id"
+                     data-max-gpu-length="@item.MaxGpuLength"
+                     data-motherboard-compatibility="@item.MotherboardCompatibility"
+                     data-max-psu-length="@item.MaxPsuLength">
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@item.Model">
                     </div>
@@ -290,5 +298,49 @@
                 }
             });
         });
+
+        // ========== ФИЛЬТР СОВМЕСТИМОСТИ КОРПУСОВ ==========
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const caseCards = document.querySelectorAll('.case-card');
+
+        async function applyCaseFilter() {
+            if (!compatibilitySwitch.checked) {
+                caseCards.forEach(card => card.closest('.col').style.display = '');
+                return;
+            }
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                const build = data.success ? data.build : [];
+
+                const gpu = build.find(c => c.type === "Видеокарта");
+                const mb = build.find(c => c.type === "Материнская плата");
+                const psu = build.find(c => c.type === "Блок питания");
+
+                const requiredGpuLen = gpu?.gpuLength;
+                const requiredMbForm = mb?.mbFormFactor?.trim().toLowerCase();
+                const requiredPsuLen = psu?.psuLength;
+
+                caseCards.forEach(card => {
+                    const col = card.closest('.col');
+                    const maxGpu = parseInt(card.dataset.maxGpuLength) || 0;
+                    const maxPsu = parseInt(card.dataset.maxPsuLength) || 0;
+                    const mbCompat = card.dataset.motherboardCompatibility?.toLowerCase() || '';
+
+                    let visible = true;
+                    if (requiredGpuLen && maxGpu > 0 && maxGpu < requiredGpuLen) visible = false;
+                    if (visible && requiredMbForm && mbCompat && !mbCompat.includes(requiredMbForm)) visible = false;
+                    if (visible && requiredPsuLen && maxPsu > 0 && maxPsu < requiredPsuLen) visible = false;
+
+                    col.style.display = visible ? '' : 'none';
+                });
+            } catch (err) {
+                console.error('Ошибка фильтра корпусов:', err);
+                caseCards.forEach(card => card.closest('.col').style.display = '');
+            }
+        }
+
+        compatibilitySwitch.addEventListener('change', applyCaseFilter);
+        applyCaseFilter();
     </script>
 }
