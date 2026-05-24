@@ -25,6 +25,8 @@ namespace DDMdiplom.Data
         public DbSet<Ups> UpsDevices { get; set; }
         public DbSet<Keyboard> Keyboards { get; set; }
         public DbSet<Mouse> Mice { get; set; }
+        public DbSet<Build> Builds { get; set; } = null!;
+        public DbSet<BuildItem> BuildItems { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
