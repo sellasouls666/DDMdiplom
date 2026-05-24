@@ -114,12 +114,19 @@
         <h1>Воздушное охлаждение</h1>
     </div>
 
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+    </div>
+
     <div class="cooler-grid">
         @foreach (var cooler in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(cooler.ImageUrl) ? cooler.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card cooler-card h-100" data-id="@cooler.Id">
+                <div class="card cooler-card h-100"
+                     data-id="@cooler.Id"
+                     data-socket-compat="@cooler.CpuSocketCompatibility">
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@cooler.Model">
                     </div>
@@ -275,5 +282,54 @@
                 }
             });
         });
+
+        // ========== ФИЛЬТР СОВМЕСТИМОСТИ КУЛЕРА ==========
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const coolerCards = document.querySelectorAll('.cooler-card');
+
+        async function applyCoolerFilter() {
+            if (!compatibilitySwitch.checked) {
+                coolerCards.forEach(card => card.closest('.col').style.display = '');
+                return;
+            }
+
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                const build = data.success ? data.build : [];
+
+                const processor = build.find(c => c.type === "Процессор");
+                const motherboard = build.find(c => c.type === "Материнская плата");
+
+                // Собираем сокеты, которые должны поддерживаться
+                const requiredSockets = [];
+                if (processor && processor.processorSocket) {
+                    // Убираем возможный префикс "Socket "
+                    requiredSockets.push(processor.processorSocket.replace('Socket ', '').trim());
+                }
+                if (motherboard && motherboard.cpuSocketType) {
+                    requiredSockets.push(motherboard.cpuSocketType.trim());
+                }
+
+                coolerCards.forEach(card => {
+                    const col = card.closest('.col');
+                    const compatStr = card.dataset.socketCompat?.toUpperCase() || '';
+
+                    let visible = true;
+                    if (requiredSockets.length > 0) {
+                        visible = requiredSockets.every(socket =>
+                            compatStr.includes(socket.toUpperCase())
+                        );
+                    }
+                    col.style.display = visible ? '' : 'none';
+                });
+            } catch (err) {
+                console.error('Ошибка фильтра кулера:', err);
+                coolerCards.forEach(card => card.closest('.col').style.display = '');
+            }
+        }
+
+        compatibilitySwitch.addEventListener('change', applyCoolerFilter);
+        applyCoolerFilter();
     </script>
 }
