@@ -110,8 +110,12 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Жидкостное охлаждение</h1>
+    <h1 class="mb-3">Жидкостное охлаждение</h1>
+
+    <!-- Переключатель совместимости -->
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
     </div>
 
     <div class="water-grid">
@@ -119,7 +123,9 @@
         {
             var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card water-card h-100" data-id="@item.Id">
+                <div class="card water-card h-100"
+                     data-id="@item.Id"
+                     data-block-compat="@item.BlockCompatibility">
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@item.Brand @item.Model">
                     </div>
@@ -274,5 +280,54 @@
                 }
             });
         });
+
+        // ========== ФИЛЬТР СОВМЕСТИМОСТИ ВОДЯНКИ (по сокету) ==========
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const waterCards = document.querySelectorAll('.water-card');
+
+        async function applyWaterFilter() {
+            if (!compatibilitySwitch.checked) {
+                waterCards.forEach(card => card.closest('.col').style.display = '');
+                return;
+            }
+
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                const build = data.success ? data.build : [];
+
+                const processor = build.find(c => c.type === "Процессор");
+                const motherboard = build.find(c => c.type === "Материнская плата");
+
+                // Собираем требуемые сокеты
+                const requiredSockets = [];
+                if (processor && processor.processorSocket) {
+                    requiredSockets.push(processor.processorSocket.replace('Socket ', '').trim());
+                }
+                if (motherboard && motherboard.cpuSocketType) {
+                    requiredSockets.push(motherboard.cpuSocketType.trim());
+                }
+
+                waterCards.forEach(card => {
+                    const col = card.closest('.col');
+                    const compatStr = card.dataset.blockCompat?.toUpperCase() || '';
+
+                    let visible = true;
+                    if (requiredSockets.length > 0) {
+                        // Все требуемые сокеты должны присутствовать в строке совместимости кулера
+                        visible = requiredSockets.every(socket =>
+                            compatStr.includes(socket.toUpperCase())
+                        );
+                    }
+                    col.style.display = visible ? '' : 'none';
+                });
+            } catch (err) {
+                console.error('Ошибка фильтра водянки:', err);
+                waterCards.forEach(card => card.closest('.col').style.display = '');
+            }
+        }
+
+        compatibilitySwitch.addEventListener('change', applyWaterFilter);
+        applyWaterFilter();
     </script>
 }
