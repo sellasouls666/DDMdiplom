@@ -110,8 +110,12 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Блоки питания</h1>
+    <h1 class="mb-3">Блоки питания</h1>
+    
+    <!-- Переключатель совместимости -->
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
     </div>
 
     <div class="psu-grid">
@@ -119,7 +123,9 @@
         {
             var imageUrl = !string.IsNullOrEmpty(psu.ImageUrl) ? psu.ImageUrl : "/images/placeholder.png";
             <div class="col">
-                <div class="card psu-card h-100" data-id="@psu.Id">
+                <div class="card psu-card h-100" data-id="@psu.Id"
+                     data-max-power="@psu.MaximumPower"
+                     data-psu-length="@psu.MaxPsuLength">
                     <div class="card-img-container">
                         <img src="@imageUrl" class="card-img-top" alt="@psu.Model">
                     </div>
@@ -205,7 +211,7 @@
             });
         });
 
-        // Открытие модального окна по клику на карточку
+        // Открытие модального окна по клику на карточку (без изменений)
         document.querySelectorAll('.psu-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
@@ -216,7 +222,6 @@
                     const response = await fetch(`/PowerSupplies/GetPowerSupply/${psuId}`);
                     const psu = await response.json();
 
-                    // Основная информация
                     let part1Rows = '';
                     if (psu.brand) part1Rows += `<tr><td>Бренд</td><td>${psu.brand}</td></tr>`;
                     if (psu.series) part1Rows += `<tr><td>Серия</td><td>${psu.series}</td></tr>`;
@@ -229,7 +234,6 @@
                     if (psu.energyEfficient) part1Rows += `<tr><td>Сертификат эффективности</td><td>${psu.energyEfficient}</td></tr>`;
                     const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
 
-                    // Детальные характеристики
                     let part2Rows = '';
                     if (psu.fans) part2Rows += `<tr><td>Вентилятор(ы)</td><td>${psu.fans}</td></tr>`;
                     if (psu.mainConnector) part2Rows += `<tr><td>Основной разъём</td><td>${psu.mainConnector}</td></tr>`;
@@ -284,5 +288,59 @@
                 }
             });
         });
+
+        // ========== ФИЛЬТР СОВМЕСТИМОСТИ БП ==========
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const psuCards = document.querySelectorAll('.psu-card');
+
+        async function applyPsuFilter() {
+            if (!compatibilitySwitch.checked) {
+                psuCards.forEach(card => card.closest('.col').style.display = '');
+                return;
+            }
+
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                const build = data.success ? data.build : [];
+
+                // Суммарный TDP (учитываем Tdp у процессора, видеокарты, возможно других)
+                let totalTdp = 0;
+                build.forEach(c => {
+                    if (c.tdp) totalTdp += c.tdp;
+                });
+                const requiredPower = totalTdp + 200;
+
+                // Ограничение по длине из корпуса
+                const pcCase = build.find(c => c.type === "Корпус");
+                const maxCasePsuLength = pcCase?.maxPsuLength;  // целое число или null
+
+                psuCards.forEach(card => {
+                    const col = card.closest('.col');
+                    const psuPower = parseInt(card.dataset.maxPower) || 0;
+                    const psuLength = parseInt(card.dataset.psuLength) || 0;
+
+                    let visible = true;
+
+                    // Фильтр по мощности
+                    if (psuPower < requiredPower) {
+                        visible = false;
+                    }
+
+                    // Фильтр по длине (если корпус выбран и указана макс. длина)
+                    if (visible && pcCase && maxCasePsuLength && psuLength > maxCasePsuLength) {
+                        visible = false;
+                    }
+
+                    col.style.display = visible ? '' : 'none';
+                });
+            } catch (error) {
+                console.error('Ошибка фильтра БП:', error);
+                psuCards.forEach(card => card.closest('.col').style.display = '');
+            }
+        }
+
+        compatibilitySwitch.addEventListener('change', applyPsuFilter);
+        applyPsuFilter();
     </script>
 }

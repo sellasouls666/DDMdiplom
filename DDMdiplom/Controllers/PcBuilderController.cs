@@ -195,6 +195,7 @@ namespace DDMdiplom.Controllers
                     {
                         component.MaxGpuLength = pcCase.MaxGpuLength;
                         component.CaseMotherboardFormFactors = pcCase.MotherboardCompatibility;
+                        component.MaxPsuLength = pcCase.MaxPsuLength;   
                     }
                 }
 
