@@ -26,4 +26,5 @@
     public int? GpuLength { get; set; }          // длина выбранной видеокарты (из GraphicsCard.MaxGpuLength)
     public int? PsuLength { get; set; }         // длина выбранного БП (из PowerSupply.MaxPsuLength)
     public string? MbFormFactor { get; set; }   // форм-фактор выбранной материнской платы (из Motherboard.FormFactor)
+    public int? PsuMaximumPower { get; set; }
 }
