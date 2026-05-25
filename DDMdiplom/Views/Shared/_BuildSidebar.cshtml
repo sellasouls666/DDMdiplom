@@ -205,32 +205,6 @@
     .total-stats .value-group span:last-child {
         font-weight: 700 !important;
     }
-
-    .build-tabs {
-        display: flex;
-        gap: 0;
-        margin-bottom: 12px;
-        border-bottom: 2px solid #e9ecef;
-    }
-    .tab-btn {
-        flex: 1;
-        background: transparent;
-        border: none;
-        padding: 8px 12px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: #6c757d;
-        cursor: pointer;
-        border-bottom: 3px solid transparent;
-        transition: color 0.2s, border-color 0.2s;
-    }
-    .tab-btn.active {
-        color: #1e2a3e;
-        border-bottom-color: #1e2a3e;
-    }
-    .tab-btn:hover {
-        color: #1e2a3e;
-    }
 </style>
 
 <!-- HTML панели (как ранее, без изменений) -->
@@ -249,12 +223,6 @@
     <div class="expanded-content">
         <div class="sidebar-header">
             <div class="build-title">Конфигуратор ПК</div>
-        </div>
-        <div class="build-tabs">
-            <button id="tabNew" class="tab-btn">Новая</button>
-            <button id="tabSaved" class="tab-btn active">Сохранённая</button>
-        </div>
-        <div class="mb-3">
             <label class="form-label small">Название конфигурации</label>
             <input type="text" id="buildName" class="form-control form-control-sm" placeholder="Моя конфигурация" value="Моя конфигурация">
         </div>
@@ -289,74 +257,19 @@
         { type: "Мышь", icon: "bi-mouse", defaultName: "Мышь" }
     ];
 
-    let currentBuild = [];          // текущая сессионная сборка (вкладка "Новая")
-    let savedBuild = {
-        id: null,
-        name: '',
-        components: []
-    };
-    let activeTab = 'saved';
+    let currentBuild = [];
 
-    // Загрузка сессионной сборки и последней сохранённой
-    function loadInitialData() {
-    fetch('/PcBuilder/GetBuild')
-        .then(r => r.json())
-        .then(data => {
-            if (data.success && data.build) {
-                currentBuild = data.build;
-            }
-            return fetch('/PcBuilder/GetLastSavedBuild');
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success && data.build) {
-                savedBuild = {
-                    id: data.build.id,
-                    name: data.build.name,
-                    components: data.build.components
-                };
-            }
-            // Определяем активную вкладку: если в sessionStorage есть сохранённый выбор, используем его, иначе 'new'
-            const storedTab = sessionStorage.getItem('pcBuilderActiveTab');
-            if (storedTab === 'saved' && savedBuild.id) {
-                activeTab = 'saved';
-                document.getElementById('buildName').value = savedBuild.name;
-            } else {
-                activeTab = 'new';
-                document.getElementById('buildName').value = 'Моя конфигурация';
-            }
-            setActiveTab(activeTab);
-            renderAll();
-        })
-        .catch(err => {
-            console.error(err);
-            activeTab = 'new';
-            setActiveTab('new');
-            renderAll();
-        });
-}
-
-    // Переключение вкладок
-    document.getElementById('tabSaved').addEventListener('click', () => {
-        if (savedBuild.id) {
-            activeTab = 'saved';
-            document.getElementById('buildName').value = savedBuild.name;
-            setActiveTab('saved');
-            sessionStorage.setItem('pcBuilderActiveTab', 'saved');
-            renderAll();
-        }
-    });
-    document.getElementById('tabNew').addEventListener('click', () => {
-        activeTab = 'new';
-        document.getElementById('buildName').value = 'Моя конфигурация';
-        setActiveTab('new');
-        sessionStorage.setItem('pcBuilderActiveTab', 'new');
-        renderAll();
-    });
-
-    function setActiveTab(tab) {
-        document.getElementById('tabSaved').classList.toggle('active', tab === 'saved');
-        document.getElementById('tabNew').classList.toggle('active', tab === 'new');
+    function loadBuildFromSession() {
+        fetch('/PcBuilder/GetBuild')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.build) {
+                    currentBuild = data.build;
+                    renderAll();
+                } else {
+                    renderAll();
+                }
+            });
     }
 
     function renderAll() {
@@ -365,22 +278,20 @@
     }
 
     function renderSidebarExpanded() {
-        // Определяем, из какого источника брать компоненты
-        let components = activeTab === 'saved' ? savedBuild.components : currentBuild;
-    
         let totalPrice = 0, totalWatts = 0;
-        components.forEach(item => {
+        currentBuild.forEach(item => {
             totalPrice += item.price;
             if (item.tdp) totalWatts += item.tdp;
         });
         document.getElementById('totalPriceSidebar').innerText = totalPrice.toLocaleString() + ' ₽';
         document.getElementById('totalWatts').innerText = totalWatts;
-        document.getElementById('selectedCount').innerText = components.length;
+        document.getElementById('selectedCount').innerText = currentBuild.length;
 
         let html = '';
         allCategories.forEach(cat => {
             if (cat.type === "Оперативная память") {
-                const memoryItems = components.filter(c => c.type === cat.type);
+                // Все выбранные комплекты памяти
+                const memoryItems = currentBuild.filter(c => c.type === cat.type);
                 if (memoryItems.length > 0) {
                     memoryItems.forEach(selected => {
                         html += `
@@ -408,7 +319,8 @@
                     `;
                 }
             } else if (cat.type === "Накопитель") {
-                const storageItems = components.filter(c => c.type === cat.type);
+                // Все выбранные накопители
+                const storageItems = currentBuild.filter(c => c.type === cat.type);
                 if (storageItems.length > 0) {
                     storageItems.forEach(selected => {
                         html += `
@@ -436,7 +348,8 @@
                     `;
                 }
             } else if (cat.type === "Монитор") {
-                const monitorItems = components.filter(c => c.type === cat.type);
+                // Все выбранные мониторы
+                const monitorItems = currentBuild.filter(c => c.type === cat.type);
                 if (monitorItems.length > 0) {
                     monitorItems.forEach(selected => {
                         html += `
@@ -464,7 +377,8 @@
                     `;
                 }
             } else {
-                const selected = components.find(c => c.type === cat.type);
+                // Остальные категории – только один компонент
+                const selected = currentBuild.find(c => c.type === cat.type);
                 if (selected) {
                     html += `
                         <div class="component-item" data-type="${cat.type}">
@@ -493,22 +407,14 @@
         });
         document.getElementById('componentsList').innerHTML = html;
 
-        // Обработчики удаления
+        // Обработчики удаления и выбора
         document.querySelectorAll('.delete-component').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const instanceId = btn.getAttribute('data-instance-id');
-                if (activeTab === 'new') {
-                    removeFromBuild(instanceId);
-                } else {
-                    // Удаление из сохранённой сборки (локально)
-                    savedBuild.components = savedBuild.components.filter(c => c.instanceId !== instanceId);
-                    renderAll();
-                }
+                removeFromBuild(instanceId);
             });
         });
-
-        // Обработчики кнопок "Выбрать" (переходы) – без изменений
         document.querySelectorAll('.select-component-sidebar').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -529,8 +435,6 @@
                 else alert(`Переход на страницу выбора ${type} (пока не реализовано)`);
             });
         });
-
-        // Клики по строкам компонентов – без изменений
         document.querySelectorAll('.component-item').forEach(row => {
             row.addEventListener('click', (e) => {
                 if (e.target.closest('.delete-component')) return;
@@ -553,16 +457,13 @@
             });
         });
 
-        // ---------- Логика для кнопок "Добавить ещё" ----------
-        // Все эти проверки теперь работают с "components", а не с currentBuild
-    
-        // RAM
+        // Логика для RAM (добавление кнопки)
         const ramComponents = Array.from(document.querySelectorAll('.component-item[data-type="Оперативная память"]'))
             .filter(el => el.querySelector('.delete-component'));
         if (ramComponents.length > 0) {
-            let ramModules = components.filter(c => c.type === "Оперативная память").reduce((sum, c) => sum + (c.moduleCount || 1), 0);
+            let ramModules = currentBuild.filter(c => c.type === "Оперативная память").reduce((sum, c) => sum + (c.moduleCount || 1), 0);
             let maxRamModules = 4;
-            const motherboardComponent = components.find(c => c.type === "Материнская плата");
+            const motherboardComponent = currentBuild.find(c => c.type === "Материнская плата");
             if (motherboardComponent && motherboardComponent.memorySlots) {
                 maxRamModules = motherboardComponent.memorySlots;
             }
@@ -583,17 +484,19 @@
             }
         }
 
-        // Накопители
+        // Логика для накопителей (добавление кнопки)
         const storageComponents = Array.from(document.querySelectorAll('.component-item[data-type="Накопитель"]'))
             .filter(el => el.querySelector('.delete-component'));
         if (storageComponents.length > 0) {
-            const motherboardComponent = components.find(c => c.type === "Материнская плата");
+            const motherboardComponent = currentBuild.find(c => c.type === "Материнская плата");
 
-            const usedSata = components.filter(c => c.type === "Накопитель" &&
+            // Подсчитываем текущее использование
+            const usedSata = currentBuild.filter(c => c.type === "Накопитель" &&
                 (c.storageInterface === "SATA" || !c.storageInterface)).length;
-            const usedM2 = components.filter(c => c.type === "Накопитель" &&
+            const usedM2 = currentBuild.filter(c => c.type === "Накопитель" &&
                 c.storageInterface === "M.2").length;
 
+            // Определяем лимиты
             let maxSata = 2;
             let maxM2 = 2;
             if (motherboardComponent) {
@@ -601,17 +504,21 @@
                 maxM2 = motherboardComponent.m2Slots || 2;
             }
 
+            // Есть ли свободные слоты?
             let canAdd = false;
             if (motherboardComponent) {
                 canAdd = (usedSata < maxSata) || (usedM2 < maxM2);
             } else {
-                const totalDrives = components.filter(c => c.type === "Накопитель").length;
+                const totalDrives = currentBuild.filter(c => c.type === "Накопитель").length;
                 canAdd = totalDrives < 2;
             }
 
             if (canAdd) {
+                // Удаляем старую кнопку, если она уже существует
                 const oldBtn = document.getElementById('addMoreStorageBtn');
-                if (oldBtn) oldBtn.parentElement.remove();
+                if (oldBtn) {
+                    oldBtn.parentElement.remove();
+                }
                 const lastStorage = storageComponents[storageComponents.length - 1];
                 const addButtonHtml = `
                     <div class="component-item" style="justify-content: center; background: transparent; cursor: default;">
@@ -628,11 +535,11 @@
             }
         }
 
-        // Мониторы
+        // Логика для мониторов (добавление кнопки)
         const monitorComponents = Array.from(document.querySelectorAll('.component-item[data-type="Монитор"]'))
             .filter(el => el.querySelector('.delete-component'));
         if (monitorComponents.length > 0) {
-            let currentMonitors = components.filter(c => c.type === "Монитор").length;
+            let currentMonitors = currentBuild.filter(c => c.type === "Монитор").length;
             const maxMonitors = 2;
             if (currentMonitors < maxMonitors) {
                 const oldBtn = document.getElementById('addMoreMonitorBtn');
@@ -971,200 +878,45 @@
         return issues;
     }
 
-    function getCompatibilityIssuesFor(components) {
-        const issues = [];
-
-        const cpu = components.find(c => c.type === "Процессор");
-        const mb = components.find(c => c.type === "Материнская плата");
-        const memoryModules = components.filter(c => c.type === "Оперативная память");
-        const gpu = components.find(c => c.type === "Видеокарта");
-        const psu = components.find(c => c.type === "Блок питания");
-        const pcCase = components.find(c => c.type === "Корпус");
-        const cooler = components.find(c => c.type === "Система охлаждения");
-        const storageItems = components.filter(c => c.type === "Накопитель");
-
-        // 1. Сокет CPU ↔ материнская плата
-        if (cpu && mb && cpu.processorSocket && mb.cpuSocketType) {
-            const cpuSock = cpu.processorSocket.replace('Socket ', '').trim().toUpperCase();
-            const mbSock = mb.cpuSocketType.trim().toUpperCase();
-            if (!cpuSock.includes(mbSock) && !mbSock.includes(cpuSock)) {
-                issues.push(`Сокет процессора (${cpu.processorSocket}) не совместим с сокетом материнской платы (${mb.cpuSocketType}).`);
-            }
-        }
-
-        // 2. Память ↔ процессор
-        if (cpu && memoryModules.length > 0 && cpu.processorMemoryTypes) {
-            const procMemTypes = cpu.processorMemoryTypes.toUpperCase();
-            memoryModules.forEach(mem => {
-                if (mem.speed) {
-                    const ddrMatch = mem.speed.match(/DDR\d+/i);
-                    if (ddrMatch && !procMemTypes.includes(ddrMatch[0].toUpperCase())) {
-                        issues.push(`Модуль памяти ${mem.name} (${mem.speed}) не поддерживается процессором.`);
-                    }
-                }
-            });
-        }
-
-        // 3. Память ↔ материнская плата
-        if (mb && memoryModules.length > 0 && mb.mbMemoryStandard) {
-            const mbMemStd = mb.mbMemoryStandard.toUpperCase();
-            memoryModules.forEach(mem => {
-                if (mem.speed) {
-                    const ddrMatch = mem.speed.match(/DDR\d+/i);
-                    if (ddrMatch && !mbMemStd.includes(ddrMatch[0].toUpperCase())) {
-                        issues.push(`Модуль памяти ${mem.name} (${mem.speed}) не поддерживается материнской платой.`);
-                    }
-                }
-            });
-        }
-
-        // 4. Кулер ↔ процессор и материнская плата
-        if (cooler) {
-            if (cooler.cpuSocketCompatibility) {
-                if (cpu && cpu.processorSocket) {
-                    const cpuSock = cpu.processorSocket.replace('Socket ', '').trim().toUpperCase();
-                    if (!cooler.cpuSocketCompatibility.toUpperCase().includes(cpuSock)) {
-                        issues.push(`Воздушный кулер ${cooler.name} не совместим с процессором (сокет ${cpu.processorSocket}).`);
-                    }
-                }
-                if (mb && mb.cpuSocketType) {
-                    const mbSock = mb.cpuSocketType.trim().toUpperCase();
-                    if (!cooler.cpuSocketCompatibility.toUpperCase().includes(mbSock)) {
-                        issues.push(`Воздушный кулер ${cooler.name} не совместим с материнской платой (сокет ${mb.cpuSocketType}).`);
-                    }
-                }
-            } else if (cooler.blockCompatibility) {
-                if (cpu && cpu.processorSocket) {
-                    const cpuSock = cpu.processorSocket.replace('Socket ', '').trim().toUpperCase();
-                    if (!cooler.blockCompatibility.toUpperCase().includes(cpuSock)) {
-                        issues.push(`Жидкостное охлаждение ${cooler.name} не совместимо с процессором (сокет ${cpu.processorSocket}).`);
-                    }
-                }
-                if (mb && mb.cpuSocketType) {
-                    const mbSock = mb.cpuSocketType.trim().toUpperCase();
-                    if (!cooler.blockCompatibility.toUpperCase().includes(mbSock)) {
-                        issues.push(`Жидкостное охлаждение ${cooler.name} не совместимо с материнской платой (сокет ${mb.cpuSocketType}).`);
-                    }
-                }
-            }
-        }
-
-        // 5. Длина видеокарты ↔ корпус
-        if (gpu && pcCase && gpu.gpuLength && pcCase.maxGpuLength) {
-            if (gpu.gpuLength > pcCase.maxGpuLength) {
-                issues.push(`Длина видеокарты (${gpu.gpuLength} мм) превышает максимальную длину, поддерживаемую корпусом (${pcCase.maxGpuLength} мм).`);
-            }
-        }
-
-        // 6. Длина блока питания ↔ корпус
-        if (psu && pcCase && psu.psuLength && pcCase.maxPsuLength) {
-            if (psu.psuLength > pcCase.maxPsuLength) {
-                issues.push(`Длина блока питания (${psu.psuLength} мм) превышает максимальную длину, поддерживаемую корпусом (${pcCase.maxPsuLength} мм).`);
-            }
-        }
-
-        // 7. Мощность БП (если есть данные)
-        if (psu && psu.psuMaximumPower) {
-            const totalTdp = components.reduce((sum, c) => sum + (c.tdp || 0), 0);
-            const required = totalTdp + 200;
-            if (psu.psuMaximumPower < required) {
-                issues.push(`Мощность блока питания (${psu.psuMaximumPower} Вт) недостаточна. Требуется минимум ${required} Вт (с учётом запаса 200 Вт).`);
-            }
-        }
-
-        // 8. M.2 SSD ↔ наличие M.2 слотов на материнской плате
-        if (mb && storageItems.some(s => s.storageInterface === "M.2")) {
-            if (!mb.m2Slots || mb.m2Slots <= 0) {
-                issues.push(`В материнской плате нет слотов M.2, но выбран M.2 SSD.`);
-            } else {
-                const m2Count = storageItems.filter(s => s.storageInterface === "M.2").length;
-                if (m2Count > mb.m2Slots) {
-                    issues.push(`Количество M.2 накопителей (${m2Count}) превышает количество слотов M.2 на материнской плате (${mb.m2Slots}).`);
-                }
-            }
-        }
-
-        // 9. Форм-фактор материнской платы ↔ корпус
-        if (mb && pcCase && mb.mbFormFactor && pcCase.caseMotherboardFormFactors) {
-            const mbForm = mb.mbFormFactor.trim().toLowerCase();
-            const caseForms = pcCase.caseMotherboardFormFactors.toLowerCase();
-            if (!caseForms.includes(mbForm)) {
-                issues.push(`Форм-фактор материнской платы (${mb.mbFormFactor}) не поддерживается корпусом (${pcCase.caseMotherboardFormFactors}).`);
-            }
-        }
-
-        // 10. Количество модулей памяти ↔ слоты материнской платы
-        if (mb && memoryModules.length > 0) {
-            const totalModules = memoryModules.reduce((sum, m) => sum + (m.moduleCount || 1), 0);
-            if (mb.memorySlots && totalModules > mb.memorySlots) {
-                issues.push(`Количество установленных модулей памяти (${totalModules}) превышает количество слотов на материнской плате (${mb.memorySlots}).`);
-            }
-        }
-
-        return issues;
-    }
-
     function saveBuild() {
         const buildName = document.getElementById('buildName')?.value.trim() || 'Моя конфигурация';
 
-        const components = activeTab === 'saved' ? savedBuild.components : currentBuild;
-        if (components.length === 0) {
-            alert('Нельзя сохранить пустую конфигурацию.');
+        if (currentBuild.length === 0) {
+            alert('Нельзя сохранить пустую конфигурацию. Добавьте хотя бы один компонент.');
             return;
         }
 
+        // Проверка полноты
         const requiredTypes = [
             "Процессор", "Материнская плата", "Видеокарта",
             "Оперативная память", "Накопитель", "Блок питания",
             "Корпус", "Система охлаждения"
         ];
-        const missing = requiredTypes.filter(type => !components.some(c => c.type === type));
+        const missing = requiredTypes.filter(type => !currentBuild.some(c => c.type === type));
         if (missing.length > 0) {
             if (!confirm(`Конфигурация неполная. Отсутствуют: ${missing.join(', ')}.\n\nВсё равно сохранить?`))
                 return;
         }
 
-        if (activeTab === 'new') {
-            const issues = getCompatibilityIssues();  // использует currentBuild
-            if (issues.length > 0) {
-                if (!confirm(`Обнаружены несовместимости:\n${issues.join('\n')}\n\nСохранить, несмотря на это?`))
-                    return;
-            }
+        // Проверка совместимости
+        const issues = getCompatibilityIssues();
+        if (issues.length > 0) {
+            if (!confirm(`Обнаружены несовместимости:\n${issues.join('\n')}\n\nСохранить, несмотря на это?`))
+                return;
         }
 
-        const payload = {
-            name: buildName,
-            components: components,
-            buildId: activeTab === 'saved' ? savedBuild.id : null
-        };
-
+        // Отправка
         fetch('/PcBuilder/SaveBuild', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ name: buildName, components: currentBuild })
         })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                if (activeTab === 'new') {
-                    // Новая сборка сохранена – делаем её сохранённой
-                    savedBuild = {
-                        id: data.buildId,
-                        name: buildName,
-                        components: JSON.parse(JSON.stringify(currentBuild))
-                    };
-                    currentBuild = [];
-                    // очищаем серверную сессию
-                    fetch('/PcBuilder/ClearBuild', { method: 'POST' });
-                    activeTab = 'saved';
-                    setActiveTab('saved');
-                    sessionStorage.setItem('pcBuilderActiveTab', 'saved');
-                } else {
-                    // Обновили существующую
-                    savedBuild.name = buildName;
-                    // components уже обновлены в savedBuild.components
-                }
                 alert('Конфигурация сохранена!');
+                currentBuild = [];
+                fetch('/PcBuilder/ClearBuild', { method: 'POST' });
                 renderAll();
             } else {
                 alert('Ошибка сохранения: ' + (data.error || 'неизвестная ошибка'));
@@ -1175,5 +927,5 @@
     document.getElementById('resetBuildBtn')?.addEventListener('click', resetBuild);
     document.getElementById('saveBuildBtn')?.addEventListener('click', saveBuild);
 
-    loadInitialData();
+    loadBuildFromSession();
 </script>
