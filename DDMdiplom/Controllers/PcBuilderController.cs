@@ -302,5 +302,12 @@ namespace DDMdiplom.Controllers
 
             return Json(new { success = true, buildId = build.Id });
         }
+
+        [Route("PcBuilder/ClearAndGoToProcessors")]
+        public IActionResult ClearAndGoToProcessors()
+        {
+            HttpContext.Session.Remove(BuildSessionKey);
+            return RedirectToAction("Index", "Processors");
+        }
     }
 }
