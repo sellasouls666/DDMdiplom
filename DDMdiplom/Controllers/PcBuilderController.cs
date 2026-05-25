@@ -277,13 +277,40 @@ namespace DDMdiplom.Controllers
             if (request.Components == null || request.Components.Count == 0)
                 return Json(new { success = false, error = "Сборка пуста" });
 
-            var build = new Build
+            int? buildId = request.BuildId;
+
+            // Если buildId не передан в запросе, пробуем взять из сессии (для редактирования)
+            if (!buildId.HasValue)
             {
-                UserId = userId,
-                Name = request.Name ?? "Моя конфигурация",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                var editingBuildId = HttpContext.Session.GetInt32("EditingBuildId");
+                if (editingBuildId.HasValue)
+                    buildId = editingBuildId;
+            }
+
+            Build build;
+            if (buildId.HasValue)
+            {
+                build = await _context.Builds.Include(b => b.Items)
+                    .FirstOrDefaultAsync(b => b.Id == buildId && b.UserId == userId);
+                if (build == null)
+                    return Json(new { success = false, error = "Сборка не найдена" });
+                // Удаляем старые элементы
+                _context.BuildItems.RemoveRange(build.Items);
+                build.Items.Clear();
+                build.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                build = new Build
+                {
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.Builds.Add(build);
+            }
+
+            build.Name = request.Name ?? "Моя конфигурация";
 
             foreach (var comp in request.Components)
             {
@@ -297,8 +324,10 @@ namespace DDMdiplom.Controllers
                 build.Items.Add(item);
             }
 
-            _context.Builds.Add(build);
             await _context.SaveChangesAsync();
+
+            // Очищаем EditingBuildId в сессии после сохранения
+            HttpContext.Session.Remove("EditingBuildId");
 
             return Json(new { success = true, buildId = build.Id });
         }
@@ -308,6 +337,219 @@ namespace DDMdiplom.Controllers
         {
             HttpContext.Session.Remove(BuildSessionKey);
             return RedirectToAction("Index", "Processors");
+        }
+
+        [Route("PcBuilder/EditBuild/{id}")]
+        public async Task<IActionResult> EditBuild(int id)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Challenge();
+
+            var build = await _context.Builds
+                .Include(b => b.Items)
+                .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
+
+            if (build == null)
+                return NotFound();
+
+            // Очищаем текущую сессию
+            HttpContext.Session.Remove(BuildSessionKey);
+
+            var components = new List<BuildComponent>();
+
+            foreach (var item in build.Items)
+            {
+                var comp = new BuildComponent
+                {
+                    Id = item.ComponentId,
+                    Type = item.ComponentType,
+                    ModuleCount = item.ModuleCount,
+                    StorageInterface = item.StorageInterface,
+                    InstanceId = Guid.NewGuid()
+                };
+
+                switch (item.ComponentType)
+                {
+                    case "Процессор":
+                        var cpu = await _context.Processors.FindAsync(item.ComponentId);
+                        if (cpu != null)
+                        {
+                            comp.Name = $"{cpu.Brand} {cpu.Name}";
+                            comp.Price = cpu.Price;
+                            comp.ImageUrl = cpu.ImageUrl;
+                            comp.Tdp = cpu.ThermalDesignPower;
+                            comp.ProcessorSocket = cpu.CpuSocketType;
+                            comp.ProcessorMemoryTypes = cpu.MemoryTypes;
+                        }
+                        break;
+
+                    case "Материнская плата":
+                        var mb = await _context.Motherboards.FindAsync(item.ComponentId);
+                        if (mb != null)
+                        {
+                            comp.Name = $"{mb.Brand} {mb.Model}";
+                            comp.Price = mb.Price;
+                            comp.ImageUrl = mb.ImageUrl;
+                            comp.CpuSocketType = mb.CpuSocketType;
+                            comp.MemorySlots = mb.MemorySlots;
+                            comp.MbMemoryStandard = mb.MemoryStandard;
+                            comp.MbFormFactor = mb.FormFactor;
+                            // SATA порты
+                            if (!string.IsNullOrEmpty(mb.SataPorts))
+                            {
+                                var matchSata = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*SATA");
+                                if (matchSata.Success) comp.SataPorts = int.Parse(matchSata.Groups[1].Value);
+                            }
+                            // M.2 слоты
+                            if (!string.IsNullOrEmpty(mb.SataPorts))
+                            {
+                                var matchM2 = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*M\.2", RegexOptions.IgnoreCase);
+                                if (matchM2.Success) comp.M2Slots = int.Parse(matchM2.Groups[1].Value);
+                            }
+                        }
+                        break;
+
+                    case "Видеокарта":
+                        var gpu = await _context.GraphicsCards.FindAsync(item.ComponentId);
+                        if (gpu != null)
+                        {
+                            comp.Name = $"{gpu.Brand} {gpu.Model}";
+                            comp.Price = gpu.Price;
+                            comp.ImageUrl = gpu.ImageUrl;
+                            comp.Tdp = gpu.ThermalDesignPower;
+                            comp.GpuLength = gpu.MaxGpuLength;
+                        }
+                        break;
+
+                    case "Оперативная память":
+                        var ram = await _context.Memories.FindAsync(item.ComponentId);
+                        if (ram != null)
+                        {
+                            comp.Name = $"{ram.Brand} {ram.Model}";
+                            comp.Price = ram.Price;
+                            comp.ImageUrl = ram.ImageUrl;
+                            comp.Speed = ram.Speed;
+                            comp.ModuleCount = item.ModuleCount;
+                        }
+                        break;
+
+                    case "Накопитель":
+                        var storage = await _context.Storages.FindAsync(item.ComponentId);
+                        if (storage != null)
+                        {
+                            comp.Name = $"{storage.Brand} {storage.Model}";
+                            comp.Price = storage.Price;
+                            comp.ImageUrl = storage.ImageUrl;
+                            comp.StorageInterface = item.StorageInterface;
+                        }
+                        break;
+
+                    case "Блок питания":
+                        var psu = await _context.PowerSupplies.FindAsync(item.ComponentId);
+                        if (psu != null)
+                        {
+                            comp.Name = $"{psu.Brand} {psu.Model}";
+                            comp.Price = psu.Price;
+                            comp.ImageUrl = psu.ImageUrl;
+                            comp.PsuLength = psu.MaxPsuLength;
+                            comp.PsuMaximumPower = psu.MaximumPower;
+                        }
+                        break;
+
+                    case "Корпус":
+                        var pcCase = await _context.Cases.FindAsync(item.ComponentId);
+                        if (pcCase != null)
+                        {
+                            comp.Name = $"{pcCase.Brand} {pcCase.Model}";
+                            comp.Price = pcCase.Price;
+                            comp.ImageUrl = pcCase.ImageUrl;
+                            comp.MaxGpuLength = pcCase.MaxGpuLength;
+                            comp.CaseMotherboardFormFactors = pcCase.MotherboardCompatibility;
+                            comp.MaxPsuLength = pcCase.MaxPsuLength;
+                        }
+                        break;
+
+                    case "Система охлаждения":
+                        var air = await _context.CpuCoolers.FindAsync(item.ComponentId);
+                        if (air != null)
+                        {
+                            comp.Name = $"{air.Brand} {air.Model}";
+                            comp.Price = air.Price;
+                            comp.ImageUrl = air.ImageUrl;
+                            comp.CpuSocketCompatibility = air.CpuSocketCompatibility;
+                        }
+                        else
+                        {
+                            var water = await _context.WaterCoolers.FindAsync(item.ComponentId);
+                            if (water != null)
+                            {
+                                comp.Name = $"{water.Brand} {water.Model}";
+                                comp.Price = water.Price;
+                                comp.ImageUrl = water.ImageUrl;
+                                comp.BlockCompatibility = water.BlockCompatibility;
+                            }
+                        }
+                        break;
+
+                    case "Операционная система":
+                        var os = await _context.OperatingSystems.FindAsync(item.ComponentId);
+                        if (os != null)
+                        {
+                            comp.Name = $"{os.Brand} {os.Name}";
+                            comp.Price = os.Price;
+                            comp.ImageUrl = os.ImageUrl;
+                        }
+                        break;
+
+                    case "Монитор":
+                        var monitor = await _context.Monitors.FindAsync(item.ComponentId);
+                        if (monitor != null)
+                        {
+                            comp.Name = $"{monitor.Brand} {monitor.Model}";
+                            comp.Price = monitor.Price;
+                            comp.ImageUrl = monitor.ImageUrl;
+                        }
+                        break;
+
+                    case "Источник бесперебойного питания":
+                        var ups = await _context.UpsDevices.FindAsync(item.ComponentId);
+                        if (ups != null)
+                        {
+                            comp.Name = $"{ups.Brand} {ups.Model}";
+                            comp.Price = ups.Price;
+                            comp.ImageUrl = ups.ImageUrl;
+                        }
+                        break;
+
+                    case "Клавиатура":
+                        var kb = await _context.Keyboards.FindAsync(item.ComponentId);
+                        if (kb != null)
+                        {
+                            comp.Name = $"{kb.Brand} {kb.Name ?? kb.Model}";
+                            comp.Price = kb.Price;
+                            comp.ImageUrl = kb.ImageUrl;
+                        }
+                        break;
+
+                    case "Мышь":
+                        var mouse = await _context.Mice.FindAsync(item.ComponentId);
+                        if (mouse != null)
+                        {
+                            comp.Name = $"{mouse.Brand} {mouse.Name}";
+                            comp.Price = mouse.Price;
+                            comp.ImageUrl = mouse.ImageUrl;
+                        }
+                        break;
+                }
+
+                components.Add(comp);
+            }
+
+            SaveBuildToSession(components);
+            HttpContext.Session.SetInt32("EditingBuildId", id);
+
+            return Redirect($"/Processors?editingBuildId={id}");
         }
     }
 }

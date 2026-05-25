@@ -879,7 +879,15 @@
     }
 
     function saveBuild() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const editingBuildId = urlParams.get('editingBuildId');
         const buildName = document.getElementById('buildName')?.value.trim() || 'Моя конфигурация';
+
+        const payload = {
+            name: buildName,
+            components: currentBuild,
+            buildId: editingBuildId || null
+        };
 
         if (currentBuild.length === 0) {
             alert('Нельзя сохранить пустую конфигурацию. Добавьте хотя бы один компонент.');
@@ -914,10 +922,16 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('Конфигурация сохранена!');
+                // Убираем editingBuildId из URL
+                if (window.history && window.history.replaceState) {
+                    const newUrl = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, newUrl);
+                }
+                // Очищаем сборку
                 currentBuild = [];
                 fetch('/PcBuilder/ClearBuild', { method: 'POST' });
                 renderAll();
+                alert('Конфигурация сохранена!');
             } else {
                 alert('Ошибка сохранения: ' + (data.error || 'неизвестная ошибка'));
             }

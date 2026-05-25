@@ -114,7 +114,7 @@
 
                             <!-- Кнопки (видны при наведении) -->
                             <div class="card-actions mt-3 d-flex gap-2">
-                                <a href="/PcBuilder?edit=@build.Id" class="btn btn-outline-secondary btn-action rounded-pill flex-grow-1">
+                                <a href="/PcBuilder/EditBuild/@build.Id" class="btn btn-outline-secondary btn-action rounded-pill flex-grow-1">
                                     <i class="bi bi-pencil"></i> Редактировать
                                 </a>
                                 <form asp-action="Delete" asp-route-id="@build.Id" method="post" class="d-inline"
