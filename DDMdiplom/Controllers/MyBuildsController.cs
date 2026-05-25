@@ -33,17 +33,41 @@ namespace DDMdiplom.Controllers
 
             foreach (var build in builds)
             {
+                // Порядок важности компонентов
+                var priorityOrder = new List<string> {
+                    "Процессор", "Материнская плата", "Видеокарта", "Оперативная память",
+                    "Накопитель", "Блок питания", "Корпус", "Система охлаждения",
+                    "Операционная система", "Монитор", "Источник бесперебойного питания",
+                    "Клавиатура", "Мышь"
+                };
+
+                // Сортируем элементы сборки по приоритету
+                var sortedItems = build.Items
+                    .OrderBy(item => {
+                        int idx = priorityOrder.IndexOf(item.ComponentType);
+                        return idx == -1 ? int.MaxValue : idx;  // неизвестные типы – в конец
+                    })
+                    .ToList();
+
                 decimal total = 0;
                 var previews = new List<ComponentPreview>();
-                int idx = 0;
+                int taken = 0;
 
-                foreach (var item in build.Items)
+                foreach (var item in sortedItems)
                 {
+                    if (taken >= 3) break;  // показываем не более трёх самых важных компонентов
+
                     var (name, price, img) = await GetComponentInfoAsync(item.ComponentType, item.ComponentId);
                     total += price;
-                    if (idx < 4)
-                        previews.Add(new ComponentPreview { Name = name, ImageUrl = img });
-                    idx++;
+                    previews.Add(new ComponentPreview { Name = name, ImageUrl = img });
+                    taken++;
+                }
+
+                // Если после цикла остались неучтённые цены (для полной суммы), пройдите по оставшимся элементам
+                foreach (var item in sortedItems.Skip(taken))
+                {
+                    var (_, price, _) = await GetComponentInfoAsync(item.ComponentType, item.ComponentId);
+                    total += price;
                 }
 
                 model.Add(new BuildSummaryViewModel
@@ -52,8 +76,7 @@ namespace DDMdiplom.Controllers
                     Name = build.Name,
                     ComponentCount = build.Items.Count,
                     TotalPrice = total,
-                    Previews = previews,
-                    UpdatedAt = build.UpdatedAt   // <-- добавить эту строку
+                    Previews = previews
                 });
             }
 

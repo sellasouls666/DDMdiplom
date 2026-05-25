@@ -89,7 +89,7 @@
                             <div class="d-flex gap-4 align-items-start flex-grow-1">
                                 <!-- Превью компонентов (в одну строку, только первые три) -->
                                 <div class="d-flex flex-nowrap gap-3 flex-grow-1 overflow-auto">
-                                    @foreach (var prev in build.Previews.Take(3))
+                                    @foreach (var prev in build.Previews)
                                     {
                                         <div class="text-center flex-shrink-0">
                                             <img src="@prev.ImageUrl" alt="@prev.Name" class="preview-img rounded-3" />
