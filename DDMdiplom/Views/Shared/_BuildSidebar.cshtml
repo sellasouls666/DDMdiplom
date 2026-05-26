@@ -235,6 +235,7 @@
             </div>
             <button class="btn btn-outline-secondary btn-sidebar" id="resetBuildBtn">Сбросить</button>
             <button class="btn btn-dark btn-sidebar" id="saveBuildBtn">Сохранить</button>
+            <button class="btn btn-outline-dark btn-sidebar" id="addToCartBtn">В корзину</button>
         </div>
     </div>
 </div>
@@ -937,6 +938,61 @@
             }
         });
     }
+
+    // После функции saveBuild добавьте:
+
+    async function addToCart() {
+        const buildName = document.getElementById('buildName')?.value.trim() || 'Моя конфигурация';
+
+        if (currentBuild.length === 0) {
+            alert('Нельзя добавить пустую конфигурацию.');
+            return;
+        }
+
+        // Проверка полноты
+        const requiredTypes = [
+            "Процессор", "Материнская плата", "Видеокарта",
+            "Оперативная память", "Накопитель", "Блок питания",
+            "Корпус", "Система охлаждения"
+        ];
+        const missing = requiredTypes.filter(type => !currentBuild.some(c => c.type === type));
+        if (missing.length > 0) {
+            alert(`Конфигурация неполная. Отсутствуют: ${missing.join(', ')}.`);
+            return;
+        }
+
+        // Проверка совместимости
+        const issues = getCompatibilityIssues();
+        if (issues.length > 0) {
+            alert(`Обнаружены несовместимости:\n${issues.join('\n')}\n\nНевозможно добавить в корзину несовместимую конфигурацию.`);
+            return;
+        }
+
+        try {
+            const response = await fetch('/Cart/Add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: buildName, components: currentBuild })
+            });
+
+            if (!response.ok) {
+                alert('Ошибка добавления в корзину');
+                return;
+            }
+
+            // Очищаем сборку и переходим в корзину
+            currentBuild = [];
+            await fetch('/PcBuilder/ClearBuild', { method: 'POST' });
+            renderAll();
+            window.location.href = '/Cart';
+        } catch (err) {
+            console.error(err);
+            alert('Произошла ошибка');
+        }
+    }
+
+    // Привязка кнопки
+    document.getElementById('addToCartBtn')?.addEventListener('click', addToCart);
 
     document.getElementById('resetBuildBtn')?.addEventListener('click', resetBuild);
     document.getElementById('saveBuildBtn')?.addEventListener('click', saveBuild);

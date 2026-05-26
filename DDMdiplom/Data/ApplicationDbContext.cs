@@ -27,6 +27,7 @@ namespace DDMdiplom.Data
         public DbSet<Mouse> Mice { get; set; }
         public DbSet<Build> Builds { get; set; } = null!;
         public DbSet<BuildItem> BuildItems { get; set; } = null!;
+        public DbSet<CartItem> CartItems { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

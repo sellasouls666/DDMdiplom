@@ -3,6 +3,7 @@ using System;
 using DDMdiplom.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DDMdiplom.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526204318_AddCartItems1")]
+    partial class AddCartItems1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,20 +169,16 @@ namespace DDMdiplom.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ComponentsJson")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<int>("BuildId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BuildId");
 
                     b.HasIndex("UserId");
 
@@ -1610,11 +1609,19 @@ namespace DDMdiplom.Migrations
 
             modelBuilder.Entity("DDMdiplom.Models.CartItem", b =>
                 {
+                    b.HasOne("DDMdiplom.Models.Build", "Build")
+                        .WithMany()
+                        .HasForeignKey("BuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("DDMdiplom.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Build");
 
                     b.Navigation("User");
                 });
