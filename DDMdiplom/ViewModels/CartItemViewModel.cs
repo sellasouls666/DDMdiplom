@@ -9,6 +9,7 @@ namespace DDMdiplom.ViewModels
         public int ComponentCount { get; set; }
         public decimal TotalPrice { get; set; }
         public List<ComponentPreview> Previews { get; set; } = new();
+        public int Quantity { get; set; }
         public DateTime AddedAt { get; set; }
     }
 }

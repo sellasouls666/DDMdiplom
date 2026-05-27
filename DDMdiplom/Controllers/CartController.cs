@@ -24,32 +24,110 @@ namespace DDMdiplom.Controllers
                 .OrderByDescending(ci => ci.AddedAt)
                 .ToListAsync();
 
-            var model = items.Select(item =>
+            var model = new List<CartItemViewModel>();
+
+            foreach (var cartItem in items)
             {
-                var components = JsonSerializer.Deserialize<List<BuildComponent>>(item.ComponentsJson)
+                var components = JsonSerializer.Deserialize<List<BuildComponent>>(cartItem.ComponentsJson)
                                  ?? new List<BuildComponent>();
                 decimal total = 0;
                 var previews = new List<ComponentPreview>();
-                int idx = 0;
+
                 foreach (var comp in components)
                 {
-                    total += comp.Price;
-                    if (idx < 3)
-                        previews.Add(new ComponentPreview { Name = comp.Name, ImageUrl = comp.ImageUrl ?? "/images/placeholder.png" });
-                    idx++;
+                    var (name, price, img) = await GetComponentInfoAsync(comp.Type, comp.Id);
+                    total += price;
+                    previews.Add(new ComponentPreview { Name = name, ImageUrl = img });
                 }
-                return new CartItemViewModel
+
+                model.Add(new CartItemViewModel
                 {
-                    Id = item.Id,
-                    Name = item.Name,
+                    Id = cartItem.Id,
+                    Name = cartItem.Name,
                     ComponentCount = components.Count,
                     TotalPrice = total,
                     Previews = previews,
-                    AddedAt = item.AddedAt
-                };
-            }).ToList();
+                    Quantity = cartItem.Quantity,   // ← теперь количество берётся из БД
+                    AddedAt = cartItem.AddedAt
+                });
+            }
 
             return View(model);
+        }
+
+        // Скопированный метод из MyBuildsController
+        private async Task<(string name, decimal price, string image)> GetComponentInfoAsync(string type, int id)
+        {
+            string name = type;
+            decimal price = 0;
+            string image = "/images/placeholder.png";
+
+            try
+            {
+                switch (type)
+                {
+                    case "Процессор":
+                        var cpu = await _context.Processors.FindAsync(id);
+                        if (cpu != null) { name = $"{cpu.Brand} {cpu.Name}"; price = cpu.Price; image = cpu.ImageUrl ?? image; }
+                        break;
+                    case "Видеокарта":
+                        var gpu = await _context.GraphicsCards.FindAsync(id);
+                        if (gpu != null) { name = $"{gpu.Brand} {gpu.Model}"; price = gpu.Price; image = gpu.ImageUrl ?? image; }
+                        break;
+                    case "Материнская плата":
+                        var mb = await _context.Motherboards.FindAsync(id);
+                        if (mb != null) { name = $"{mb.Brand} {mb.Model}"; price = mb.Price; image = mb.ImageUrl ?? image; }
+                        break;
+                    case "Оперативная память":
+                        var ram = await _context.Memories.FindAsync(id);
+                        if (ram != null) { name = $"{ram.Brand} {ram.Model}"; price = ram.Price; image = ram.ImageUrl ?? image; }
+                        break;
+                    case "Накопитель":
+                        var storage = await _context.Storages.FindAsync(id);
+                        if (storage != null) { name = $"{storage.Brand} {storage.Model}"; price = storage.Price; image = storage.ImageUrl ?? image; }
+                        break;
+                    case "Блок питания":
+                        var psu = await _context.PowerSupplies.FindAsync(id);
+                        if (psu != null) { name = $"{psu.Brand} {psu.Model}"; price = psu.Price; image = psu.ImageUrl ?? image; }
+                        break;
+                    case "Корпус":
+                        var pcCase = await _context.Cases.FindAsync(id);
+                        if (pcCase != null) { name = $"{pcCase.Brand} {pcCase.Model}"; price = pcCase.Price; image = pcCase.ImageUrl ?? image; }
+                        break;
+                    case "Система охлаждения":
+                        var air = await _context.CpuCoolers.FindAsync(id);
+                        if (air != null) { name = $"{air.Brand} {air.Model}"; price = air.Price; image = air.ImageUrl ?? image; }
+                        else
+                        {
+                            var water = await _context.WaterCoolers.FindAsync(id);
+                            if (water != null) { name = $"{water.Brand} {water.Model}"; price = water.Price; image = water.ImageUrl ?? image; }
+                        }
+                        break;
+                    case "Операционная система":
+                        var os = await _context.OperatingSystems.FindAsync(id);
+                        if (os != null) { name = $"{os.Brand} {os.Name}"; price = os.Price; image = os.ImageUrl ?? image; }
+                        break;
+                    case "Монитор":
+                        var monitor = await _context.Monitors.FindAsync(id);
+                        if (monitor != null) { name = $"{monitor.Brand} {monitor.Model}"; price = monitor.Price; image = monitor.ImageUrl ?? image; }
+                        break;
+                    case "Источник бесперебойного питания":
+                        var ups = await _context.UpsDevices.FindAsync(id);
+                        if (ups != null) { name = $"{ups.Brand} {ups.Model}"; price = ups.Price; image = ups.ImageUrl ?? image; }
+                        break;
+                    case "Клавиатура":
+                        var kb = await _context.Keyboards.FindAsync(id);
+                        if (kb != null) { name = $"{kb.Brand} {kb.Name ?? kb.Model}"; price = kb.Price; image = kb.ImageUrl ?? image; }
+                        break;
+                    case "Мышь":
+                        var mouse = await _context.Mice.FindAsync(id);
+                        if (mouse != null) { name = $"{mouse.Brand} {mouse.Name}"; price = mouse.Price; image = mouse.ImageUrl ?? image; }
+                        break;
+                }
+            }
+            catch { /* ignore */ }
+
+            return (name, price, image);
         }
 
         [HttpPost]
@@ -61,17 +139,30 @@ namespace DDMdiplom.Controllers
             if (request.Components == null || request.Components.Count == 0)
                 return BadRequest("Сборка пуста");
 
-            var cartItem = new CartItem
+            string newJson = JsonSerializer.Serialize(request.Components);
+
+            // Ищем точно такую же конфигурацию
+            var existing = await _context.CartItems
+                .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ComponentsJson == newJson);
+
+            if (existing != null)
             {
-                UserId = userId,
-                Name = request.Name ?? "Моя конфигурация",
-                ComponentsJson = JsonSerializer.Serialize(request.Components),
-                AddedAt = DateTime.UtcNow
-            };
+                existing.Quantity++;
+            }
+            else
+            {
+                var cartItem = new CartItem
+                {
+                    UserId = userId,
+                    Name = request.Name ?? "Моя конфигурация",
+                    ComponentsJson = newJson,
+                    AddedAt = DateTime.UtcNow,
+                    Quantity = 1
+                };
+                _context.CartItems.Add(cartItem);
+            }
 
-            _context.CartItems.Add(cartItem);
             await _context.SaveChangesAsync();
-
             return Ok();
         }
 
@@ -83,6 +174,35 @@ namespace DDMdiplom.Controllers
             if (item != null)
             {
                 _context.CartItems.Remove(item);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> IncreaseQuantity(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var item = await _context.CartItems.FirstOrDefaultAsync(ci => ci.Id == id && ci.UserId == userId);
+            if (item != null)
+            {
+                item.Quantity++;
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DecreaseQuantity(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var item = await _context.CartItems.FirstOrDefaultAsync(ci => ci.Id == id && ci.UserId == userId);
+            if (item != null)
+            {
+                if (item.Quantity > 1)
+                    item.Quantity--;
+                else
+                    _context.CartItems.Remove(item);   // если 1 и нажали "-" – удаляем совсем
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
