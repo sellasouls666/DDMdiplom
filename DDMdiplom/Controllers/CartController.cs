@@ -140,14 +140,14 @@ namespace DDMdiplom.Controllers
                 return BadRequest("Сборка пуста");
 
             string newJson = JsonSerializer.Serialize(request.Components);
-
-            // Ищем точно такую же конфигурацию
             var existing = await _context.CartItems
                 .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ComponentsJson == newJson);
 
             if (existing != null)
             {
-                existing.Quantity++;
+                if (existing.Quantity < 10)
+                    existing.Quantity++;
+                // если уже 10 — ничего не делаем
             }
             else
             {
@@ -184,7 +184,7 @@ namespace DDMdiplom.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var item = await _context.CartItems.FirstOrDefaultAsync(ci => ci.Id == id && ci.UserId == userId);
-            if (item != null)
+            if (item != null && item.Quantity < 10)
             {
                 item.Quantity++;
                 await _context.SaveChangesAsync();
