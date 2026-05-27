@@ -235,7 +235,6 @@
             </div>
             <button class="btn btn-outline-secondary btn-sidebar" id="resetBuildBtn">Сбросить</button>
             <button class="btn btn-dark btn-sidebar" id="saveBuildBtn">Сохранить</button>
-            <button class="btn btn-outline-dark btn-sidebar" id="addToCartBtn">В корзину</button>
         </div>
     </div>
 </div>
@@ -990,9 +989,6 @@
             alert('Произошла ошибка');
         }
     }
-
-    // Привязка кнопки
-    document.getElementById('addToCartBtn')?.addEventListener('click', addToCart);
 
     document.getElementById('resetBuildBtn')?.addEventListener('click', resetBuild);
     document.getElementById('saveBuildBtn')?.addEventListener('click', saveBuild);

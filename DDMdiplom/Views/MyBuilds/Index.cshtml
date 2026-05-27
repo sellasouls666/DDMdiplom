@@ -121,6 +121,13 @@
                                        class="btn btn-outline-secondary btn-action rounded-pill flex-grow-1">
                                     <i class="bi bi-pencil"></i> Редактировать
                                 </a>
+                                <form asp-controller="Cart" asp-action="Add" method="post"
+                                      onsubmit="event.preventDefault(); event.stopPropagation(); addToCartFromCard(@build.Id); return false;"
+                                      class="d-inline">
+                                    <button type="submit" class="btn btn-outline-primary btn-action rounded-pill">
+                                        <i class="bi bi-cart-plus"></i> В корзину
+                                    </button>
+                                </form>
                                 <form asp-action="Delete" asp-route-id="@build.Id" method="post" class="d-inline"
                                       onsubmit="event.stopPropagation(); return confirm('Вы действительно хотите удалить эту конфигурацию?');">
                                     <button type="submit" class="btn btn-outline-danger btn-action rounded-pill">
@@ -135,3 +142,27 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        async function addToCartFromCard(buildId) {
+            try {
+                const response = await fetch('/Cart/Add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ buildId: buildId })
+                });
+                if (response.ok) {
+                    alert('Конфигурация добавлена в корзину!');
+                } else {
+                    const errorText = await response.text();
+                    alert('Ошибка: ' + errorText);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Произошла ошибка при добавлении в корзину');
+            }
+            return false; // предотвращаем обычную отправку формы
+        }
+    </script>
+}

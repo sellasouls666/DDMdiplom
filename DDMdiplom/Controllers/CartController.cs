@@ -21,6 +21,8 @@ namespace DDMdiplom.Controllers
 
             var items = await _context.CartItems
                 .Where(ci => ci.UserId == userId)
+                .Include(ci => ci.Build)        // подгружаем сборку
+                .ThenInclude(b => b.Items)      // и её элементы
                 .OrderByDescending(ci => ci.AddedAt)
                 .ToListAsync();
 
@@ -28,14 +30,15 @@ namespace DDMdiplom.Controllers
 
             foreach (var cartItem in items)
             {
-                var components = JsonSerializer.Deserialize<List<BuildComponent>>(cartItem.ComponentsJson)
-                                 ?? new List<BuildComponent>();
+                var build = cartItem.Build;
+                if (build == null) continue;
+
                 decimal total = 0;
                 var previews = new List<ComponentPreview>();
 
-                foreach (var comp in components)
+                foreach (var item in build.Items)
                 {
-                    var (name, price, img) = await GetComponentInfoAsync(comp.Type, comp.Id);
+                    var (name, price, img) = await GetComponentInfoAsync(item.ComponentType, item.ComponentId);
                     total += price;
                     previews.Add(new ComponentPreview { Name = name, ImageUrl = img });
                 }
@@ -44,10 +47,10 @@ namespace DDMdiplom.Controllers
                 {
                     Id = cartItem.Id,
                     Name = cartItem.Name,
-                    ComponentCount = components.Count,
+                    ComponentCount = build.Items.Count,
                     TotalPrice = total,
                     Previews = previews,
-                    Quantity = cartItem.Quantity,   // ← теперь количество берётся из БД
+                    Quantity = cartItem.Quantity,
                     AddedAt = cartItem.AddedAt
                 });
             }
@@ -136,30 +139,30 @@ namespace DDMdiplom.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Challenge();
 
-            if (request.Components == null || request.Components.Count == 0)
-                return BadRequest("Сборка пуста");
+            if (!request.BuildId.HasValue)
+                return BadRequest("Не указана сборка");
 
-            string newJson = JsonSerializer.Serialize(request.Components);
+            // Проверяем, что сборка принадлежит пользователю
+            var build = await _context.Builds
+                .FirstOrDefaultAsync(b => b.Id == request.BuildId && b.UserId == userId);
+            if (build == null) return NotFound("Сборка не найдена");
+
             var existing = await _context.CartItems
-                .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ComponentsJson == newJson);
+                .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.BuildId == request.BuildId);
 
             if (existing != null)
             {
-                if (existing.Quantity < 10)
-                    existing.Quantity++;
-                // если уже 10 — ничего не делаем
+                if (existing.Quantity < 10) existing.Quantity++;
             }
             else
             {
-                var cartItem = new CartItem
+                _context.CartItems.Add(new CartItem
                 {
                     UserId = userId,
-                    Name = request.Name ?? "Моя конфигурация",
-                    ComponentsJson = newJson,
-                    AddedAt = DateTime.UtcNow,
+                    Name = request.Name ?? build.Name,
+                    BuildId = build.Id,
                     Quantity = 1
-                };
-                _context.CartItems.Add(cartItem);
+                });
             }
 
             await _context.SaveChangesAsync();
