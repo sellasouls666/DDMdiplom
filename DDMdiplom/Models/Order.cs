@@ -29,5 +29,10 @@ namespace DDMdiplom.Models
 
         // Навигационное свойство для элементов заказа
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+        public string? CustomerName { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+        public string? Comment { get; set; }
     }
 }

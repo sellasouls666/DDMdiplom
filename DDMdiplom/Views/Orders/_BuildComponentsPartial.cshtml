@@ -1,0 +1,11 @@
+﻿@using DDMdiplom.ViewModels
+@model List<ComponentDetailViewModel>
+<div class="row">
+    @foreach (var comp in Model)
+    {
+        <div class="col-4 text-center mb-3">
+            <img src="@comp.ImageUrl" alt="@comp.Name" style="width: 80px; height: 80px; object-fit: contain;" />
+            <div class="small mt-1">@comp.Name</div>
+        </div>
+    }
+</div>
