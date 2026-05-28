@@ -28,10 +28,23 @@ namespace DDMdiplom.Data
         public DbSet<Build> Builds { get; set; } = null!;
         public DbSet<BuildItem> BuildItems { get; set; } = null!;
         public DbSet<CartItem> CartItems { get; set; } = null!;
+        public DbSet<Order> Orders { get; set; } = null!;
+        public DbSet<OrderItem> OrderItems { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Order>()
+           .HasMany(o => o.OrderItems)
+           .WithOne(oi => oi.Order)
+           .HasForeignKey(oi => oi.OrderId);
+
+            builder.Entity<OrderItem>()
+                .HasOne(oi => oi.Build)
+                .WithMany()
+                .HasForeignKey(oi => oi.BuildId)
+                .OnDelete(DeleteBehavior.Restrict); // или .SetNull
         }
     }
 }
