@@ -551,5 +551,212 @@ namespace DDMdiplom.Controllers
 
             return Redirect($"/Processors?editingBuildId={id}");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBuildById(int buildId)
+        {
+            var build = await _context.Builds
+                .Include(b => b.Items)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.Id == buildId);
+
+            if (build == null)
+            {
+                return NotFound(new { success = false, error = "Конфигурация не найдена" });
+            }
+
+            var components = new List<BuildComponent>();
+
+            foreach (var item in build.Items)
+            {
+                var comp = new BuildComponent
+                {
+                    Id = item.ComponentId,
+                    Type = item.ComponentType,
+                    ModuleCount = item.ModuleCount,
+                    StorageInterface = item.StorageInterface,
+                    InstanceId = Guid.NewGuid()
+                };
+
+                switch (item.ComponentType)
+                {
+                    case "Процессор":
+                        var cpu = await _context.Processors.FindAsync(item.ComponentId);
+                        if (cpu != null)
+                        {
+                            comp.Name = $"{cpu.Brand} {cpu.Name}";
+                            comp.Price = cpu.Price;
+                            comp.ImageUrl = cpu.ImageUrl;
+                            comp.Tdp = cpu.ThermalDesignPower;
+                            comp.ProcessorSocket = cpu.CpuSocketType;
+                            comp.ProcessorMemoryTypes = cpu.MemoryTypes;
+                        }
+                        break;
+
+                    case "Материнская плата":
+                        var mb = await _context.Motherboards.FindAsync(item.ComponentId);
+                        if (mb != null)
+                        {
+                            comp.Name = $"{mb.Brand} {mb.Model}";
+                            comp.Price = mb.Price;
+                            comp.ImageUrl = mb.ImageUrl;
+                            comp.CpuSocketType = mb.CpuSocketType;
+                            comp.MemorySlots = mb.MemorySlots;
+                            comp.MbMemoryStandard = mb.MemoryStandard;
+                            comp.MbFormFactor = mb.FormFactor;
+                            if (!string.IsNullOrEmpty(mb.SataPorts))
+                            {
+                                var matchSata = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*SATA");
+                                if (matchSata.Success) comp.SataPorts = int.Parse(matchSata.Groups[1].Value);
+                            }
+                            if (!string.IsNullOrEmpty(mb.SataPorts))
+                            {
+                                var matchM2 = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*M\.2", RegexOptions.IgnoreCase);
+                                if (matchM2.Success) comp.M2Slots = int.Parse(matchM2.Groups[1].Value);
+                            }
+                        }
+                        break;
+
+                    case "Видеокарта":
+                        var gpu = await _context.GraphicsCards.FindAsync(item.ComponentId);
+                        if (gpu != null)
+                        {
+                            comp.Name = $"{gpu.Brand} {gpu.Model}";
+                            comp.Price = gpu.Price;
+                            comp.ImageUrl = gpu.ImageUrl;
+                            comp.Tdp = gpu.ThermalDesignPower;
+                            comp.GpuLength = gpu.MaxGpuLength;
+                        }
+                        break;
+
+                    case "Оперативная память":
+                        var ram = await _context.Memories.FindAsync(item.ComponentId);
+                        if (ram != null)
+                        {
+                            comp.Name = $"{ram.Brand} {ram.Model}";
+                            comp.Price = ram.Price;
+                            comp.ImageUrl = ram.ImageUrl;
+                            comp.Speed = ram.Speed;
+                            comp.ModuleCount = item.ModuleCount;
+                        }
+                        break;
+
+                    case "Накопитель":
+                        var storage = await _context.Storages.FindAsync(item.ComponentId);
+                        if (storage != null)
+                        {
+                            comp.Name = $"{storage.Brand} {storage.Model}";
+                            comp.Price = storage.Price;
+                            comp.ImageUrl = storage.ImageUrl;
+                            comp.StorageInterface = item.StorageInterface;
+                        }
+                        break;
+
+                    case "Блок питания":
+                        var psu = await _context.PowerSupplies.FindAsync(item.ComponentId);
+                        if (psu != null)
+                        {
+                            comp.Name = $"{psu.Brand} {psu.Model}";
+                            comp.Price = psu.Price;
+                            comp.ImageUrl = psu.ImageUrl;
+                            comp.PsuLength = psu.MaxPsuLength;
+                            comp.PsuMaximumPower = psu.MaximumPower;
+                        }
+                        break;
+
+                    case "Корпус":
+                        var pcCase = await _context.Cases.FindAsync(item.ComponentId);
+                        if (pcCase != null)
+                        {
+                            comp.Name = $"{pcCase.Brand} {pcCase.Model}";
+                            comp.Price = pcCase.Price;
+                            comp.ImageUrl = pcCase.ImageUrl;
+                            comp.MaxGpuLength = pcCase.MaxGpuLength;
+                            comp.CaseMotherboardFormFactors = pcCase.MotherboardCompatibility;
+                            comp.MaxPsuLength = pcCase.MaxPsuLength;
+                        }
+                        break;
+
+                    case "Система охлаждения":
+                        var air = await _context.CpuCoolers.FindAsync(item.ComponentId);
+                        if (air != null)
+                        {
+                            comp.Name = $"{air.Brand} {air.Model}";
+                            comp.Price = air.Price;
+                            comp.ImageUrl = air.ImageUrl;
+                            comp.CpuSocketCompatibility = air.CpuSocketCompatibility;
+                        }
+                        else
+                        {
+                            var water = await _context.WaterCoolers.FindAsync(item.ComponentId);
+                            if (water != null)
+                            {
+                                comp.Name = $"{water.Brand} {water.Model}";
+                                comp.Price = water.Price;
+                                comp.ImageUrl = water.ImageUrl;
+                                comp.BlockCompatibility = water.BlockCompatibility;
+                            }
+                        }
+                        break;
+
+                    case "Операционная система":
+                        var os = await _context.OperatingSystems.FindAsync(item.ComponentId);
+                        if (os != null)
+                        {
+                            comp.Name = $"{os.Brand} {os.Name}";
+                            comp.Price = os.Price;
+                            comp.ImageUrl = os.ImageUrl;
+                        }
+                        break;
+
+                    case "Монитор":
+                        var monitor = await _context.Monitors.FindAsync(item.ComponentId);
+                        if (monitor != null)
+                        {
+                            comp.Name = $"{monitor.Brand} {monitor.Model}";
+                            comp.Price = monitor.Price;
+                            comp.ImageUrl = monitor.ImageUrl;
+                        }
+                        break;
+
+                    case "Источник бесперебойного питания":
+                        var ups = await _context.UpsDevices.FindAsync(item.ComponentId);
+                        if (ups != null)
+                        {
+                            comp.Name = $"{ups.Brand} {ups.Model}";
+                            comp.Price = ups.Price;
+                            comp.ImageUrl = ups.ImageUrl;
+                        }
+                        break;
+
+                    case "Клавиатура":
+                        var kb = await _context.Keyboards.FindAsync(item.ComponentId);
+                        if (kb != null)
+                        {
+                            comp.Name = $"{kb.Brand} {kb.Name ?? kb.Model}";
+                            comp.Price = kb.Price;
+                            comp.ImageUrl = kb.ImageUrl;
+                        }
+                        break;
+
+                    case "Мышь":
+                        var mouse = await _context.Mice.FindAsync(item.ComponentId);
+                        if (mouse != null)
+                        {
+                            comp.Name = $"{mouse.Brand} {mouse.Name}";
+                            comp.Price = mouse.Price;
+                            comp.ImageUrl = mouse.ImageUrl;
+                        }
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(comp.Name))
+                {
+                    components.Add(comp);
+                }
+            }
+
+            return Json(new { success = true, components });
+        }
     }
 }

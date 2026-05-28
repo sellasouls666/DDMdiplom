@@ -7,7 +7,7 @@
 <style>
     .build-card {
         transition: box-shadow 0.2s, transform 0.2s;
-        cursor: pointer; /* чтобы курсор показывал, что карточка кликабельна */
+        cursor: pointer;
     }
 
         .build-card:hover {
@@ -89,7 +89,6 @@
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title text-truncate mb-3">@build.Name</h5>
                             <div class="d-flex gap-4 align-items-start flex-grow-1">
-                                <!-- Превью компонентов -->
                                 <div class="d-flex flex-nowrap gap-3 flex-grow-1 overflow-auto">
                                     @foreach (var prev in build.Previews)
                                     {
@@ -101,7 +100,6 @@
                                         </div>
                                     }
                                 </div>
-                                <!-- Статистика справа -->
                                 <div class="text-end flex-shrink-0">
                                     <div class="mb-3">
                                         <div class="stat-label">Компонентов</div>
@@ -114,23 +112,20 @@
                                 </div>
                             </div>
 
-                            <!-- Кнопки (видны при наведении) -->
                             <div class="card-actions mt-3 d-flex gap-2">
                                 <a href="/PcBuilder/EditBuild/@build.Id"
                                        onclick="event.stopPropagation();"
                                        class="btn btn-outline-secondary btn-action rounded-pill flex-grow-1">
                                     <i class="bi bi-pencil"></i> Редактировать
                                 </a>
-                                <form asp-controller="Cart" asp-action="Add" method="post"
-                                      onsubmit="event.preventDefault(); event.stopPropagation(); addToCartFromCard(@build.Id); return false;"
-                                      class="d-inline">
-                                    <button type="submit" class="btn btn-outline-primary btn-action rounded-pill">
+                                <form method="post" class="d-inline" onsubmit="event.preventDefault(); return false;">
+                                    <button type="button" onclick="addToCartHandler(event, @build.Id)" class="btn btn-outline-primary btn-action rounded-pill">
                                         <i class="bi bi-cart-plus"></i> В корзину
                                     </button>
                                 </form>
                                 <form asp-action="Delete" asp-route-id="@build.Id" method="post" class="d-inline"
                                       onsubmit="event.stopPropagation(); return confirm('Вы действительно хотите удалить эту конфигурацию?');">
-                                    <button type="submit" class="btn btn-outline-danger btn-action rounded-pill">
+                                    <button type="submit" onclick="event.stopPropagation();" class="btn btn-outline-danger btn-action rounded-pill">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -145,15 +140,47 @@
 
 @section Scripts {
     <script>
+        const requiredTypes = [
+            "Процессор", "Материнская плата", "Видеокарта",
+            "Оперативная память", "Накопитель", "Блок питания",
+            "Корпус", "Система охлаждения"
+        ];
+
+        function addToCartHandler(event, buildId) {
+            event.stopPropagation();
+            addToCartFromCard(buildId);
+        }
+
         async function addToCartFromCard(buildId) {
             try {
+                const buildResponse = await fetch(`/PcBuilder/GetBuildById?buildId=${buildId}`);
+                if (!buildResponse.ok) {
+                    throw new Error('Не удалось загрузить данные конфигурации.');
+                }
+                const buildData = await buildResponse.json();
+                const currentBuild = buildData.components;
+
+                const missing = requiredTypes.filter(type => !currentBuild.some(c => c.type === type));
+                if (missing.length > 0) {
+                    alert(`Конфигурация неполная. Отсутствуют: ${missing.join(', ')}.`);
+                    return;
+                }
+
+                const issues = getCompatibilityIssues(currentBuild);
+                if (issues.length > 0) {
+                    alert(`Обнаружены несовместимости:\n${issues.join('\n')}\n\nНевозможно добавить в корзину несовместимую конфигурацию.`);
+                    return;
+                }
+
                 const response = await fetch('/Cart/Add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ buildId: buildId })
                 });
+
                 if (response.ok) {
                     alert('Конфигурация добавлена в корзину!');
+                    window.location.href = '/Cart';
                 } else {
                     const errorText = await response.text();
                     alert('Ошибка: ' + errorText);
@@ -162,7 +189,128 @@
                 console.error(err);
                 alert('Произошла ошибка при добавлении в корзину');
             }
-            return false; // предотвращаем обычную отправку формы
+        }
+
+        function getCompatibilityIssues(currentBuild) {
+            const issues = [];
+            const cpu = currentBuild.find(c => c.type === "Процессор");
+            const mb = currentBuild.find(c => c.type === "Материнская плата");
+            const memoryModules = currentBuild.filter(c => c.type === "Оперативная память");
+            const gpu = currentBuild.find(c => c.type === "Видеокарта");
+            const psu = currentBuild.find(c => c.type === "Блок питания");
+            const pcCase = currentBuild.find(c => c.type === "Корпус");
+            const cooler = currentBuild.find(c => c.type === "Система охлаждения");
+            const storageItems = currentBuild.filter(c => c.type === "Накопитель");
+
+            if (cpu && mb && cpu.processorSocket && mb.cpuSocketType) {
+                const cpuSock = cpu.processorSocket.replace('Socket ', '').trim().toUpperCase();
+                const mbSock = mb.cpuSocketType.trim().toUpperCase();
+                if (!cpuSock.includes(mbSock) && !mbSock.includes(cpuSock)) {
+                    issues.push(`Сокет процессора (${cpu.processorSocket}) не совместим с сокетом материнской платы (${mb.cpuSocketType}).`);
+                }
+            }
+
+            if (cpu && memoryModules.length > 0 && cpu.processorMemoryTypes) {
+                const procMemTypes = cpu.processorMemoryTypes.toUpperCase();
+                memoryModules.forEach(mem => {
+                    if (mem.speed) {
+                        const ddrMatch = mem.speed.match(/DDR\d+/i);
+                        if (ddrMatch && !procMemTypes.includes(ddrMatch[0].toUpperCase())) {
+                            issues.push(`Модуль памяти ${mem.name} (${mem.speed}) не поддерживается процессором.`);
+                        }
+                    }
+                });
+            }
+
+            if (mb && memoryModules.length > 0 && mb.mbMemoryStandard) {
+                const mbMemStd = mb.mbMemoryStandard.toUpperCase();
+                memoryModules.forEach(mem => {
+                    if (mem.speed) {
+                        const ddrMatch = mem.speed.match(/DDR\d+/i);
+                        if (ddrMatch && !mbMemStd.includes(ddrMatch[0].toUpperCase())) {
+                            issues.push(`Модуль памяти ${mem.name} (${mem.speed}) не поддерживается материнской платой.`);
+                        }
+                    }
+                });
+            }
+
+            if (cooler) {
+                if (cooler.cpuSocketCompatibility) {
+                    if (cpu && cpu.processorSocket) {
+                        const cpuSock = cpu.processorSocket.replace('Socket ', '').trim().toUpperCase();
+                        if (!cooler.cpuSocketCompatibility.toUpperCase().includes(cpuSock)) {
+                            issues.push(`Воздушный кулер ${cooler.name} не совместим с процессором (сокет ${cpu.processorSocket}).`);
+                        }
+                    }
+                    if (mb && mb.cpuSocketType) {
+                        const mbSock = mb.cpuSocketType.trim().toUpperCase();
+                        if (!cooler.cpuSocketCompatibility.toUpperCase().includes(mbSock)) {
+                            issues.push(`Воздушный кулер ${cooler.name} не совместим с материнской платой (сокет ${mb.cpuSocketType}).`);
+                        }
+                    }
+                } else if (cooler.blockCompatibility) {
+                    if (cpu && cpu.processorSocket) {
+                        const cpuSock = cpu.processorSocket.replace('Socket ', '').trim().toUpperCase();
+                        if (!cooler.blockCompatibility.toUpperCase().includes(cpuSock)) {
+                            issues.push(`Жидкостное охлаждение ${cooler.name} не совместимо с процессором (сокет ${cpu.processorSocket}).`);
+                        }
+                    }
+                    if (mb && mb.cpuSocketType) {
+                        const mbSock = mb.cpuSocketType.trim().toUpperCase();
+                        if (!cooler.blockCompatibility.toUpperCase().includes(mbSock)) {
+                            issues.push(`Жидкостное охлаждение ${cooler.name} не совместимо с материнской платой (сокет ${mb.cpuSocketType}).`);
+                        }
+                    }
+                }
+            }
+
+            if (gpu && pcCase && gpu.gpuLength && pcCase.maxGpuLength) {
+                if (gpu.gpuLength > pcCase.maxGpuLength) {
+                    issues.push(`Длина видеокарты (${gpu.gpuLength} мм) превышает максимальную длину, поддерживаемую корпусом (${pcCase.maxGpuLength} мм).`);
+                }
+            }
+
+            if (psu && pcCase && psu.psuLength && pcCase.maxPsuLength) {
+                if (psu.psuLength > pcCase.maxPsuLength) {
+                    issues.push(`Длина блока питания (${psu.psuLength} мм) превышает максимальную длину, поддерживаемую корпусом (${pcCase.maxPsuLength} мм).`);
+                }
+            }
+
+            if (psu && psu.psuMaximumPower) {
+                const totalTdp = currentBuild.reduce((sum, c) => sum + (c.tdp || 0), 0);
+                const required = totalTdp + 200;
+                if (psu.psuMaximumPower < required) {
+                    issues.push(`Мощность блока питания (${psu.psuMaximumPower} Вт) недостаточна. Требуется минимум ${required} Вт (с учётом запаса 200 Вт).`);
+                }
+            }
+
+            if (mb && storageItems.some(s => s.storageInterface === "M.2")) {
+                if (!mb.m2Slots || mb.m2Slots <= 0) {
+                    issues.push(`В материнской плате нет слотов M.2, но выбран M.2 SSD.`);
+                } else {
+                    const m2Count = storageItems.filter(s => s.storageInterface === "M.2").length;
+                    if (m2Count > mb.m2Slots) {
+                        issues.push(`Количество M.2 накопителей (${m2Count}) превышает количество слотов M.2 на материнской плате (${mb.m2Slots}).`);
+                    }
+                }
+            }
+
+            if (mb && pcCase && mb.mbFormFactor && pcCase.caseMotherboardFormFactors) {
+                const mbForm = mb.mbFormFactor.trim().toLowerCase();
+                const caseForms = pcCase.caseMotherboardFormFactors.toLowerCase();
+                if (!caseForms.includes(mbForm)) {
+                    issues.push(`Форм-фактор материнской платы (${mb.mbFormFactor}) не поддерживается корпусом (${pcCase.caseMotherboardFormFactors}).`);
+                }
+            }
+
+            if (mb && memoryModules.length > 0) {
+                const totalModules = memoryModules.reduce((sum, m) => sum + (m.moduleCount || 1), 0);
+                if (mb.memorySlots && totalModules > mb.memorySlots) {
+                    issues.push(`Количество установленных модулей памяти (${totalModules}) превышает количество слотов на материнской плате (${mb.memorySlots}).`);
+                }
+            }
+
+            return issues;
         }
     </script>
 }
