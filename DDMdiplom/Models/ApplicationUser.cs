@@ -4,7 +4,9 @@ namespace DDMdiplom.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        public string Name { get; set; } = null!; //без инициализации свойство Name будет иметь значение null в момент создания объекта
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // дата регистрации
+        public string Name { get; set; } = null!;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string? Address { get; set; }
+        public string? AvatarUrl { get; set; }
     }
 }

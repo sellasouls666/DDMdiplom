@@ -1,0 +1,266 @@
+﻿@using DDMdiplom.ViewModels
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Личный кабинет";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var avatarUrl = ViewBag.AvatarUrl as string ?? "/images/default-avatar.png";
+}
+
+<style>
+    .profile-wrapper {
+        max-width: 720px;
+        margin: 3rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .profile-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        padding: 2.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        border: 1px solid var(--gray-200);
+    }
+
+    .avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .avatar-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--gray-200);
+        background: var(--gray-100);
+    }
+
+    .avatar-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .btn-avatar {
+        background: var(--white);
+        border: 2px solid var(--gray-200);
+        color: var(--gray-900);
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-avatar:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+
+        .btn-avatar.delete:hover {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray-700);
+        margin-bottom: 0.4rem;
+    }
+
+    .form-control {
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        background: var(--gray-50);
+        transition: all var(--transition);
+    }
+
+        .form-control:focus {
+            border-color: var(--gray-900);
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.03);
+            background: var(--white);
+        }
+
+    .btn-save {
+        background: var(--gray-900);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all var(--transition);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+        .btn-save:hover {
+            background: var(--black);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        }
+
+    .password-link {
+        color: var(--gray-900);
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .alert {
+        border-radius: var(--radius-sm);
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-content {
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1);
+    }
+
+    .modal-header, .modal-footer {
+        border-color: var(--gray-200);
+    }
+
+    .avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--gray-100);
+        border: 3px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray-400);
+        font-size: 4rem;
+    }
+</style>
+
+<div class="profile-wrapper">
+    <div class="profile-card">
+        <h2 class="mb-4">Личный кабинет</h2>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["PasswordError"] != null)
+        {
+            <div class="alert alert-danger">@TempData["PasswordError"]</div>
+        }
+
+        <!-- Аватар -->
+        <div class="avatar-section">
+            @if (ViewBag.HasAvatar != null && ViewBag.HasAvatar)
+            {
+                <img src="@ViewBag.AvatarUrl" alt="Аватар" class="avatar-img" id="avatarPreview" />
+            }
+            else
+            {
+                <div class="avatar-placeholder">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+            }
+            <div class="avatar-btns">
+                <form asp-action="UploadAvatar" method="post" enctype="multipart/form-data" id="uploadForm">
+                    @Html.AntiForgeryToken()
+                    <input type="file" name="avatar" id="fileInput" accept="image/*" hidden />
+                    <button type="button" class="btn-avatar" onclick="document.getElementById('fileInput').click();">
+                        <i class="bi bi-camera"></i> Сменить аватар
+                    </button>
+                </form>
+                <form asp-action="DeleteAvatar" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-avatar delete">
+                        <i class="bi bi-trash"></i> Удалить аватар
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Основные данные -->
+        <form asp-action="Settings" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label">Имя</label>
+                <input asp-for="FullName" class="form-control" placeholder="Ваше имя" />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Phone" class="form-label">Телефон</label>
+                <input asp-for="Phone" class="form-control" placeholder="+7 999 123-45-67" />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label">Адрес доставки</label>
+                <textarea asp-for="Address" class="form-control" rows="2" placeholder="Город, улица, дом, квартира"></textarea>
+                <span asp-validation-for="Address" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal" class="password-link">
+                    <i class="bi bi-lock me-1"></i> Изменить пароль
+                </a>
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-check2 me-2"></i> Сохранить изменения
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно смены пароля -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="ChangePassword" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Сменить пароль</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Текущий пароль</label>
+                        <input name="CurrentPassword" type="password" class="form-control" placeholder="Введите текущий пароль" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Новый пароль</label>
+                        <input name="NewPassword" type="password" class="form-control" placeholder="Не менее 6 символов" required minlength="6" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Повторите новый пароль</label>
+                        <input name="ConfirmPassword" type="password" class="form-control" placeholder="Повторите пароль" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-dark rounded-pill">Сменить пароль</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Автосабмит формы при выборе файла аватарки
+        document.getElementById('fileInput').addEventListener('change', function () {
+            if (this.files.length > 0) {
+                document.getElementById('uploadForm').submit();
+            }
+        });
+    </script>
+}
