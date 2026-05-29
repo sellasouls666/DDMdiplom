@@ -13,128 +13,229 @@
     <link rel="stylesheet" href="~/DDMdiplom.styles.css" asp-append-version="true" />
     <link rel="icon" type="image/png" href="~/images/favicon.png" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-            /* Полностью подавляем любой фон для нашей кнопки */
-            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn,
-            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn:hover,
-            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn:focus,
-            .navbar .navbar-nav .dropdown .dropdown-toggle.custom-user-btn:active {
-                background-color: #e0e0e0 !important;
-                background-image: none !important;
-                box-shadow: none !important;
-                outline: none !important;
-                color: #212529 !important;
+            :root {
+                --black: #111;
+                --white: #fff;
+                --gray-50: #fafafa;
+                --gray-100: #f4f4f5;
+                --gray-200: #e4e4e7;
+                --gray-300: #d4d4d8;
+                --gray-500: #71717a;
+                --gray-700: #3f3f46;
+                --gray-900: #18181b;
+                --radius: 12px;
+                --radius-sm: 8px;
+                --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            .custom-user-btn {
-                background-color: transparent !important;
-                color: #212529 !important;
-                text-decoration: none !important;
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                background: var(--gray-50);
+                color: var(--black);
+                -webkit-font-smoothing: antialiased;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
             }
 
-                .custom-user-btn:hover {
-                    background-color: #e0e0e0 !important;
-                    color: #212529 !important;
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            /* Шапка */
+            .navbar {
+                background: var(--white);
+                border-bottom: 1px solid var(--gray-200);
+                padding: 0.75rem 1.5rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            }
+
+            .navbar-brand img {
+                height: 32px;
+                width: auto;
+            }
+
+            .navbar-toggler {
+                border: none;
+            }
+
+            .navbar-nav .nav-link {
+                color: var(--gray-900) !important;
+                font-weight: 500;
+                font-size: 0.95rem;
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                transition: background var(--transition), color var(--transition);
+                margin: 0 0.15rem;
+            }
+
+                .navbar-nav .nav-link:hover {
+                    background: var(--gray-100);
+                    color: var(--black) !important;
                 }
-            /* Стили для dropdown при наведении */
-            /* Убираем синюю рамку при фокусе/клике */
-            .dropdown-toggle:focus,
-            .dropdown-toggle:active,
-            .nav-link.custom-user-btn:focus,
-            .nav-link.custom-user-btn:active {
-                outline: none !important;
-                box-shadow: none !important;
-                border-color: transparent !important;
+
+            /* Правая часть */
+            .header-actions {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
             }
 
-            /* Переопределяем фон при наведении для любой кнопки в dropdown */
-            .dropdown:hover .dropdown-toggle,
-            .dropdown-toggle.custom-user-btn:hover {
-                background-color: #e0e0e0 !important;
-                color: #212529 !important;
+            /* Кнопка корзины */
+            .cart-link {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--gray-900) !important;
+                font-weight: 500;
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                transition: background var(--transition);
+                border: 1px solid transparent;
             }
 
-            /* Скрываем стандартную стрелку Bootstrap, так как у вас уже есть своя */
-            .dropdown-toggle::after {
-                display: none !important;
+                .cart-link:hover {
+                    background: var(--gray-100);
+                    border-color: var(--gray-200);
+                }
+
+                .cart-link i {
+                    font-size: 1.4rem;
+                }
+
+            /* Кнопка пользователя */
+            .user-btn {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--gray-900) !important;
+                font-weight: 500;
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                transition: background var(--transition);
+                cursor: pointer;
+                background: transparent;
+                border: 1px solid transparent;
             }
 
-            /* Базовая логика: при наведении на .dropdown показываем меню */
-            .dropdown:hover .dropdown-menu {
-                display: block;
-            }
+                .user-btn:hover {
+                    background: var(--gray-100);
+                    border-color: var(--gray-200);
+                }
 
+                .user-btn i.bi-person {
+                    font-size: 1.4rem;
+                }
+
+                .user-btn i.bi-chevron-down {
+                    font-size: 0.7rem;
+                    margin-left: 0.25rem;
+                }
+
+            /* Dropdown */
             .dropdown-menu {
-                display: none;
-                transition: opacity 0.2s ease;
-            }
-
-            .custom-dropdown-menu {
-                background-color: white;
-                border: 1px solid #dee2e6;
-                border-radius: 12px;
+                background: var(--white);
+                border: 1px solid var(--gray-200);
+                border-radius: var(--radius);
                 padding: 0.5rem 0;
-                margin-top: 5px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-                left: auto !important;
-                right: 0 !important;
-                z-index: 1070 !important;
+                margin-top: 0.75rem;
+                box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
+                min-width: 260px;
+                z-index: 1070;
             }
 
-            .dropdown-item {
-                color: #212529 !important;
-            }
-
-                .dropdown-item:hover {
-                    background-color: #e9ecef !important;
-                    color: #212529 !important;
+                .dropdown-menu .dropdown-item {
+                    color: var(--gray-900) !important;
+                    font-weight: 500;
+                    padding: 0.6rem 1.25rem;
+                    transition: background var(--transition);
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
                 }
 
-            #logoutForm .dropdown-item:hover {
-                background-color: #e9ecef !important;
-            }
-            /* Чтобы при наведении на весь пункт меню не было фона */
-            .custom-dropdown-menu li:hover {
-                background-color: transparent !important;
+                    .dropdown-menu .dropdown-item:hover {
+                        background: var(--gray-100);
+                    }
+
+            .dropdown-divider {
+                margin: 0.5rem 0;
+                border-top: 1px solid var(--gray-200);
             }
 
-            /* Запрещаем перенос строк для блока с благодарностью */
-            .custom-dropdown-menu .dropdown-item .nowrap-text,
-            .custom-dropdown-menu div[style*="font-size: 0.8rem"] {
-                white-space: nowrap !important;
-            }
-            /* Разрешаем меню растягиваться по ширине содержимого */
-            .custom-dropdown-menu {
-                min-width: auto !important;
-                width: max-content !important;
-                max-width: none !important;
+            .user-info {
+                padding: 0.6rem 1.25rem;
+                font-size: 0.85rem;
+                color: var(--gray-700);
             }
 
-            /* Подсветка текста кнопки выхода при наведении (без фона) */
-            #logoutForm .btn-link {
-                transition: color 0.2s ease, text-decoration 0.2s ease;
-            }
-
-                #logoutForm .btn-link:hover {
-                    color: #000000 !important;
-                    text-decoration: underline !important;
+                .user-info strong {
+                    font-weight: 600;
+                    color: var(--black);
                 }
 
-            a[href="/PcBuilder"].custom-user-btn:hover {
-                background-color: #e0e0e0 !important;
-                color: #212529 !important;
+            .logout-btn {
+                background: none;
+                border: none;
+                color: #dc2626 !important;
+                font-weight: 500;
+                cursor: pointer;
+                transition: opacity var(--transition);
+                width: 100%;
+                text-align: left;
+                padding: 0.6rem 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
             }
 
-            /* Убираем дефолтные цвета ссылок Bootstrap в навбаре */
-            .navbar .nav-link,
-            .navbar .nav-link:link,
-            .navbar .nav-link:visited {
-                color: #212529 !important;
-            }
-
-                .navbar .nav-link:hover {
-                    color: #212529 !important;
+                .logout-btn:hover {
+                    background: #fee2e2;
+                    color: #b91c1c !important;
                 }
+
+            /* Основной контент */
+            .container {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 2rem 1.5rem;
+                flex: 1;
+            }
+
+            /* Футер */
+            footer {
+                background: var(--gray-100);
+                color: var(--gray-500);
+                text-align: center;
+                padding: 1.5rem;
+                font-size: 0.9rem;
+                border-top: 1px solid var(--gray-200);
+            }
+
+                footer a {
+                    color: var(--gray-700);
+                    text-decoration: none;
+                }
+
+                    footer a:hover {
+                        color: var(--black);
+                    }
+
+            @@media (max-width: 576px) {
+                .navbar-nav .nav-link {
+                    margin: 0.25rem 0;
+                }
+
+                .header-actions {
+                    margin-top: 0.5rem;
+                }
+            }
     </style>
 
     @await RenderSectionAsync("Styles", required: false)
@@ -150,95 +251,79 @@
     }
 
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/favicon.png" alt="Logo" style="height: 30px; width: auto;" />
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/favicon.png" alt="Logo" />
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Главная</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-controller="PcBuilder" asp-action="Index">Конфигуратор</a>
                         </li>
                     </ul>
-                    <div class="d-flex ms-auto align-items-center gap-3">
+                    <div class="header-actions">
                         <!-- Корзина -->
-                        <a href="/Cart"
-                               class="nav-link d-flex align-items-center gap-2"
-                               style="border-radius: 40px; padding: 6px 16px; background-color: transparent; color: #212529 !important;"
-                               onmouseover="this.style.backgroundColor='#e0e0e0'; this.style.color='#212529';"
-                               onmouseout="this.style.backgroundColor='transparent'; this.style.color='#212529';">
-                            <i class="bi bi-cart" style="font-size: 2rem;"></i>
-                            <div class="text-start">
-                                <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.2;">Корзина</div>
-                            </div>
+                        <a href="/Cart" class="cart-link">
+                            <i class="bi bi-cart"></i>
+                            <span>Корзина</span>
                         </a>
 
-                        <!-- Блок пользователя -->
-                        <div class="d-flex">
-                            @if (SignInManager.IsSignedIn(User))
-                            {
-                                var user = await UserManager.GetUserAsync(User);
-                                var displayName = user?.Name ?? User.Identity?.Name ?? "Пользователь";
-                                var daysSinceRegistration = (int)Math.Ceiling((DateTime.UtcNow - (user?.CreatedAt ?? DateTime.UtcNow)).TotalDays);
-                                var dayWord = GetDayWord(daysSinceRegistration);
-                                <div class="dropdown">
-                                    <a href="javascript:void(0);" class="nav-link custom-user-btn d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 40px; padding: 6px 16px;">
-                                        <i class="bi bi-person" style="font-size: 2rem;"></i>
-                                        <div class="text-start">
-                                            <div style="font-size: 0.7rem; line-height: 1.2;">Добро пожаловать, @displayName</div>
-                                            <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.2;">
-                                                Личный кабинет
-                                                <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 4px;"></i>
-                                            </div>
+                        <!-- Пользователь -->
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var user = await UserManager.GetUserAsync(User);
+                            var displayName = user?.Name ?? User.Identity?.Name ?? "Пользователь";
+                            var daysSinceRegistration = (int)Math.Ceiling((DateTime.UtcNow - (user?.CreatedAt ?? DateTime.UtcNow)).TotalDays);
+                            var dayWord = GetDayWord(daysSinceRegistration);
+
+                            <div class="dropdown">
+                                <button class="user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person"></i>
+                                    <span>@displayName <i class="bi bi-chevron-down"></i></span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="MyBuilds" asp-action="Index">
+                                            <i class="bi bi-pc-display"></i> Мои сборки
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Orders" asp-action="Index">
+                                            <i class="bi bi-list-check"></i> Мои заказы
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <div class="user-info">
+                                            <strong>@displayName</strong><br />
+                                            <small>С нами уже @daysSinceRegistration @dayWord</small>
                                         </div>
-                                    </a>
-                                    <ul class="dropdown-menu custom-dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item px-3 py-2" asp-controller="MyBuilds" asp-action="Index">
-                                                <i class="bi bi-pc-display me-2"></i> Мои конфигурации
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <div class="d-flex align-items-center justify-content-between gap-3 px-3 py-2">
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <i class="bi bi-person-circle" style="font-size: 2rem;"></i>
-                                                    <div>
-                                                        <div style="font-size: 1rem; font-weight: 600;">@displayName</div>
-                                                        <div style="font-size: 0.8rem;">
-                                                            Спасибо, что являетесь нашим клиентом уже @daysSinceRegistration @dayWord
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <form asp-controller="Identity" asp-action="SignOut" method="post" id="logoutForm" class="m-0">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-link text-dark p-0 d-flex align-items-center gap-1" style="text-decoration: none; background: none; border: none;">
-                                                        <i class="bi bi-box-arrow-right" style="font-size: 1.2rem;"></i>
-                                                        <span>Выйти</span>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            }
-                            else
-                            {
-                                <a asp-controller="Identity" asp-action="SignIn" class="nav-link custom-user-btn d-flex align-items-center gap-2" style="border-radius: 40px; padding: 6px 16px; transition: background-color 0.2s;">
-                                    <i class="bi bi-person" style="font-size: 2rem;"></i>
-                                    <div class="text-start">
-                                        <div style="font-size: 0.7rem; line-height: 1.2;">Добро пожаловать</div>
-                                        <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.2;">Войти / Зарегистрироваться</div>
-                                    </div>
-                                </a>
-                            }
-                        </div>
+                                    </li>
+                                    <li>
+                                        <form asp-controller="Identity" asp-action="SignOut" method="post" id="logoutForm">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="logout-btn">
+                                                <i class="bi bi-box-arrow-right"></i> Выйти
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a asp-controller="Identity" asp-action="SignIn" class="user-btn">
+                                <i class="bi bi-person"></i>
+                                <span>Войти</span>
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
@@ -246,66 +331,14 @@
     </header>
 
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - DDMdiplom - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
-    <script>
-            (function() {
-                // Отключаем Bootstrap dropdown полностью
-                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                    toggle.removeAttribute('data-bs-toggle');
-                    toggle.removeAttribute('aria-expanded');
-                });
-
-                // Находим все dropdown
-                document.querySelectorAll('.dropdown').forEach(dropdown => {
-                    let timer;
-                    const menu = dropdown.querySelector('.dropdown-menu');
-                    const btn = dropdown.querySelector('.dropdown-toggle');
-                    if (!menu || !btn) return;
-
-                    // Принудительно задаём фон при наведении через inline-стиль с !important
-                    btn.addEventListener('mouseenter', () => {
-                        btn.style.setProperty('background-color', '#e0e0e0', 'important');
-                        btn.style.setProperty('background-image', 'none', 'important');
-                        clearTimeout(timer);
-                        timer = setTimeout(() => {
-                            menu.style.display = 'block';
-                        }, 150);
-                    });
-
-                    btn.addEventListener('mouseleave', () => {
-                        btn.style.removeProperty('background-color');
-                        btn.style.removeProperty('background-image');
-                        timer = setTimeout(() => {
-                            menu.style.display = 'none';
-                        }, 300);
-                    });
-
-                    // Также чтобы меню не исчезало при переходе курсора внутрь
-                    menu.addEventListener('mouseenter', () => {
-                        clearTimeout(timer);
-                    });
-                    menu.addEventListener('mouseleave', () => {
-                        timer = setTimeout(() => {
-                            menu.style.display = 'none';
-                        }, 300);
-                    });
-                });
-            })();
-    </script>
 </body>
 </html>
