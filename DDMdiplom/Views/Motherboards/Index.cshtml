@@ -6,171 +6,397 @@
 }
 
 @section Styles {
-<style>
-    /* ========== Карточки материнских плат ========== */
-    .motherboard-card {
-        border-radius: 20px;
-        overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
-        height: 100%;
-        cursor: pointer;
-        width: 100%;
-        max-width: 280px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-    }
-    .motherboard-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-    }
-    .card-img-container {
-        height: 220px;
-        background: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8px;
-    }
-    .card-img-top {
-        max-width: 100%;
-        max-height: 100%;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-    }
-    .motherboard-card:hover .card-img-top {
-        transform: scale(1.02);
-    }
-    .card-body {
-        padding: 12px 12px 4px 12px;
-    }
-    .card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        margin-bottom: 10px;
-        line-height: 1.3;
-    }
-    .spec-badge {
-        background: #f1f3f5;
-        padding: 4px 8px;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        color: #495057;
-        display: inline-block;
-        white-space: nowrap;
-    }
-    .card-specs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 10px;
-    }
-    .price {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1e2a3e;
-        white-space: nowrap;
-    }
-    .btn-outline-add {
-        border-radius: 40px;
-        padding: 5px 14px;
-        font-size: 0.8rem;
-        white-space: nowrap;
-    }
-    .card-footer {
-        padding: 0 12px 14px 12px;
-        background: transparent;
-        border: none;
-    }
-    .card-footer .d-flex {
-        gap: 8px;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .motherboards-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        gap: 24px;
-    }
-    .motherboards-grid .col {
-        flex: 0 0 280px;
-        max-width: 280px;
-    }
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-hover: #1e293b;
+            --accent: #334155;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --transition: 0.2s ease-in-out;
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
 
-    /* Стили для модального окна */
-    .modal-specs-table { width: 100%; margin-bottom: 20px; }
-    .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
-    .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
-    .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
-    .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
-</style>
+        body {
+            background: var(--bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+            .page-header h1 {
+                font-weight: 700;
+                font-size: 1.8rem;
+                letter-spacing: -0.5px;
+                color: var(--primary);
+            }
+
+        .compatibility-wrapper {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: box-shadow var(--transition);
+            margin-bottom: 1.5rem;
+        }
+
+            .compatibility-wrapper:hover {
+                box-shadow: var(--hover-shadow);
+            }
+
+        .form-check-input {
+            border: 2px solid #cbd5e1;
+            width: 1.2em;
+            height: 1.2em;
+        }
+
+            .form-check-input:checked {
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
+
+        .form-check-label {
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.9rem;
+        }
+
+        .motherboards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .motherboard-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
+            .motherboard-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--hover-shadow);
+                border-color: #cbd5e1;
+            }
+
+        .card-img-container {
+            height: 220px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-img-top {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 0;
+        }
+
+        .motherboard-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+
+        .brand-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            border: 1px solid var(--border);
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            z-index: 1;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+        }
+
+        .spec-badge {
+            background: #f8fafc;
+            padding: 0.3rem 0.7rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            border: 1px solid #e2e8f0;
+        }
+
+            .spec-badge i {
+                font-size: 0.8rem;
+                color: var(--accent);
+            }
+
+        .card-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-footer {
+            padding: 0 1.25rem 1.25rem 1.25rem;
+            background: transparent;
+            border: none;
+            margin-top: auto;
+        }
+
+        .price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .btn-outline-add {
+            background: var(--primary);
+            border: 2px solid var(--primary);
+            color: white;
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+            .btn-outline-add:hover {
+                background: white;
+                color: var(--primary);
+                border-color: var(--primary);
+            }
+
+            .btn-outline-add:active {
+                transform: scale(0.97);
+            }
+
+        .modal-content {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2rem;
+            background: white;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.3px;
+            font-size: 1.2rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        .spec-row {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 1rem;
+        }
+
+            .spec-row:last-child {
+                border-bottom: none;
+            }
+
+        .spec-icon {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .spec-label {
+            font-weight: 600;
+            color: var(--primary);
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .spec-value {
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .price-large {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .btn-select-sm {
+            background: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            padding: 0.6rem 1.8rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .btn-select-sm:hover {
+                background: white;
+                color: var(--primary);
+                border-color: var(--primary);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+        @@media (max-width: 640px) {
+            .motherboards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header">
         <h1>Материнские платы</h1>
     </div>
 
-    <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+    <div class="compatibility-wrapper">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+        </div>
     </div>
 
     <div class="motherboards-grid">
         @foreach (var mb in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(mb.ImageUrl) ? mb.ImageUrl : "/images/placeholder.png";
-            <div class="col">
-                <div class="card motherboard-card h-100"
-                     data-id="@mb.Id"
-                     data-socket="@mb.CpuSocketType"
-                     data-memory-standard="@mb.MemoryStandard"
-                     data-form-factor="@mb.FormFactor">
-                    <div class="card-img-container">
-                        <img src="@imageUrl" class="card-img-top" alt="@mb.Model">
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">@mb.Brand @mb.Model</h5>
-                        <div class="card-specs">
+            var slots = mb.MemorySlots.HasValue ? mb.MemorySlots.Value.ToString() : "?";
+            var memoryType = "";
+            if (!string.IsNullOrEmpty(mb.MemoryStandard))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(mb.MemoryStandard, @"\bDDR\d+\b");
+                if (match.Success)
+                    memoryType = match.Value;
+            }
+            var memoryLabel = $"{slots} слота";
+            if (!string.IsNullOrEmpty(memoryType))
+                memoryLabel += $" ({memoryType})";
+
+            <div class="motherboard-card h-100"
+                 data-id="@mb.Id"
+                 data-socket="@mb.CpuSocketType"
+                 data-memory-standard="@mb.MemoryStandard"
+                 data-form-factor="@mb.FormFactor">
+                <div class="card-img-container">
+                    <span class="brand-badge">@mb.Brand</span>
+                    <img src="@imageUrl" class="card-img-top" alt="@mb.Model">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">@mb.Model</h5>
+                    <div class="card-specs">
+                        @if (!string.IsNullOrEmpty(mb.CpuSocketType))
+                        {
                             <span class="spec-badge"><i class="bi bi-cpu"></i> @mb.CpuSocketType</span>
-                            <span class="spec-badge"><i class="bi bi-pc-display"></i> @(string.IsNullOrEmpty(mb.FormFactor) ? "—" : mb.FormFactor)</span>
-                            <span class="spec-badge"><i class="bi bi-memory"></i> @(mb.MaxMemorySize.HasValue ? mb.MaxMemorySize.Value.ToString() + " ГБ" : "—")</span>
+                        }
+                        @if (!string.IsNullOrEmpty(mb.FormFactor))
+                        {
+                            <span class="spec-badge"><i class="bi bi-pc-display"></i> @mb.FormFactor</span>
+                        }
+                        @if (mb.MaxMemorySize.HasValue)
+                        {
+                            <span class="spec-badge"><i class="bi bi-memory"></i> @mb.MaxMemorySize.Value ГБ</span>
+                        }
+                        @if (!string.IsNullOrEmpty(mb.Chipset))
+                        {
                             <span class="spec-badge"><i class="bi bi-motherboard"></i> @mb.Chipset</span>
-                            <span class="spec-badge"><i class="bi bi-layers"></i> 
-                                @{
-                                    var slots = mb.MemorySlots.HasValue ? mb.MemorySlots.Value.ToString() : "?";
-                                    var memoryType = "";
-                                    if (!string.IsNullOrEmpty(mb.MemoryStandard))
-                                    {
-                                        var match = System.Text.RegularExpressions.Regex.Match(mb.MemoryStandard, @"\bDDR\d+\b");
-                                        if (match.Success)
-                                            memoryType = match.Value;
-                                    }
-                                    var displayText = $"{slots} слота";
-                                    if (!string.IsNullOrEmpty(memoryType))
-                                        displayText += $" ({memoryType})";
-                                }
-                                @displayText
-                            </span>
-                        </div>
+                        }
+                        <span class="spec-badge"><i class="bi bi-layers"></i> @memoryLabel</span>
                     </div>
-                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="price">@string.Format("{0:N0}", mb.Price) ₽</span>
-                            <button class="btn btn-outline-dark btn-outline-add select-component"
-                                    data-id="@mb.Id"
-                                    data-name="@mb.Brand @mb.Model"
-                                    data-price="@mb.Price"
-                                    data-tdp="0"
-                                    data-image="@imageUrl"
-                                    data-type="Материнская плата"
-                                    data-memory-slots="@mb.MemorySlots">
-                                <i class="bi bi-plus-lg"></i> Выбрать
-                            </button>
-                        </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="price">@string.Format("{0:N0}", mb.Price) ₽</span>
+                        <button class="btn btn-outline-add select-component"
+                                data-id="@mb.Id"
+                                data-name="@mb.Brand @mb.Model"
+                                data-price="@mb.Price"
+                                data-tdp="0"
+                                data-image="@imageUrl"
+                                data-type="Материнская плата"
+                                data-memory-slots="@mb.MemorySlots">
+                            <i class="bi bi-plus-lg"></i> Выбрать
+                        </button>
                     </div>
                 </div>
             </div>
@@ -178,25 +404,35 @@
     </div>
 </div>
 
-<!-- Модальное окно для материнской платы -->
 <div class="modal fade" id="motherboardModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Детали материнской платы</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <div class="modal-body">
                 <div id="modalContent">
-                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
+                    <div class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Подключаем общую боковую панель -->
 @await Html.PartialAsync("_BuildSidebar")
 
 @section Scripts {
     <script>
-        // Обработчики кнопок "Выбрать" в карточках
+        const modalElement = document.getElementById('motherboardModal');
+        const modal = new bootstrap.Modal(modalElement);
+        const contentDiv = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -205,7 +441,7 @@
                     name: this.dataset.name,
                     price: parseFloat(this.dataset.price),
                     type: this.dataset.type,
-                    tdp: parseInt(this.dataset.tdp) || 0,
+                    tdp: 0,
                     imageUrl: this.dataset.image,
                     memorySlots: this.dataset.memorySlots ? parseInt(this.dataset.memorySlots) : null
                 };
@@ -217,75 +453,84 @@
             });
         });
 
-        // Открытие модального окна с деталями материнской платы
         document.querySelectorAll('.motherboard-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
                 const mbId = this.getAttribute('data-id');
-                const contentDiv = document.getElementById('modalContent');
-                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+
+                contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
+                modalTitle.textContent = 'Загрузка...';
+                modal.show();
+
                 try {
                     const response = await fetch(`/Motherboards/GetMotherboard/${mbId}`);
+                    if (!response.ok) throw new Error('Ошибка сети');
                     const mb = await response.json();
 
-                    // Основная информация
-                    let part1Rows = '';
-                    if (mb.brand) part1Rows += `<tr><td>Бренд</td><td>${mb.brand}</td></tr>`;
-                    if (mb.model) part1Rows += `<tr><td>Модель</td><td>${mb.model}</td></tr>`;
-                    if (mb.cpuSocketType) part1Rows += `<tr><td>Сокет CPU</td><td>${mb.cpuSocketType}</td></tr>`;
-                    if (mb.cpuType) part1Rows += `<tr><td>Поддерживаемые CPU</td><td>${mb.cpuType}</td></tr>`;
-                    if (mb.chipset) part1Rows += `<tr><td>Чипсет</td><td>${mb.chipset}</td></tr>`;
-                    if (mb.formFactor) part1Rows += `<tr><td>Форм-фактор</td><td>${mb.formFactor}</td></tr>`;
-                    const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
-
-                    // Детальные характеристики
-                    let part2Rows = '';
-                    if (mb.memorySlots) part2Rows += `<tr><td>Слотов памяти</td><td>${mb.memorySlots}</td></tr>`;
-                    if (mb.memoryStandard) part2Rows += `<tr><td>Стандарт памяти</td><td>${mb.memoryStandard}</td></tr>`;
-                    if (mb.maxMemorySize) part2Rows += `<tr><td>Макс. объём памяти (ГБ)</td><td>${mb.maxMemorySize}</td></tr>`;
-                    if (mb.eccSupported) part2Rows += `<tr><td>Поддержка ECC</td><td>${mb.eccSupported}</td></tr>`;
-                    if (mb.pciExpress50x16) part2Rows += `<tr><td>PCI Express 5.0 x16</td><td>${mb.pciExpress50x16}</td></tr>`;
-                    if (mb.pciExpressX4) part2Rows += `<tr><td>PCI Express x4</td><td>${mb.pciExpressX4}</td></tr>`;
-                    if (mb.pciExpressX1) part2Rows += `<tr><td>PCI Express x1</td><td>${mb.pciExpressX1}</td></tr>`;
-                    if (mb.sataPorts) part2Rows += `<tr><td>SATA порты</td><td>${mb.sataPorts}</td></tr>`;
-                    if (mb.m2Slots) part2Rows += `<tr><td>M.2 слоты</td><td>${mb.m2Slots}</td></tr>`;
-                    if (mb.audioChipset) part2Rows += `<tr><td>Аудио чипсет</td><td>${mb.audioChipset}</td></tr>`;
-                    if (mb.audioChannels) part2Rows += `<tr><td>Аудио каналы</td><td>${mb.audioChannels}</td></tr>`;
-                    if (mb.lanChipset) part2Rows += `<tr><td>LAN чипсет</td><td>${mb.lanChipset}</td></tr>`;
-                    if (mb.maxLanSpeed) part2Rows += `<tr><td>Скорость LAN (Мбит/с)</td><td>${mb.maxLanSpeed}</td></tr>`;
-                    if (mb.wirelessLan) part2Rows += `<tr><td>Wi-Fi</td><td>${mb.wirelessLan}</td></tr>`;
-                    if (mb.bluetooth) part2Rows += `<tr><td>Bluetooth</td><td>${mb.bluetooth}</td></tr>`;
-                    if (mb.rearPanelPorts) part2Rows += `<tr><td>Задние порты IO</td><td>${mb.rearPanelPorts}</td></tr>`;
-                    if (mb.internalIoConnectors) part2Rows += `<tr><td>Внутренние разъёмы IO</td><td>${mb.internalIoConnectors}</td></tr>`;
-                    if (mb.ledLighting) part2Rows += `<tr><td>Подсветка</td><td>${mb.ledLighting}</td></tr>`;
-                    if (mb.dimensions) part2Rows += `<tr><td>Размеры (Д x Ш, дюймы)</td><td>${mb.dimensions}</td></tr>`;
-                    if (mb.powerConnectors) part2Rows += `<tr><td>Разъёмы питания</td><td>${mb.powerConnectors}</td></tr>`;
-                    if (mb.biosFeature) part2Rows += `<tr><td>Особенности BIOS</td><td>${mb.biosFeature}</td></tr>`;
-                    if (mb.features) part2Rows += `<tr><td>Особенности</td><td>${mb.features}</td></tr>`;
-                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
-
                     const title = `${mb.brand} ${mb.model}`;
-                    const imageUrl = mb.imageUrl || '/images/placeholder.png';
-                    const priceHtml = `<div class="price-large mb-2">${mb.price.toLocaleString()} ₽</div>`;
-                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${mb.id}" data-name="${title}" data-price="${mb.price}" data-tdp="0" data-image="${imageUrl}" data-type="Материнская плата" data-memory-slots="${mb.memorySlots}"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+                    modalTitle.textContent = title;
 
-                    contentDiv.innerHTML = `
-                        <div class="d-flex justify-content-end mb-2">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="${imageUrl}" alt="${title}" style="width: 50px; height: 50px; object-fit: contain;">
-                                <h5 class="mb-0">${title}</h5>
-                            </div>
-                            <div class="text-end">
-                                ${priceHtml}
-                                ${selectBtn}
+                    let html = `
+                        <div class="d-flex align-items-center gap-4 mb-4">
+                            <img src="${mb.imageUrl || '/images/placeholder.png'}" alt="${title}" style="width: 80px; height: 80px; object-fit: contain;">
+                            <div>
+                                <h4 class="mb-1">${title}</h4>
+                                <div class="price-large">${mb.price.toLocaleString()} ₽</div>
                             </div>
                         </div>
-                        ${part1}
-                        ${part2}
+                        <hr>
                     `;
+
+                    const specs = [
+                        { icon: "bi-cpu", label: "Сокет CPU", value: mb.cpuSocketType },
+                        { icon: "bi-cpu-fill", label: "Поддерживаемые CPU", value: mb.cpuType },
+                        { icon: "bi-motherboard", label: "Чипсет", value: mb.chipset },
+                        { icon: "bi-aspect-ratio", label: "Форм-фактор", value: mb.formFactor },
+                        { icon: "bi-memory", label: "Слотов памяти", value: mb.memorySlots },
+                        { icon: "bi-speedometer2", label: "Стандарт памяти", value: mb.memoryStandard },
+                        { icon: "bi-hdd", label: "Макс. объём памяти (ГБ)", value: mb.maxMemorySize },
+                        { icon: "bi-check-circle", label: "Поддержка ECC", value: mb.eccSupported },
+                        { icon: "bi-chevron-expand", label: "PCI Express 5.0 x16", value: mb.pciExpress50x16 },
+                        { icon: "bi-chevron-expand", label: "PCI Express x4", value: mb.pciExpressX4 },
+                        { icon: "bi-chevron-expand", label: "PCI Express x1", value: mb.pciExpressX1 },
+                        { icon: "bi-hdd-stack", label: "SATA порты", value: mb.sataPorts },
+                        { icon: "bi-speedometer", label: "M.2 слоты", value: mb.m2Slots },
+                        { icon: "bi-music-note", label: "Аудио чипсет", value: mb.audioChipset },
+                        { icon: "bi-volume-up", label: "Аудио каналы", value: mb.audioChannels },
+                        { icon: "bi-ethernet", label: "LAN чипсет", value: mb.lanChipset },
+                        { icon: "bi-speedometer2", label: "Скорость LAN (Мбит/с)", value: mb.maxLanSpeed },
+                        { icon: "bi-wifi", label: "Wi-Fi", value: mb.wirelessLan },
+                        { icon: "bi-bluetooth", label: "Bluetooth", value: mb.bluetooth },
+                        { icon: "bi-usb", label: "Задние порты IO", value: mb.rearPanelPorts },
+                        { icon: "bi-box", label: "Внутренние разъёмы IO", value: mb.internalIoConnectors },
+                        { icon: "bi-lightbulb", label: "Подсветка", value: mb.ledLighting },
+                        { icon: "bi-rulers", label: "Размеры (Д x Ш, дюймы)", value: mb.dimensions },
+                        { icon: "bi-plug", label: "Разъёмы питания", value: mb.powerConnectors },
+                        { icon: "bi-cpu", label: "Особенности BIOS", value: mb.biosFeature },
+                        { icon: "bi-card-text", label: "Особенности", value: mb.features }
+                    ];
+
+                    specs.forEach(spec => {
+                        if (spec.value) {
+                            html += `
+                                <div class="spec-row">
+                                    <div class="spec-icon"><i class="bi ${spec.icon}"></i></div>
+                                    <span class="spec-label">${spec.label}</span>
+                                    <span class="spec-value">${spec.value}</span>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    html += `
+                        <div class="text-center mt-4">
+                            <button class="btn btn-select-sm select-from-modal" data-id="${mb.id}" data-name="${title}" data-price="${mb.price}" data-tdp="0" data-image="${mb.imageUrl || '/images/placeholder.png'}" data-type="Материнская плата" data-memory-slots="${mb.memorySlots}">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
+                    `;
+
+                    contentDiv.innerHTML = html;
 
                     document.querySelector('.select-from-modal').addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -294,24 +539,20 @@
                             name: this.dataset.name,
                             price: parseFloat(this.dataset.price),
                             type: this.dataset.type,
-                            tdp: parseInt(this.dataset.tdp) || 0,
+                            tdp: 0,
                             imageUrl: this.dataset.image,
                             memorySlots: this.dataset.memorySlots ? parseInt(this.dataset.memorySlots) : null
                         };
                         if (typeof addToBuild === 'function') addToBuild(component);
-                        bootstrap.Modal.getInstance(document.getElementById('motherboardModal')).hide();
+                        modal.hide();
                     });
 
-                    const modal = new bootstrap.Modal(document.getElementById('motherboardModal'));
-                    modal.show();
                 } catch (error) {
-                    console.error(error);
                     contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
                 }
             });
         });
 
-        // ========== ФИЛЬТРАЦИЯ ПО СОВМЕСТИМОСТИ ==========
         const compatibilitySwitch = document.getElementById('compatibilitySwitch');
         const mbCards = document.querySelectorAll('.motherboard-card');
 
@@ -323,7 +564,10 @@
 
         async function applyCompatibilityFilter() {
             if (!compatibilitySwitch.checked) {
-                mbCards.forEach(card => card.closest('.col').style.display = '');
+                mbCards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                });
                 return;
             }
 
@@ -337,21 +581,18 @@
                 const pcCase = build.find(c => c.type === "Корпус");
 
                 mbCards.forEach(card => {
-                    const col = card.closest('.col');
                     const mbSocket = card.dataset.socket || '';
                     const mbMemoryStandard = (card.dataset.memoryStandard || '').toUpperCase();
                     const mbFormFactor = (card.dataset.formFactor || '').trim();
 
                     let visible = true;
 
-                    // 1. Проверка сокета процессора
                     if (processor && processor.processorSocket) {
                         if (!mbSocket.includes(processor.processorSocket.replace('Socket ', ''))) {
                             visible = false;
                         }
                     }
 
-                    // 2. Проверка типа памяти
                     if (visible && memoryModules.length > 0) {
                         const memTypes = memoryModules.map(m => extractMemoryType(m.speed)).filter(Boolean);
                         if (memTypes.length > 0) {
@@ -360,18 +601,21 @@
                         }
                     }
 
-                    // 3. Проверка форм‑фактора корпуса
                     if (visible && pcCase && pcCase.caseMotherboardFormFactors) {
                         if (!pcCase.caseMotherboardFormFactors.toLowerCase().includes(mbFormFactor.toLowerCase())) {
                             visible = false;
                         }
                     }
 
-                    col.style.display = visible ? '' : 'none';
+                    card.style.opacity = visible ? '1' : '0.3';
+                    card.style.pointerEvents = visible ? 'auto' : 'none';
                 });
             } catch (error) {
                 console.error('Ошибка при получении сборки:', error);
-                mbCards.forEach(card => card.closest('.col').style.display = '');
+                mbCards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                });
             }
         }
 
