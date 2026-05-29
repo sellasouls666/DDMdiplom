@@ -7,74 +7,379 @@
 
 @section Styles {
     <style>
-        /* стили карточек памяти (оставлены без изменений) */
-        .memory-card {
-            border-radius: 20px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
-            height: 100%; cursor: pointer; width: 100%; max-width: 280px; margin: 0 auto;
-            display: flex; flex-direction: column;
+        :root {
+            --primary: #0f172a;
+            --primary-hover: #1e293b;
+            --accent: #334155;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --transition: 0.2s ease-in-out;
+            --radius: 16px;
+            --radius-sm: 10px;
         }
-        .memory-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
-        .card-img-container { height: 220px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; padding: 8px; }
-        .card-img-top { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
-        .card-body { padding: 12px 12px 4px 12px; }
-        .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
-        .spec-badge { background: #f1f3f5; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; color: #495057; display: inline-block; white-space: nowrap; }
-        .card-specs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-        .price { font-size: 1.25rem; font-weight: 700; color: #1e2a3e; white-space: nowrap; }
-        .btn-outline-add { border-radius: 40px; padding: 5px 14px; font-size: 0.8rem; white-space: nowrap; }
-        .card-footer { padding: 0 12px 14px 12px; background: transparent; border: none; }
-        .card-footer .d-flex { gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-        .memory-grid { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 24px; }
-        .memory-grid .col { flex: 0 0 280px; max-width: 280px; }
-        .modal-specs-table { width: 100%; margin-bottom: 20px; }
-        .modal-specs-table td { padding: 8px 12px; vertical-align: top; }
-        .modal-specs-table td:first-child { font-weight: 600; width: 40%; background-color: #f8f9fa; }
-        .price-large { font-size: 1.5rem; font-weight: 700; color: #1e2a3e; }
-        .btn-select-sm { border-radius: 40px; padding: 4px 20px; font-size: 0.85rem; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+            .page-header h1 {
+                font-weight: 700;
+                font-size: 1.8rem;
+                letter-spacing: -0.5px;
+                color: var(--primary);
+            }
+
+        .compatibility-wrapper {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: box-shadow var(--transition);
+            margin-bottom: 1.5rem;
+        }
+
+            .compatibility-wrapper:hover {
+                box-shadow: var(--hover-shadow);
+            }
+
+        .form-check-input {
+            border: 2px solid #cbd5e1;
+            width: 1.2em;
+            height: 1.2em;
+        }
+
+            .form-check-input:checked {
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
+
+        .form-check-label {
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.9rem;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .memory-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
+            .memory-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--hover-shadow);
+                border-color: #cbd5e1;
+            }
+
+        .card-img-container {
+            height: 220px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-img-top {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 0;
+        }
+
+        .memory-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+
+        .brand-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            border: 1px solid var(--border);
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            z-index: 1;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+        }
+
+        .spec-badge {
+            background: #f8fafc;
+            padding: 0.3rem 0.7rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            border: 1px solid #e2e8f0;
+        }
+
+            .spec-badge i {
+                font-size: 0.8rem;
+                color: var(--accent);
+            }
+
+        .card-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-footer {
+            padding: 0 1.25rem 1.25rem 1.25rem;
+            background: transparent;
+            border: none;
+            margin-top: auto;
+        }
+
+        .price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .btn-outline-add {
+            background: var(--primary);
+            border: 2px solid var(--primary);
+            color: white;
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+            .btn-outline-add:hover {
+                background: white;
+                color: var(--primary);
+                border-color: var(--primary);
+            }
+
+            .btn-outline-add:active {
+                transform: scale(0.97);
+            }
+
+        .modal-content {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2rem;
+            background: white;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.3px;
+            font-size: 1.2rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        .spec-row {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 1rem;
+        }
+
+            .spec-row:last-child {
+                border-bottom: none;
+            }
+
+        .spec-icon {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .spec-label {
+            font-weight: 600;
+            color: var(--primary);
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .spec-value {
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .price-large {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .btn-select-sm {
+            background: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            padding: 0.6rem 1.8rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .btn-select-sm:hover {
+                background: white;
+                color: var(--primary);
+                border-color: var(--primary);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+        @@media (max-width: 640px) {
+            .memory-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 }
 
 <div class="container">
-    <h1 class="mb-3">Оперативная память</h1>
-    
-    <!-- Переключатель совместимости -->
-    <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-        <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+    <div class="page-header">
+        <h1>Оперативная память</h1>
+    </div>
+
+    <div class="compatibility-wrapper">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+        </div>
     </div>
 
     <div class="memory-grid">
         @foreach (var mem in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(mem.ImageUrl) ? mem.ImageUrl : "/images/placeholder.png";
-            <div class="col">
-                <div class="card memory-card h-100" data-id="@mem.Id" data-speed="@mem.Speed">
-                    <div class="card-img-container">
-                        <img src="@imageUrl" class="card-img-top" alt="@mem.Model">
+            <div class="memory-card h-100" data-id="@mem.Id" data-speed="@mem.Speed">
+                <div class="card-img-container">
+                    <span class="brand-badge">@mem.Brand</span>
+                    <img src="@imageUrl" class="card-img-top" alt="@mem.Model">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">@mem.Model</h5>
+                    <div class="card-specs">
+                        @if (!string.IsNullOrEmpty(mem.Speed))
+                        {
+                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @mem.Speed</span>
+                        }
+                        @if (!string.IsNullOrEmpty(mem.Capacity))
+                        {
+                            <span class="spec-badge"><i class="bi bi-memory"></i> @mem.Capacity</span>
+                        }
+                        @if (!string.IsNullOrEmpty(mem.Color))
+                        {
+                            <span class="spec-badge"><i class="bi bi-palette"></i> @mem.Color</span>
+                        }
+                        @if (!string.IsNullOrEmpty(mem.CasLatency))
+                        {
+                            <span class="spec-badge"><i class="bi bi-layout-text-window"></i> @mem.CasLatency</span>
+                        }
                     </div>
-                    <div class="card-body">
-                        <h5 class="card-title">@mem.Brand @mem.Model</h5>
-                        <div class="card-specs">
-                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @(mem.Speed ?? "—")</span>
-                            <span class="spec-badge"><i class="bi bi-memory"></i> @(mem.Capacity ?? "—")</span>
-                            <span class="spec-badge"><i class="bi bi-palette"></i> @(mem.Color ?? "—")</span>
-                            <span class="spec-badge"><i class="bi bi-layout-text-window"></i> @(mem.CasLatency ?? "—")</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="price">@string.Format("{0:N0}", mem.Price) ₽</span>
-                            <button class="btn btn-outline-dark btn-outline-add select-component"
-                                    data-id="@mem.Id"
-                                    data-name="@mem.Brand @mem.Model"
-                                    data-price="@mem.Price"
-                                    data-tdp="0"
-                                    data-image="@imageUrl"
-                                    data-type="Оперативная память"
-                                    data-module-count="@mem.ModuleCount">
-                                <i class="bi bi-plus-lg"></i> Выбрать
-                            </button>
-                        </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="price">@string.Format("{0:N0}", mem.Price) ₽</span>
+                        <button class="btn btn-outline-add select-component"
+                                data-id="@mem.Id"
+                                data-name="@mem.Brand @mem.Model"
+                                data-price="@mem.Price"
+                                data-tdp="0"
+                                data-image="@imageUrl"
+                                data-type="Оперативная память"
+                                data-module-count="@mem.ModuleCount">
+                            <i class="bi bi-plus-lg"></i> Выбрать
+                        </button>
                     </div>
                 </div>
             </div>
@@ -82,13 +387,20 @@
     </div>
 </div>
 
-<!-- Модальное окно деталей -->
 <div class="modal fade" id="memoryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Детали модуля памяти</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <div class="modal-body">
                 <div id="modalContent">
-                    <div class="text-center my-3"><div class="spinner-border" role="status"></div></div>
+                    <div class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,6 +411,11 @@
 
 @section Scripts {
     <script>
+        const modalElement = document.getElementById('memoryModal');
+        const modal = new bootstrap.Modal(modalElement);
+        const contentDiv = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+
         // Обработчики кнопок "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -108,12 +425,12 @@
                     name: this.dataset.name,
                     price: parseFloat(this.dataset.price),
                     type: this.dataset.type,
-                    tdp: parseInt(this.dataset.tdp) || 0,
+                    tdp: 0,
                     imageUrl: this.dataset.image,
                     moduleCount: parseInt(this.dataset.moduleCount) || 1
                 };
-                if (typeof window.addToBuild === 'function') {
-                    window.addToBuild(component);
+                if (typeof addToBuild === 'function') {
+                    addToBuild(component);
                 } else {
                     fetch('/PcBuilder/AddComponent', {
                         method: 'POST',
@@ -124,52 +441,72 @@
             });
         });
 
-        // Модальное окно (без изменений)
+        // Модальное окно
         document.querySelectorAll('.memory-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
                 const id = this.getAttribute('data-id');
-                const contentDiv = document.getElementById('modalContent');
-                contentDiv.innerHTML = '<div class="text-center my-3"><div class="spinner-border" role="status"></div></div>';
+
+                contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
+                modalTitle.textContent = 'Загрузка...';
+                modal.show();
+
                 try {
                     const resp = await fetch(`/Memory/GetMemory/${id}`);
+                    if (!resp.ok) throw new Error('Ошибка сети');
                     const mem = await resp.json();
-                    let part1Rows = '';
-                    if (mem.brand) part1Rows += `<tr><td>Бренд</td><td>${mem.brand}</td></tr>`;
-                    if (mem.series) part1Rows += `<tr><td>Серия</td><td>${mem.series}</td></tr>`;
-                    if (mem.model) part1Rows += `<tr><td>Модель</td><td>${mem.model}</td></tr>`;
-                    if (mem.capacity) part1Rows += `<tr><td>Объём (ГБ)</td><td>${mem.capacity}</td></tr>`;
-                    if (mem.type) part1Rows += `<tr><td>Тип</td><td>${mem.type}</td></tr>`;
-                    if (mem.speed) part1Rows += `<tr><td>Скорость</td><td>${mem.speed}</td></tr>`;
-                    const part1 = part1Rows ? `<div class="mb-4"><h6 class="mb-2">Основная информация</h6><table class="modal-specs-table">${part1Rows}</table></div>` : '';
-
-                    let part2Rows = '';
-                    if (mem.casLatency) part2Rows += `<tr><td>CAS Latency</td><td>${mem.casLatency}</td></tr>`;
-                    if (mem.timing) part2Rows += `<tr><td>Тайминги</td><td>${mem.timing}</td></tr>`;
-                    if (mem.voltage) part2Rows += `<tr><td>Напряжение (В)</td><td>${mem.voltage}</td></tr>`;
-                    if (mem.multiChannelKit) part2Rows += `<tr><td>Многоканальный комплект</td><td>${mem.multiChannelKit}</td></tr>`;
-                    if (mem.biosProfiles) part2Rows += `<tr><td>Профили BIOS</td><td>${mem.biosProfiles}</td></tr>`;
-                    if (mem.color) part2Rows += `<tr><td>Цвет</td><td>${mem.color}</td></tr>`;
-                    if (mem.heatSpreader) part2Rows += `<tr><td>Радиатор</td><td>${mem.heatSpreader}</td></tr>`;
-                    if (mem.ledColor) part2Rows += `<tr><td>Цвет подсветки</td><td>${mem.ledColor}</td></tr>`;
-                    if (mem.recommendUse) part2Rows += `<tr><td>Рекомендуемое использование</td><td>${mem.recommendUse}</td></tr>`;
-                    if (mem.features) part2Rows += `<tr><td>Особенности</td><td>${mem.features}</td></tr>`;
-                    const part2 = part2Rows ? `<div><h6 class="mb-2">Детальные характеристики</h6><table class="modal-specs-table">${part2Rows}</table></div>` : '';
 
                     const title = `${mem.brand} ${mem.model}`;
-                    const imageUrl = mem.imageUrl || '/images/placeholder.png';
-                    const priceHtml = `<div class="price-large mb-2">${mem.price.toLocaleString()} ₽</div>`;
-                    const selectBtn = `<button class="btn btn-outline-dark btn-select-sm select-from-modal" data-id="${mem.id}" data-name="${title}" data-price="${mem.price}" data-tdp="0" data-image="${imageUrl}" data-type="Оперативная память"><i class="bi bi-plus-lg"></i> Выбрать</button>`;
+                    modalTitle.textContent = title;
 
-                    contentDiv.innerHTML = `
-                        <div class="d-flex justify-content-end mb-2"><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class="d-flex align-items-center gap-3"><img src="${imageUrl}" style="width:50px;height:50px;object-fit:contain;"><h5 class="mb-0">${title}</h5></div>
-                            <div class="text-end">${priceHtml}${selectBtn}</div>
+                    let html = `
+                        <div class="d-flex align-items-center gap-4 mb-4">
+                            <img src="${mem.imageUrl || '/images/placeholder.png'}" alt="${title}" style="width: 80px; height: 80px; object-fit: contain;">
+                            <div>
+                                <h4 class="mb-1">${title}</h4>
+                                <div class="price-large">${mem.price.toLocaleString()} ₽</div>
+                            </div>
                         </div>
-                        ${part1}
-                        ${part2}
+                        <hr>
                     `;
+
+                    const specs = [
+                        { icon: "bi-memory", label: "Объём", value: mem.capacity },
+                        { icon: "bi-speedometer2", label: "Скорость", value: mem.speed },
+                        { icon: "bi-cpu", label: "Тип", value: mem.type },
+                        { icon: "bi-layout-text-window", label: "CAS Latency", value: mem.casLatency },
+                        { icon: "bi-clock", label: "Тайминги", value: mem.timing },
+                        { icon: "bi-lightning", label: "Напряжение", value: mem.voltage ? mem.voltage + " В" : null },
+                        { icon: "bi-diagram-3", label: "Многоканальный комплект", value: mem.multiChannelKit },
+                        { icon: "bi-file-earmark-binary", label: "Профили BIOS", value: mem.biosProfiles },
+                        { icon: "bi-palette", label: "Цвет", value: mem.color },
+                        { icon: "bi-fan", label: "Радиатор", value: mem.heatSpreader },
+                        { icon: "bi-lightbulb", label: "Цвет подсветки", value: mem.ledColor },
+                        { icon: "bi-check-circle", label: "Рекомендуемое использование", value: mem.recommendUse },
+                        { icon: "bi-card-text", label: "Особенности", value: mem.features }
+                    ];
+
+                    specs.forEach(spec => {
+                        if (spec.value) {
+                            html += `
+                                <div class="spec-row">
+                                    <div class="spec-icon"><i class="bi ${spec.icon}"></i></div>
+                                    <span class="spec-label">${spec.label}</span>
+                                    <span class="spec-value">${spec.value}</span>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    html += `
+                        <div class="text-center mt-4">
+                            <button class="btn btn-select-sm select-from-modal" data-id="${mem.id}" data-name="${title}" data-price="${mem.price}" data-tdp="0" data-image="${mem.imageUrl || '/images/placeholder.png'}" data-type="Оперативная память" data-module-count="${mem.moduleCount || 1}">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
+                    `;
+
+                    contentDiv.innerHTML = html;
 
                     document.querySelector('.select-from-modal').addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -180,14 +517,20 @@
                             type: this.dataset.type,
                             tdp: 0,
                             imageUrl: this.dataset.image,
-                            moduleCount: 1
+                            moduleCount: parseInt(this.dataset.moduleCount) || 1
                         };
-                        if (typeof window.addToBuild === 'function') window.addToBuild(component);
-                        else fetch('/PcBuilder/AddComponent', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(component) }).then(() => location.reload());
-                        bootstrap.Modal.getInstance(document.getElementById('memoryModal')).hide();
+                        if (typeof addToBuild === 'function') {
+                            addToBuild(component);
+                        } else {
+                            fetch('/PcBuilder/AddComponent', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(component)
+                            }).then(() => location.reload());
+                        }
+                        modal.hide();
                     });
 
-                    new bootstrap.Modal(document.getElementById('memoryModal')).show();
                 } catch(e) {
                     contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
                 }
@@ -212,7 +555,10 @@
 
         async function applyMemoryFilter() {
             if (!compatibilitySwitch.checked) {
-                memoryCards.forEach(card => card.closest('.col').style.display = '');
+                memoryCards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                });
                 return;
             }
 
@@ -228,7 +574,6 @@
                 let allowedTypes = null;
 
                 if (existingMemory.length > 0) {
-                    // Ограничиваем типом уже установленной памяти
                     const firstType = extractMemoryType(existingMemory[0].speed);
                     if (firstType) {
                         allowedTypes = [firstType];
@@ -241,10 +586,8 @@
                     const mbSet = new Set(extractMemoryTypesFromList(mbTypes));
 
                     if (procSet.size > 0 && mbSet.size > 0) {
-                        // Пересечение требований процессора и материнской платы
                         allowedTypes = [...procSet].filter(t => mbSet.has(t));
                         if (allowedTypes.length === 0) {
-                            // Несовместимы – ничего не показываем
                             allowedTypes = [];
                         }
                     } else if (procSet.size > 0) {
@@ -255,19 +598,25 @@
                 }
 
                 memoryCards.forEach(card => {
-                    const col = card.closest('.col');
                     const memType = extractMemoryType(card.dataset.speed);
+                    let visible = true;
                     if (allowedTypes === null) {
-                        col.style.display = '';
+                        visible = true;
                     } else if (allowedTypes.length === 0) {
-                        col.style.display = 'none';
+                        visible = false;
                     } else {
-                        col.style.display = memType && allowedTypes.includes(memType) ? '' : 'none';
+                        visible = memType && allowedTypes.includes(memType);
                     }
+
+                    card.style.opacity = visible ? '1' : '0.3';
+                    card.style.pointerEvents = visible ? 'auto' : 'none';
                 });
             } catch (error) {
                 console.error('Ошибка фильтра памяти:', error);
-                memoryCards.forEach(card => card.closest('.col').style.display = '');
+                memoryCards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                });
             }
         }
 
