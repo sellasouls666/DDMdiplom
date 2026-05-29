@@ -247,5 +247,23 @@ namespace DDMdiplom.Controllers
             ViewBag.OrderId = id;
             return View();
         }
+
+        // GET: /Orders
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Challenge();
+
+            var orders = await _context.Orders
+                .Where(o => o.UserId == userId)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Build)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return View(orders);
+        }
     }
 }

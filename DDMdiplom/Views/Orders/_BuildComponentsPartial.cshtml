@@ -1,11 +1,39 @@
-﻿@using DDMdiplom.ViewModels
-@model List<ComponentDetailViewModel>
-<div class="row">
+﻿@model IEnumerable<DDMdiplom.ViewModels.ComponentDetailViewModel>
+
+<style>
+    .component-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .component-item img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        margin-bottom: 0.5rem;
+        transition: transform 0.2s;
+    }
+
+    .component-item:hover img {
+        transform: scale(1.08);
+    }
+
+    .component-item .name {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #222;
+        word-break: break-word;
+    }
+</style>
+
+<div class="component-grid">
     @foreach (var comp in Model)
     {
-        <div class="col-4 text-center mb-3">
-            <img src="@comp.ImageUrl" alt="@comp.Name" style="width: 80px; height: 80px; object-fit: contain;" />
-            <div class="small mt-1">@comp.Name</div>
+        <div class="component-item">
+            <img src="@comp.ImageUrl" alt="@comp.Name" />
+            <div class="name">@comp.Name</div>
         </div>
     }
 </div>
