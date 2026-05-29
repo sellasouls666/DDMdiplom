@@ -1,0 +1,193 @@
+﻿@{
+    ViewData["Title"] = "Заказ успешно оформлен";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int orderId = ViewBag.OrderId ?? 0;
+}
+
+<style>
+    :root {
+        --primary: #1a1a1a;
+        --primary-light: #333;
+        --bg: #fafafa;
+        --card-bg: #fff;
+        --text: #222;
+        --text-muted: #666;
+        --border: #e5e5e5;
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+        --shadow-md: 0 6px 18px rgba(0,0,0,0.06);
+        --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
+        --radius: 16px;
+        --radius-sm: 10px;
+        --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .success-wrapper {
+        max-width: 700px;
+        margin: 5rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .success-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 3rem 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        text-align: center;
+        transition: box-shadow var(--transition);
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: #eaf7ea;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+        .success-icon i {
+            font-size: 2.5rem;
+            color: #2e7d32;
+        }
+
+    h1 {
+        font-weight: 700;
+        font-size: 2.2rem;
+        letter-spacing: -0.5px;
+        margin-bottom: 0.75rem;
+        color: var(--primary);
+    }
+
+    .lead {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    .order-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        background: #f5f5f5;
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        margin-bottom: 2rem;
+        letter-spacing: 0.3px;
+    }
+
+    .actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: #fff;
+        border: 2px solid var(--primary);
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+        transition: all var(--transition);
+        text-transform: uppercase;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-primary:hover {
+            background: #fff;
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--primary);
+        border: 2px solid var(--border);
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+        transition: all var(--transition);
+        text-transform: uppercase;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            background: #f5f5f5;
+            transform: translateY(-2px);
+        }
+
+    @@media (max-width: 576px) {
+        .success-card {
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<div class="success-wrapper">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h1>Спасибо за заказ!</h1>
+        <p class="lead">Ваш заказ успешно оформлен и передан в обработку.<br>Вы можете отслеживать его в личном кабинете.</p>
+
+        @if (orderId > 0)
+        {
+            <div class="order-number">
+                Заказ № @orderId
+            </div>
+        }
+
+        <div class="actions">
+            <a href="/" class="btn-outline">
+                <i class="bi bi-house"></i> На главную
+            </a>
+            <a href="/MyBuilds" class="btn-primary">
+                <i class="bi bi-collection"></i> Мои сборки
+            </a>
+        </div>
+    </div>
+</div>
