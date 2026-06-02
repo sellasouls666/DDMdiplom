@@ -7,6 +7,7 @@
 
 @section Styles {
     <style>
+        /* ========== СОВРЕМЕННЫЙ ЧЁРНО-БЕЛЫЙ ДИЗАЙН (СКРУГЛЁННЫЙ) ========== */
         :root {
             --primary: #0f172a;
             --primary-hover: #1e293b;
@@ -29,7 +30,12 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
         }
 
             .page-header h1 {
@@ -37,29 +43,25 @@
                 font-size: 1.8rem;
                 letter-spacing: -0.5px;
                 color: var(--primary);
+                margin: 0;
             }
 
+        /* Переключатель совместимости в заголовке */
         .compatibility-wrapper {
-            background: white;
+            background: #f1f5f9;
             border: 1px solid var(--border);
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: box-shadow var(--transition);
-            margin-bottom: 1.5rem;
         }
-
-            .compatibility-wrapper:hover {
-                box-shadow: var(--hover-shadow);
-            }
 
         .form-check-input {
             border: 2px solid #cbd5e1;
             width: 1.2em;
             height: 1.2em;
+            cursor: pointer;
         }
 
             .form-check-input:checked {
@@ -75,12 +77,46 @@
             font-size: 0.9rem;
         }
 
+        /* Панель фильтров */
+        .filters-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all var(--transition);
+        }
+
+            .form-control-custom:focus, .form-select-custom:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+                outline: none;
+            }
+
+        /* Сетка карточек */
         .coolers-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
 
+        /* Карточка кулера */
         .cooler-card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -117,6 +153,8 @@
             max-height: 100%;
             object-fit: contain;
             transition: transform 0.3s ease;
+            position: relative;
+            z-index: 0;
         }
 
         .cooler-card:hover .card-img-top {
@@ -137,6 +175,7 @@
             border: 1px solid var(--border);
             letter-spacing: 0.5px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            z-index: 1;
         }
 
         .card-body {
@@ -219,6 +258,7 @@
                 transform: scale(0.97);
             }
 
+        /* Модальное окно */
         .modal-content {
             border: 1px solid var(--border);
             border-radius: var(--radius);
@@ -314,15 +354,6 @@
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
 
-        .card-img-top {
-            position: relative;
-            z-index: 0;
-        }
-
-        .brand-badge {
-            z-index: 1;
-        }
-
         @@media (max-width: 640px) {
             .coolers-grid {
                 grid-template-columns: 1fr;
@@ -334,55 +365,94 @@
 <div class="container">
     <div class="page-header">
         <h1>Воздушное охлаждение</h1>
-    </div>
-
-    <div class="compatibility-wrapper">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+        <div class="compatibility-wrapper">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+                <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+            </div>
         </div>
     </div>
 
-    <div class="coolers-grid">
+    <div class="filters-panel">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control form-control-custom border-start-0 ps-0" placeholder="Название, бренд...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Бренд</label>
+                <select id="filterBrand" class="form-select form-select-custom">
+                    <option value="">Все бренды</option>
+                    @foreach (var brand in Model.Select(m => m.Brand).Distinct().OrderBy(b => b))
+                    {
+                        <option value="@brand">@brand</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control form-control-custom" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control form-control-custom" placeholder="До">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-fan fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Кулеры по заданным фильтрам не найдены или несовместимы.</p>
+    </div>
+
+    <div class="coolers-grid" id="coolersGrid">
         @foreach (var cooler in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(cooler.ImageUrl) ? cooler.ImageUrl : "/images/placeholder.png";
-            <div class="cooler-card h-100"
+            <div class="cooler-item"
                  data-id="@cooler.Id"
+                 data-brand="@cooler.Brand"
+                 data-model="@cooler.Model"
+                 data-price="@cooler.Price"
                  data-socket-compat="@cooler.CpuSocketCompatibility">
-                <div class="card-img-container">
-                    <span class="brand-badge">@cooler.Brand</span>
-                    <img src="@imageUrl" class="card-img-top" alt="@cooler.Model">
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@cooler.Model</h5>
-                    <div class="card-specs">
-                        @if (!string.IsNullOrEmpty(cooler.Rpm))
-                        {
-                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @cooler.Rpm</span>
-                        }
-                        @if (!string.IsNullOrEmpty(cooler.NoiseLevel))
-                        {
-                            <span class="spec-badge"><i class="bi bi-volume-up"></i> @cooler.NoiseLevel</span>
-                        }
-                        @if (!string.IsNullOrEmpty(cooler.Color))
-                        {
-                            <span class="spec-badge"><i class="bi bi-palette"></i> @cooler.Color</span>
-                        }
+                <div class="cooler-card">
+                    <div class="card-img-container">
+                        <span class="brand-badge">@cooler.Brand</span>
+                        <img src="@imageUrl" class="card-img-top" alt="@cooler.Model">
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">@string.Format("{0:N0}", cooler.Price) ₽</span>
-                        <button class="btn btn-outline-add select-component"
-                                data-id="@cooler.Id"
-                                data-name="@cooler.Brand @cooler.Model"
-                                data-price="@cooler.Price"
-                                data-tdp="0"
-                                data-image="@imageUrl"
-                                data-type="Система охлаждения">
-                            <i class="bi bi-plus-lg"></i> Выбрать
-                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title">@cooler.Model</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(cooler.Rpm))
+                            {
+                                <span class="spec-badge"><i class="bi bi-speedometer2"></i> @cooler.Rpm</span>
+                            }
+                            @if (!string.IsNullOrEmpty(cooler.NoiseLevel))
+                            {
+                                <span class="spec-badge"><i class="bi bi-volume-up"></i> @cooler.NoiseLevel</span>
+                            }
+                            @if (!string.IsNullOrEmpty(cooler.Color))
+                            {
+                                <span class="spec-badge"><i class="bi bi-palette"></i> @cooler.Color</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", cooler.Price) ₽</span>
+                            <button class="btn btn-outline-add select-component"
+                                    data-id="@cooler.Id"
+                                    data-name="@cooler.Brand @cooler.Model"
+                                    data-price="@cooler.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Система охлаждения">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -419,6 +489,16 @@
         const contentDiv = document.getElementById('modalContent');
         const modalTitle = document.getElementById('modalTitle');
 
+        // Элементы фильтрации
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const searchQuery = document.getElementById('searchQuery');
+        const filterBrand = document.getElementById('filterBrand');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const noResults = document.getElementById('noResults');
+        const coolerItems = document.querySelectorAll('.cooler-item');
+
+        // Обработка кнопки "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -438,10 +518,12 @@
             });
         });
 
+        // Открытие модального окна с подробной информацией
         document.querySelectorAll('.cooler-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
-                const coolerId = this.getAttribute('data-id');
+                const coolerItem = this.closest('.cooler-item');
+                const coolerId = coolerItem.getAttribute('data-id');
 
                 contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
                 modalTitle.textContent = 'Загрузка...';
@@ -519,57 +601,92 @@
             });
         });
 
-        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
-        const coolerCards = document.querySelectorAll('.cooler-card');
+        // ========== ЛОГИКА ФИЛЬТРАЦИИ И СОВМЕСТИМОСТИ (как на процессорах и корпусах) ==========
+        async function updateFilters() {
+            let build = [];
 
-        async function applyCoolerFilter() {
-            if (!compatibilitySwitch.checked) {
-                coolerCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
-                return;
+            // Если включена проверка совместимости, получаем сборку
+            if (compatibilitySwitch.checked) {
+                try {
+                    const response = await fetch('/PcBuilder/GetBuild');
+                    const data = await response.json();
+                    if (data.success) {
+                        build = data.build;
+                    }
+                } catch (err) {
+                    console.error('Ошибка получения сборки:', err);
+                }
             }
 
-            try {
-                const response = await fetch('/PcBuilder/GetBuild');
-                const data = await response.json();
-                const build = data.success ? data.build : [];
+            // Определяем требуемый сокет (из процессора или материнской платы)
+            let requiredSocket = null;
+            const processor = build.find(c => c.type === "Процессор");
+            const motherboard = build.find(c => c.type === "Материнская плата");
+            if (processor && processor.processorSocket) {
+                requiredSocket = processor.processorSocket.trim();
+            } else if (motherboard && motherboard.cpuSocketType) {
+                requiredSocket = motherboard.cpuSocketType.trim();
+            }
 
-                const processor = build.find(c => c.type === "Процессор");
-                const motherboard = build.find(c => c.type === "Материнская плата");
+            // Получаем значения пользовательских фильтров
+            const searchVal = searchQuery.value.trim().toLowerCase();
+            const brandVal = filterBrand.value;
+            const minPrice = parseFloat(priceMin.value) || 0;
+            const maxPrice = parseFloat(priceMax.value) || Infinity;
 
-                const requiredSockets = [];
-                if (processor && processor.processorSocket) {
-                    requiredSockets.push(processor.processorSocket.replace('Socket ', '').trim());
-                }
-                if (motherboard && motherboard.cpuSocketType) {
-                    requiredSockets.push(motherboard.cpuSocketType.trim());
-                }
+            let visibleCount = 0;
 
-                coolerCards.forEach(card => {
-                    const compatStr = card.dataset.socketCompat?.toUpperCase() || '';
+            coolerItems.forEach(item => {
+                const brand = item.dataset.brand;
+                const model = item.dataset.model.toLowerCase();
+                const price = parseFloat(item.dataset.price) || 0;
+                const socketCompat = (item.dataset.socketCompat || '').toUpperCase();
 
-                    let visible = true;
-                    if (requiredSockets.length > 0) {
-                        visible = requiredSockets.every(socket =>
-                            compatStr.includes(socket.toUpperCase())
-                        );
+                // Обычные фильтры
+                const matchesSearch = !searchVal || model.includes(searchVal) || brand.toLowerCase().includes(searchVal);
+                const matchesBrand = !brandVal || brand === brandVal;
+                const matchesPrice = price >= minPrice && price <= maxPrice;
+                let matchesFilter = matchesSearch && matchesBrand && matchesPrice;
+
+                // Совместимость по сокету (если включена и есть требуемый сокет)
+                let isCompatible = true;
+                if (compatibilitySwitch.checked && requiredSocket) {
+                    const requiredUpper = requiredSocket.toUpperCase();
+                    // Проверяем, содержит ли строка совместимых сокетов требуемый сокет
+                    if (!socketCompat.includes(requiredUpper)) {
+                        isCompatible = false;
                     }
+                }
 
-                    card.style.opacity = visible ? '1' : '0.3';
-                    card.style.pointerEvents = visible ? 'auto' : 'none';
-                });
-            } catch (err) {
-                console.error('Ошибка фильтра кулера:', err);
-                coolerCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
+                // Отображение: показываем только если подходит под фильтры И совместим
+                if (matchesFilter && isCompatible) {
+                    item.style.display = '';   // сброс inline display (обычно block/contents)
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
             }
         }
 
-        compatibilitySwitch.addEventListener('change', applyCoolerFilter);
-        applyCoolerFilter();
+        // События
+        compatibilitySwitch.addEventListener('change', updateFilters);
+        searchQuery.addEventListener('input', updateFilters);
+        filterBrand.addEventListener('change', updateFilters);
+        priceMin.addEventListener('input', updateFilters);
+        priceMax.addEventListener('input', updateFilters);
+
+        // Событие обновления сборки
+        document.addEventListener('buildUpdated', () => {
+            updateFilters();
+        });
+
+        // Первый запуск
+        updateFilters();
     </script>
 }
