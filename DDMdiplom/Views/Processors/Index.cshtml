@@ -30,7 +30,7 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
             .page-header h1 {
@@ -40,27 +40,44 @@
                 color: var(--primary);
             }
 
-        /* Переключатель совместимости */
-        .compatibility-wrapper {
+        /* Блок фильтров */
+        .filters-panel {
             background: white;
             border: 1px solid var(--border);
-            padding: 0.6rem 1.5rem;
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-control, .form-select {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 2px rgba(51, 65, 85, 0.1);
+            }
+
+        /* Переключатель совместимости */
+        .compatibility-wrapper {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            padding: 0.5rem 1.2rem;
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: box-shadow var(--transition);
         }
-
-            .compatibility-wrapper:hover {
-                box-shadow: var(--hover-shadow);
-            }
 
         .form-check-input {
             border: 2px solid #cbd5e1;
             width: 1.2em;
             height: 1.2em;
+            cursor: pointer;
         }
 
             .form-check-input:checked {
@@ -344,30 +361,80 @@
 }
 
 <div class="container">
-    <div class="page-header">
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
         <h1>Процессоры</h1>
+        <div class="compatibility-wrapper">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+                <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+            </div>
+        </div>
     </div>
     
-    <!-- Переключатель совместимости -->
-    <div class="compatibility-wrapper mb-4">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+    <div class="filters-panel mb-4">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold text-secondary text-uppercase">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control border-start-0 ps-0" placeholder="Название, семейство...">
+                </div>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-secondary text-uppercase">Бренд</label>
+                <select id="filterBrand" class="form-select">
+                    <option value="">Все бренды</option>
+                    <option value="AMD">AMD</option>
+                    <option value="Intel">Intel</option>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-secondary text-uppercase">Сокет</label>
+                <select id="filterSocket" class="form-select">
+                    <option value="">Все сокеты</option>
+                    @foreach (var socket in Model.Where(m => !string.IsNullOrEmpty(m.CpuSocketType)).Select(m => m.CpuSocketType).Distinct())
+                    {
+                        <option value="@socket">@socket</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold text-secondary text-uppercase">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control" placeholder="До">
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Сетка карточек -->
-    <div class="processors-grid">
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-cpu-history fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Попробуйте изменить параметры фильтрации или сбросить их.</p>
+    </div>
+
+    <div class="processors-grid" id="processorsGrid">
         @foreach (var proc in Model)
         {
             var memoryTypes = proc.MemoryTypes ?? "";
             var lastMemory = memoryTypes.Contains('/') ? memoryTypes.Split('/').Last().Trim() : memoryTypes;
             var imageUrl = !string.IsNullOrEmpty(proc.ImageUrl) ? proc.ImageUrl : "/images/placeholder.png";
-            <div class="col" style="display: contents;">
-                <div class="card processor-card h-100"
-                     data-id="@proc.Id"
-                     data-socket="@proc.CpuSocketType"
-                     data-memory-types="@proc.MemoryTypes">
+            
+            <div class="col processor-item" style="display: contents;"
+                 data-id="@proc.Id"
+                 data-brand="@proc.Brand"
+                 data-name="@proc.Name"
+                 data-series="@proc.Series"
+                 data-socket="@proc.CpuSocketType"
+                 data-cores="@proc.Cores"
+                 data-price="@proc.Price"
+                 data-memory-types="@proc.MemoryTypes">
+                 
+                <div class="card processor-card h-100">
                     <div class="card-img-container">
                         <span class="brand-badge">@proc.Brand</span>
                         <img src="@imageUrl" class="card-img-top" alt="@proc.Name">
@@ -405,7 +472,6 @@
     </div>
 </div>
 
-<!-- Модальное окно для деталей процессора -->
 <div class="modal fade" id="processorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -426,14 +492,11 @@
     </div>
 </div>
 
-<!-- Подключаем общую боковую панель -->
 @await Html.PartialAsync("_BuildSidebar")
 
 @section Scripts {
     <script>
-        // === Глобальная функция addToBuild уже доступна из _BuildSidebar ===
-
-                // Инициализация модального окна один раз
+        // Инициализация модального окна
         const modalElement = document.getElementById('processorModal');
         const modal = new bootstrap.Modal(modalElement);
         const contentDiv = document.getElementById('modalContent');
@@ -463,9 +526,11 @@
         document.querySelectorAll('.processor-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
-                const processorId = this.getAttribute('data-id');
+                
+                // Переходим на родительский оберточный div, где лежат data-атрибуты
+                const itemWrapper = this.closest('.processor-item');
+                const processorId = itemWrapper.getAttribute('data-id');
 
-                // Сразу показываем модалку со спиннером
                 contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
                 modalTitle.textContent = 'Загрузка...';
                 modal.show();
@@ -521,7 +586,6 @@
 
                     contentDiv.innerHTML = html;
 
-                    // Навешиваем обработчик на кнопку внутри модалки
                     document.querySelector('.select-from-modal').addEventListener('click', function(e) {
                         e.stopPropagation();
                         const component = {
@@ -542,9 +606,16 @@
             });
         });
 
-        // ========== ЛОГИКА ФИЛЬТРАЦИИ ПО СОВМЕСТИМОСТИ ==========
+        // ========== СОВМЕЩЕННАЯ ЛОГИКА ФИЛЬТРАЦИИ И СОВМЕСТИМОСТИ ==========
         const compatibilitySwitch = document.getElementById('compatibilitySwitch');
-        const processorCards = document.querySelectorAll('.processor-card');
+        const searchQuery = document.getElementById('searchQuery');
+        const filterBrand = document.getElementById('filterBrand');
+        const filterSocket = document.getElementById('filterSocket');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        
+        const processorItems = document.querySelectorAll('.processor-item');
+        const noResults = document.getElementById('noResults');
 
         function extractMemoryType(memorySpeed) {
             if (!memorySpeed) return null;
@@ -552,74 +623,116 @@
             return match ? match[0].toUpperCase() : null;
         }
 
-                async function applyCompatibilityFilter() {
-            if (!compatibilitySwitch.checked) {
-                processorCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
-                return;
+        async function updateFilters() {
+            // 1. Получаем данные по совместимости, если чекбокс активен
+            let socketRequired = null;
+            let memoryTypesRequired = [];
+            let coolerSocketRequired = null;
+
+            if (compatibilitySwitch.checked) {
+                try {
+                    const response = await fetch('/PcBuilder/GetBuild');
+                    const data = await response.json();
+                    const build = data.success ? data.build : [];
+
+                    const motherboard = build.find(c => c.type === "Материнская плата");
+                    const memoryModules = build.filter(c => c.type === "Оперативная память");
+                    const cpuCooler = build.find(c => c.type === "Система охлаждения");
+
+                    socketRequired = motherboard?.cpuSocketType;
+                    if (memoryModules.length > 0) {
+                        memoryTypesRequired = memoryModules.map(m => extractMemoryType(m.speed)).filter(Boolean);
+                    }
+                    if (cpuCooler) {
+                        coolerSocketRequired = cpuCooler.cpuSocketCompatibility || cpuCooler.blockCompatibility || null;
+                    }
+                } catch (error) {
+                    console.error('Ошибка при получении сборки:', error);
+                }
             }
 
-            try {
-                const response = await fetch('/PcBuilder/GetBuild');
-                const data = await response.json();
-                const build = data.success ? data.build : [];
+            // 2. Получаем значения из пользовательских фильтров
+            const searchVal = searchQuery.value.toLowerCase().trim();
+            const brandVal = filterBrand.value;
+            const socketVal = filterSocket.value;
+            const minPrice = parseFloat(priceMin.value) || 0;
+            const maxPrice = parseFloat(priceMax.value) || Infinity;
 
-                const motherboard = build.find(c => c.type === "Материнская плата");
-                const memoryModules = build.filter(c => c.type === "Оперативная память");
-                const cpuCooler = build.find(c => c.type === "Система охлаждения");
+            let visibleCount = 0;
 
-                const socketRequired = motherboard?.cpuSocketType;
-                let memoryTypesRequired = [];
-                if (memoryModules.length > 0) {
-                    memoryTypesRequired = memoryModules.map(m => extractMemoryType(m.speed)).filter(Boolean);
+            // 3. Пробегаемся по всем элементам каталога процессоров
+            processorItems.forEach(item => {
+                const brand = item.dataset.brand;
+                const name = item.dataset.name.toLowerCase();
+                const series = (item.dataset.series || '').toLowerCase();
+                const socket = item.dataset.socket || '';
+                const price = parseFloat(item.dataset.price) || 0;
+                const memoryTypes = (item.dataset.memoryTypes || '').toUpperCase();
+
+                let matchesFilter = true;
+
+                // Фильтр: Поиск text
+                if (searchVal && !name.includes(searchVal) && !series.includes(searchVal) && !brand.toLowerCase().includes(searchVal)) {
+                    matchesFilter = false;
                 }
-                let coolerSocketRequired = null;
-                if (cpuCooler) {
-                    if (cpuCooler.cpuSocketCompatibility) {
-                        coolerSocketRequired = cpuCooler.cpuSocketCompatibility;
-                    } else if (cpuCooler.blockCompatibility) {
-                        coolerSocketRequired = cpuCooler.blockCompatibility;
+                // Фильтр: Бренд
+                if (matchesFilter && brandVal && brand !== brandVal) {
+                    matchesFilter = false;
+                }
+                // Фильтр: Сокет
+                if (matchesFilter && socketVal && socket !== socketVal) {
+                    matchesFilter = false;
+                }
+                // Фильтр: Цена
+                if (matchesFilter && (price < minPrice || price > maxPrice)) {
+                    matchesFilter = false;
+                }
+
+                // Фильтр: Совместимость с комплектующими (если включено)
+                if (matchesFilter && compatibilitySwitch.checked) {
+                    // Сокет материнки
+                    if (socketRequired && socket && !socket.includes(socketRequired)) {
+                        matchesFilter = false;
+                    }
+                    // ОЗУ
+                    if (matchesFilter && memoryTypesRequired.length > 0) {
+                        const supportsMemory = memoryTypesRequired.some(memType => memoryTypes.includes(memType));
+                        if (!supportsMemory) matchesFilter = false;
+                    }
+                    // Кулер
+                    if (matchesFilter && coolerSocketRequired && !coolerSocketRequired.includes(socket)) {
+                        matchesFilter = false;
                     }
                 }
 
-                processorCards.forEach(card => {
-                    const processorSocket = card.dataset.socket || '';
-                    const processorMemoryTypes = (card.dataset.memoryTypes || '').toUpperCase();
+                // Отображение/Скрытие
+                if (matchesFilter) {
+                    item.removeAttribute('style'); // Возвращаем display: contents;
+                    item.querySelector('.processor-card').style.opacity = '1';
+                    item.querySelector('.processor-card').style.pointerEvents = 'auto';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none'; // Скрываем полностью
+                }
+            });
 
-                    let visible = true;
-
-                    if (socketRequired && processorSocket && !processorSocket.includes(socketRequired)) {
-                        visible = false;
-                    }
-
-                    if (visible && memoryTypesRequired.length > 0) {
-                        const supportsMemory = memoryTypesRequired.some(memType =>
-                            processorMemoryTypes.includes(memType)
-                        );
-                        if (!supportsMemory) visible = false;
-                    }
-
-                    if (visible && coolerSocketRequired) {
-                        if (!coolerSocketRequired.includes(processorSocket)) {
-                            visible = false;
-                        }
-                    }
-
-                    card.style.opacity = visible ? '1' : '0.3';
-                    card.style.pointerEvents = visible ? 'auto' : 'none';
-                });
-            } catch (error) {
-                console.error('Ошибка при получении сборки:', error);
-                processorCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
+            // Показываем заглушку, если товаров нет
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
             }
         }
 
-        compatibilitySwitch.addEventListener('change', applyCompatibilityFilter);
-        applyCompatibilityFilter();
+        // Привязываем события ко всем элементам ввода
+        compatibilitySwitch.addEventListener('change', updateFilters);
+        searchQuery.addEventListener('input', updateFilters);
+        filterBrand.addEventListener('change', updateFilters);
+        filterSocket.addEventListener('change', updateFilters);
+        priceMin.addEventListener('input', updateFilters);
+        priceMax.addEventListener('input', updateFilters);
+
+        // Первый запуск фильтрации при загрузке
+        updateFilters();
     </script>
 }

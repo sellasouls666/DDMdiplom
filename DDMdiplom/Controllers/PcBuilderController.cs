@@ -39,10 +39,23 @@ namespace DDMdiplom.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetBuild()
+        public async Task<IActionResult> GetBuild()
         {
             var build = GetBuildFromSession();
-            return Json(new { success = true, build });
+            string buildName = "Моя конфигурация";
+
+            // Проверяем, редактируется ли сейчас какая-то конкретная сборка
+            var editingBuildId = HttpContext.Session.GetInt32("EditingBuildId");
+            if (editingBuildId.HasValue)
+            {
+                var currentBuildDb = await _context.Builds.FindAsync(editingBuildId.Value);
+                if (currentBuildDb != null && !string.IsNullOrEmpty(currentBuildDb.Name))
+                {
+                    buildName = currentBuildDb.Name;
+                }
+            }
+
+            return Json(new { success = true, build, buildName });
         }
 
         [HttpPost]
