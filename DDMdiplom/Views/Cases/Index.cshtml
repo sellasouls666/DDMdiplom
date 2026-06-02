@@ -7,6 +7,7 @@
 
 @section Styles {
     <style>
+        /* ========== СОВРЕМЕННЫЙ ЧЁРНО-БЕЛЫЙ ДИЗАЙН (СКРУГЛЁННЫЙ) ========== */
         :root {
             --primary: #0f172a;
             --primary-hover: #1e293b;
@@ -29,7 +30,12 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
         }
 
             .page-header h1 {
@@ -37,29 +43,25 @@
                 font-size: 1.8rem;
                 letter-spacing: -0.5px;
                 color: var(--primary);
+                margin: 0;
             }
 
+        /* Переключатель совместимости в заголовке */
         .compatibility-wrapper {
-            background: white;
+            background: #f1f5f9;
             border: 1px solid var(--border);
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: box-shadow var(--transition);
-            margin-bottom: 1.5rem;
         }
-
-            .compatibility-wrapper:hover {
-                box-shadow: var(--hover-shadow);
-            }
 
         .form-check-input {
             border: 2px solid #cbd5e1;
             width: 1.2em;
             height: 1.2em;
+            cursor: pointer;
         }
 
             .form-check-input:checked {
@@ -75,12 +77,46 @@
             font-size: 0.9rem;
         }
 
+        /* Панель фильтров */
+        .filters-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all var(--transition);
+        }
+
+            .form-control-custom:focus, .form-select-custom:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+                outline: none;
+            }
+
+        /* Сетка карточек */
         .cases-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
 
+        /* Карточка корпуса */
         .case-card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -117,6 +153,8 @@
             max-height: 100%;
             object-fit: contain;
             transition: transform 0.3s ease;
+            position: relative;
+            z-index: 0;
         }
 
         .case-card:hover .card-img-top {
@@ -137,6 +175,7 @@
             border: 1px solid var(--border);
             letter-spacing: 0.5px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            z-index: 1;
         }
 
         .card-body {
@@ -219,6 +258,7 @@
                 transform: scale(0.97);
             }
 
+        /* Модальное окно */
         .modal-content {
             border: 1px solid var(--border);
             border-radius: var(--radius);
@@ -314,15 +354,6 @@
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
 
-        .card-img-top {
-            position: relative;
-            z-index: 0;
-        }
-
-        .brand-badge {
-            z-index: 1;
-        }
-
         @@media (max-width: 640px) {
             .cases-grid {
                 grid-template-columns: 1fr;
@@ -334,61 +365,112 @@
 <div class="container">
     <div class="page-header">
         <h1>Корпуса</h1>
-    </div>
-    
-    <div class="compatibility-wrapper">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+        <div class="compatibility-wrapper">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+                <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+            </div>
         </div>
     </div>
 
-    <div class="cases-grid">
+    <div class="filters-panel">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control form-control-custom border-start-0 ps-0" placeholder="Название...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Бренд</label>
+                <select id="filterBrand" class="form-select form-select-custom">
+                    <option value="">Все бренды</option>
+                    @foreach (var brand in Model.Select(m => m.Brand).Distinct().OrderBy(b => b))
+                    {
+                        <option value="@brand">@brand</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Тип (Форм-фактор)</label>
+                <select id="filterType" class="form-select form-select-custom">
+                    <option value="">Все типы</option>
+                    @foreach (var type in Model.Select(m => m.Type).Where(t => !string.IsNullOrEmpty(t)).Distinct().OrderBy(t => t))
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control form-control-custom" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control form-control-custom" placeholder="До">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-box-seam fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Корпуса по заданным фильтрам не найдены или несовместимы.</p>
+    </div>
+
+    <div class="cases-grid" id="casesGrid">
         @foreach (var item in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
-            <div class="case-card h-100"
-                 data-id="@item.Id"
+            
+            <div class="case-item"
+                 data-brand="@item.Brand"
+                 data-model="@item.Model"
+                 data-type="@item.Type"
+                 data-price="@item.Price"
                  data-max-gpu-length="@item.MaxGpuLength"
                  data-motherboard-compatibility="@item.MotherboardCompatibility"
                  data-max-psu-length="@item.MaxPsuLength">
-                <div class="card-img-container">
-                    <span class="brand-badge">@item.Brand</span>
-                    <img src="@imageUrl" class="card-img-top" alt="@item.Model">
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@item.Model</h5>
-                    <div class="card-specs">
-                        @if (!string.IsNullOrEmpty(item.Type))
-                        {
-                            <span class="spec-badge"><i class="bi bi-pc-display"></i> @item.Type</span>
-                        }
-                        @if (!string.IsNullOrEmpty(item.Color))
-                        {
-                            <span class="spec-badge"><i class="bi bi-palette"></i> @item.Color</span>
-                        }
-                        @if (!string.IsNullOrEmpty(item.CaseMaterial))
-                        {
-                            <span class="spec-badge"><i class="bi bi-boxes"></i> @item.CaseMaterial</span>
-                        }
-                        @if (item.MaxGpuLength.HasValue)
-                        {
-                            <span class="spec-badge"><i class="bi bi-gpu-card"></i> GPU до @item.MaxGpuLength мм</span>
-                        }
+                 
+                <div class="case-card" data-id="@item.Id">
+                    <div class="card-img-container">
+                        <span class="brand-badge">@item.Brand</span>
+                        <img src="@imageUrl" class="card-img-top" alt="@item.Model">
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">@string.Format("{0:N0}", item.Price) ₽</span>
-                        <button class="btn btn-outline-add select-component"
-                                data-id="@item.Id"
-                                data-name="@item.Brand @item.Model"
-                                data-price="@item.Price"
-                                data-tdp="0"
-                                data-image="@imageUrl"
-                                data-type="Корпус">
-                            <i class="bi bi-plus-lg"></i> Выбрать
-                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Model</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(item.Type))
+                            {
+                                <span class="spec-badge"><i class="bi bi-pc-display"></i> @item.Type</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.Color))
+                            {
+                                <span class="spec-badge"><i class="bi bi-palette"></i> @item.Color</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.CaseMaterial))
+                            {
+                                <span class="spec-badge"><i class="bi bi-boxes"></i> @item.CaseMaterial</span>
+                            }
+                            @if (item.MaxGpuLength.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-gpu-card"></i> GPU до @item.MaxGpuLength мм</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", item.Price) ₽</span>
+                            <button class="btn btn-outline-add select-component"
+                                    data-id="@item.Id"
+                                    data-name="@item.Brand @item.Model"
+                                    data-price="@item.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Корпус">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -425,6 +507,17 @@
         const contentDiv = document.getElementById('modalContent');
         const modalTitle = document.getElementById('modalTitle');
 
+        // Элементы фильтрации
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const searchQuery = document.getElementById('searchQuery');
+        const filterBrand = document.getElementById('filterBrand');
+        const filterType = document.getElementById('filterType');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const noResults = document.getElementById('noResults');
+        const caseItems = document.querySelectorAll('.case-item');
+
+        // Обработка кнопки "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -444,6 +537,7 @@
             });
         });
 
+        // Открытие модального окна с подробной информацией
         document.querySelectorAll('.case-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
@@ -527,53 +621,90 @@
             });
         });
 
-        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
-        const caseCards = document.querySelectorAll('.case-card');
+        // ========== ЛОГИКА ФИЛЬТРАЦИИ: НЕСОВМЕСТИМЫЕ ПОЛНОСТЬЮ СКРЫВАЮТСЯ ==========
+        async function updateFilters() {
+            let build = [];
 
-        async function applyCaseFilter() {
-            if (!compatibilitySwitch.checked) {
-                caseCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
-                return;
+            if (compatibilitySwitch.checked) {
+                try {
+                    const response = await fetch('/PcBuilder/GetBuild');
+                    const data = await response.json();
+                    if (data.success) {
+                        build = data.build;
+                    }
+                } catch (err) {
+                    console.error('Ошибка получения сборки:', err);
+                }
             }
-            try {
-                const response = await fetch('/PcBuilder/GetBuild');
-                const data = await response.json();
-                const build = data.success ? data.build : [];
 
-                const gpu = build.find(c => c.type === "Видеокарта");
-                const mb = build.find(c => c.type === "Материнская плата");
-                const psu = build.find(c => c.type === "Блок питания");
+            const gpu = build.find(c => c.type === "Видеокарта");
+            const mb = build.find(c => c.type === "Материнская плата");
+            const psu = build.find(c => c.type === "Блок питания");
 
-                const requiredGpuLen = gpu?.gpuLength;
-                const requiredMbForm = mb?.mbFormFactor?.trim().toLowerCase();
-                const requiredPsuLen = psu?.psuLength;
+            const requiredGpuLen = gpu?.gpuLength;
+            const requiredMbForm = mb?.mbFormFactor?.trim().toLowerCase();
+            const requiredPsuLen = psu?.psuLength;
 
-                caseCards.forEach(card => {
-                    const maxGpu = parseInt(card.dataset.maxGpuLength) || 0;
-                    const maxPsu = parseInt(card.dataset.maxPsuLength) || 0;
-                    const mbCompat = card.dataset.motherboardCompatibility?.toLowerCase() || '';
+            const query = searchQuery.value.trim().toLowerCase();
+            const brand = filterBrand.value;
+            const type = filterType.value;
+            const minP = parseFloat(priceMin.value) || 0;
+            const maxP = parseFloat(priceMax.value) || Infinity;
 
-                    let visible = true;
-                    if (requiredGpuLen && maxGpu > 0 && maxGpu < requiredGpuLen) visible = false;
-                    if (visible && requiredMbForm && mbCompat && !mbCompat.includes(requiredMbForm)) visible = false;
-                    if (visible && requiredPsuLen && maxPsu > 0 && maxPsu < requiredPsuLen) visible = false;
+            let visibleCount = 0;
 
-                    card.style.opacity = visible ? '1' : '0.3';
-                    card.style.pointerEvents = visible ? 'auto' : 'none';
-                });
-            } catch (err) {
-                console.error('Ошибка фильтра корпусов:', err);
-                caseCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
+            caseItems.forEach(item => {
+                const itemBrand = item.dataset.brand;
+                const itemModel = item.dataset.model.toLowerCase();
+                const itemType = item.dataset.type;
+                const itemPrice = parseFloat(item.dataset.price) || 0;
+
+                const maxGpu = parseInt(item.dataset.maxGpuLength) || 0;
+                const maxPsu = parseInt(item.dataset.maxPsuLength) || 0;
+                const mbCompat = item.dataset.motherboardCompatibility?.toLowerCase() || '';
+
+                // Обычные фильтры
+                const matchesSearch = !query || itemModel.includes(query) || itemBrand.toLowerCase().includes(query);
+                const matchesBrand = !brand || itemBrand === brand;
+                const matchesType = !type || itemType === type;
+                const matchesPrice = itemPrice >= minP && itemPrice <= maxP;
+                let matchesFilter = matchesSearch && matchesBrand && matchesType && matchesPrice;
+
+                // Проверка совместимости
+                let isCompatible = true;
+                if (compatibilitySwitch.checked) {
+                    if (requiredGpuLen && maxGpu > 0 && maxGpu < requiredGpuLen) isCompatible = false;
+                    if (isCompatible && requiredMbForm && mbCompat && !mbCompat.includes(requiredMbForm)) isCompatible = false;
+                    if (isCompatible && requiredPsuLen && maxPsu > 0 && maxPsu < requiredPsuLen) isCompatible = false;
+                }
+
+                // Отображение: показываем только если подходит под фильтры И совместим
+                if (matchesFilter && isCompatible) {
+                    item.style.display = '';      // сброс display (обычно block или contents)
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
             }
         }
 
-        compatibilitySwitch.addEventListener('change', applyCaseFilter);
-        applyCaseFilter();
+        compatibilitySwitch.addEventListener('change', updateFilters);
+        searchQuery.addEventListener('input', updateFilters);
+        filterBrand.addEventListener('change', updateFilters);
+        filterType.addEventListener('change', updateFilters);
+        priceMin.addEventListener('input', updateFilters);
+        priceMax.addEventListener('input', updateFilters);
+
+        document.addEventListener('buildUpdated', () => {
+            updateFilters();
+        });
+
+        updateFilters();
     </script>
 }
