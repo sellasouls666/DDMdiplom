@@ -291,11 +291,14 @@
                     renderAll();
                 }
             });
+
+            document.dispatchEvent(new CustomEvent('buildUpdated'));
     }
 
     function renderAll() {
         renderSidebarExpanded();
         renderSidebarCollapsed();
+        document.dispatchEvent(new CustomEvent('buildUpdated'));
     }
 
     function renderSidebarExpanded() {
@@ -481,6 +484,8 @@
 
         // Добавление кнопок "Ещё" для RAM, накопителей и мониторов
         setupExtraButtons();
+
+        document.dispatchEvent(new CustomEvent('buildUpdated'));
     }
 
     function redirectToCategory(type) {
@@ -586,6 +591,8 @@
                 redirectToCategory(el.getAttribute('data-type'));
             });
         });
+
+        document.dispatchEvent(new CustomEvent('buildUpdated'));
     }
 
     function addToBuild(component) {
@@ -600,6 +607,8 @@
             if (data.success) { currentBuild = data.build; renderAll(); }
             else { alert(data.error || 'Ошибка добавления'); }
         });
+
+        document.dispatchEvent(new CustomEvent('buildUpdated'));
     }
 
     function removeFromBuild(instanceId) {
@@ -610,6 +619,8 @@
         })
         .then(response => response.json())
         .then(data => { if (data.success) { currentBuild = data.build; renderAll(); } });
+
+        document.dispatchEvent(new CustomEvent('buildUpdated'));
     }
 
     // Логика сворачивания
@@ -640,6 +651,8 @@
         fetch('/PcBuilder/ClearBuild', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
         .then(response => response.json())
         .then(data => { if (data.success) { currentBuild = []; renderAll(); } else { alert('Ошибка сброса'); } });
+
+        document.dispatchEvent(new CustomEvent('buildUpdated'));
     }
 
     function getCompatibilityIssues() {

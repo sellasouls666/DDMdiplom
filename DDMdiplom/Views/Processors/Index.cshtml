@@ -527,7 +527,6 @@
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
                 
-                // Переходим на родительский оберточный div, где лежат data-атрибуты
                 const itemWrapper = this.closest('.processor-item');
                 const processorId = itemWrapper.getAttribute('data-id');
 
@@ -731,6 +730,12 @@
         filterSocket.addEventListener('change', updateFilters);
         priceMin.addEventListener('input', updateFilters);
         priceMax.addEventListener('input', updateFilters);
+
+        // ДИНАМИЧЕСКИЙ ТРИГГЕР: Слушаем событие изменения сборки из _BuildSidebar
+        document.addEventListener('buildUpdated', () => {
+            console.log('Сборка обновилась, запускаем пересчет совместимости...');
+            updateFilters();
+        });
 
         // Первый запуск фильтрации при загрузке
         updateFilters();
