@@ -4,16 +4,22 @@
     /* ========== Боковая панель сборки (общие стили) ========== */
     .build-sidebar {
         position: fixed;
-        top: 80px;
+        top: 75px; /* По умолчанию под хэдером */
         right: 0;
-        height: calc(100% - 80px);
-        background: white;
-        box-shadow: -2px 0 12px rgba(0,0,0,0.1);
-        transition: width 0.3s ease;
+        bottom: 0; /* Всегда до самого низа экрана */
+        background: #ffffff;
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+        /* Плавное изменение ширины и свойства top при скролле */
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), top 0.2s ease; 
         z-index: 1050;
         font-family: 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
         overflow: visible;
+        will-change: width, top;
+        border-left: 1px solid #e5e7eb;
     }
+
     .build-sidebar.collapsed { width: 210px; }
     .build-sidebar.expanded { width: 400px; }
 
@@ -46,8 +52,9 @@
     .collapsed-content {
         display: flex;
         flex-direction: column;
-        padding: 16px 12px;
         height: 100%;
+        padding: 15px; 
+        transition: opacity 0.2s;
     }
     .expanded-content,
     .collapsed-content {
@@ -58,10 +65,9 @@
     .build-sidebar.expanded .collapsed-content { display: none; }
 
     .sidebar-header {
-        flex-shrink: 0;
-        border-bottom: 1px solid #dee2e6;
-        margin-bottom: 16px;
-        padding-bottom: 12px;
+        padding: 15px 20px; /* Сделали аккуратные и одинаковые отступы со всех сторон */
+        border-bottom: 1px solid #f3f4f6;
+        background: #ffffff;
     }
     .build-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 12px; }
 
@@ -763,4 +769,16 @@
     document.getElementById('resetBuildBtn')?.addEventListener('click', resetBuild);
     document.getElementById('saveBuildBtn')?.addEventListener('click', saveBuild);
     document.addEventListener("DOMContentLoaded", loadBuildFromSession);
+
+    // Динамически убираем отступ сверху при скролле, чтобы не было пустой дыры
+    window.addEventListener('scroll', () => {
+        const sidebarEl = document.getElementById('buildSidebar');
+        if (sidebarEl) {
+            if (window.scrollY > 75) {
+                sidebarEl.style.top = '0';
+            } else {
+                sidebarEl.style.top = (75 - window.scrollY) + 'px';
+            }
+        }
+    });
 </script>
