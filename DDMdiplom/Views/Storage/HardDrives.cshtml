@@ -1,12 +1,13 @@
 ﻿@model IEnumerable<DDMdiplom.Models.Storage>
 
 @{
-    ViewData["Title"] = "Жёсткие диски (HDD)";
+    ViewData["Title"] = "Накопители (HDD/SSD)";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Styles {
     <style>
+        /* ========== СОВРЕМЕННЫЙ ЧЁРНО-БЕЛЫЙ ДИЗАЙН (СКРУГЛЁННЫЙ) ========== */
         :root {
             --primary: #0f172a;
             --primary-hover: #1e293b;
@@ -29,7 +30,12 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
         }
 
             .page-header h1 {
@@ -37,29 +43,25 @@
                 font-size: 1.8rem;
                 letter-spacing: -0.5px;
                 color: var(--primary);
+                margin: 0;
             }
 
+        /* Переключатель совместимости в заголовке */
         .compatibility-wrapper {
-            background: white;
+            background: #f1f5f9;
             border: 1px solid var(--border);
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: box-shadow var(--transition);
-            margin-bottom: 1.5rem;
         }
-
-            .compatibility-wrapper:hover {
-                box-shadow: var(--hover-shadow);
-            }
 
         .form-check-input {
             border: 2px solid #cbd5e1;
             width: 1.2em;
             height: 1.2em;
+            cursor: pointer;
         }
 
             .form-check-input:checked {
@@ -75,6 +77,39 @@
             font-size: 0.9rem;
         }
 
+        /* Панель фильтров */
+        .filters-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all var(--transition);
+        }
+
+            .form-control-custom:focus, .form-select-custom:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+                outline: none;
+            }
+
+        /* Сетка карточек */
         .hdd-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -327,63 +362,105 @@
 
 <div class="container">
     <div class="page-header">
-        <h1>Жёсткие диски (HDD)</h1>
-    </div>
-
-    <div class="compatibility-wrapper">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+        <h1>Накопители (HDD/SSD)</h1>
+        <div class="compatibility-wrapper">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+                <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+            </div>
         </div>
     </div>
 
-    <div class="hdd-grid">
+    <div class="filters-panel">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control form-control-custom border-start-0 ps-0" placeholder="Модель, бренд...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Бренд</label>
+                <select id="filterBrand" class="form-select form-select-custom">
+                    <option value="">Все бренды</option>
+                    @foreach (var brand in Model.Select(m => m.Brand).Distinct().OrderBy(b => b))
+                    {
+                        <option value="@brand">@brand</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control form-control-custom" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control form-control-custom" placeholder="До">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-hdd-stack fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Накопители по заданным фильтрам не найдены или несовместимы.</p>
+    </div>
+
+    <div class="hdd-grid" id="hddGrid">
         @foreach (var drive in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(drive.ImageUrl) ? drive.ImageUrl : "/images/placeholder.png";
-            <div class="hdd-card h-100" data-id="@drive.Id">
-                <div class="card-img-container">
-                    <span class="brand-badge">@drive.Brand</span>
-                    <img src="@imageUrl" class="card-img-top" alt="@drive.Model">
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@drive.Model</h5>
-                    <div class="card-specs">
-                        @if (!string.IsNullOrEmpty(drive.Capacity))
-                        {
-                            <span class="spec-badge"><i class="bi bi-hdd"></i> @drive.Capacity</span>
-                        }
-                        @if (drive.Rpm.HasValue)
-                        {
-                            <span class="spec-badge"><i class="bi bi-speedometer2"></i> @drive.Rpm RPM</span>
-                        }
-                        @if (drive.Cache.HasValue)
-                        {
-                            <span class="spec-badge"><i class="bi bi-database"></i> @drive.Cache MB</span>
-                        }
-                        @if (!string.IsNullOrEmpty(drive.Interface))
-                        {
-                            <span class="spec-badge"><i class="bi bi-interface"></i> @drive.Interface</span>
-                        }
-                        @if (!string.IsNullOrEmpty(drive.FormFactor))
-                        {
-                            <span class="spec-badge"><i class="bi bi-diagram-3"></i> @drive.FormFactor</span>
-                        }
+            var storageInterface = !string.IsNullOrEmpty(drive.Interface) && drive.Interface.Contains("M.2") ? "M.2" : "SATA";
+            <div class="hdd-item"
+                 data-id="@drive.Id"
+                 data-brand="@drive.Brand"
+                 data-model="@drive.Model"
+                 data-price="@drive.Price"
+                 data-interface="@storageInterface">
+                <div class="hdd-card">
+                    <div class="card-img-container">
+                        <span class="brand-badge">@drive.Brand</span>
+                        <img src="@imageUrl" class="card-img-top" alt="@drive.Model">
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">@string.Format("{0:N0}", drive.Price) ₽</span>
-                        <button class="btn btn-outline-add select-component"
-                                data-id="@drive.Id"
-                                data-name="@drive.Brand @drive.Model"
-                                data-price="@drive.Price"
-                                data-tdp="0"
-                                data-image="@imageUrl"
-                                data-type="Накопитель"
-                                data-storage-interface="SATA">
-                            <i class="bi bi-plus-lg"></i> Выбрать
-                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title">@drive.Model</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(drive.Capacity))
+                            {
+                                <span class="spec-badge"><i class="bi bi-hdd"></i> @drive.Capacity</span>
+                            }
+                            @if (drive.Rpm.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-speedometer2"></i> @drive.Rpm RPM</span>
+                            }
+                            @if (drive.Cache.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-database"></i> @drive.Cache MB</span>
+                            }
+                            @if (!string.IsNullOrEmpty(drive.Interface))
+                            {
+                                <span class="spec-badge"><i class="bi bi-interface"></i> @drive.Interface</span>
+                            }
+                            @if (!string.IsNullOrEmpty(drive.FormFactor))
+                            {
+                                <span class="spec-badge"><i class="bi bi-diagram-3"></i> @drive.FormFactor</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", drive.Price) ₽</span>
+                            <button class="btn btn-outline-add select-component"
+                                    data-id="@drive.Id"
+                                    data-name="@drive.Brand @drive.Model"
+                                    data-price="@drive.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Накопитель"
+                                    data-storage-interface="@storageInterface">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -395,7 +472,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Детали жёсткого диска</h5>
+                <h5 class="modal-title" id="modalTitle">Детали накопителя</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -420,6 +497,96 @@
         const contentDiv = document.getElementById('modalContent');
         const modalTitle = document.getElementById('modalTitle');
 
+        // Элементы фильтрации
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const searchQuery = document.getElementById('searchQuery');
+        const filterBrand = document.getElementById('filterBrand');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const noResults = document.getElementById('noResults');
+        const hddItems = document.querySelectorAll('.hdd-item');
+
+        // Функция для извлечения количества SATA-портов из строки Motherboard.SataPorts
+        function parseSataPortCount(sataPortsString) {
+            if (!sataPortsString) return 0;
+            const match = sataPortsString.match(/(\d+)\s*(?:x|port)/i);
+            return match ? parseInt(match[1], 10) : 0;
+        }
+
+        async function updateFilters() {
+            let build = [];
+
+            if (compatibilitySwitch.checked) {
+                try {
+                    const response = await fetch('/PcBuilder/GetBuild');
+                    const data = await response.json();
+                    if (data.success) {
+                        build = data.build;
+                    }
+                } catch (err) {
+                    console.error('Ошибка получения сборки:', err);
+                }
+            }
+
+            let sataPortLimit = Infinity;
+            let usedSataCount = 0;
+
+            if (compatibilitySwitch.checked) {
+                const motherboard = build.find(c => c.type === "Материнская плата");
+                if (motherboard && motherboard.sataPorts) {
+                    const ports = parseSataPortCount(motherboard.sataPorts);
+                    if (ports > 0) sataPortLimit = ports;
+                    else console.warn('Не удалось определить количество SATA-портов для материнской платы', motherboard.sataPorts);
+                }
+                const storageDevices = build.filter(c => c.type === "Накопитель" && c.storageInterface && c.storageInterface.toUpperCase() === "SATA");
+                usedSataCount = storageDevices.length;
+            }
+
+            const searchVal = searchQuery.value.trim().toLowerCase();
+            const brandVal = filterBrand.value;
+            const minPrice = parseFloat(priceMin.value) || 0;
+            const maxPrice = parseFloat(priceMax.value) || Infinity;
+
+            let visibleCount = 0;
+
+            hddItems.forEach(item => {
+                const brand = item.dataset.brand;
+                const model = item.dataset.model.toLowerCase();
+                const price = parseFloat(item.dataset.price) || 0;
+                const driveInterface = (item.dataset.interface || '').toUpperCase();
+
+                const matchesSearch = !searchVal || model.includes(searchVal) || brand.toLowerCase().includes(searchVal);
+                const matchesBrand = !brandVal || brand === brandVal;
+                const matchesPrice = price >= minPrice && price <= maxPrice;
+                let matchesFilter = matchesSearch && matchesBrand && matchesPrice;
+
+                let isCompatible = true;
+                if (compatibilitySwitch.checked) {
+                    if (driveInterface === "SATA") {
+                        if (sataPortLimit !== Infinity) {
+                            const availablePorts = sataPortLimit - usedSataCount;
+                            if (availablePorts <= 0) isCompatible = false;
+                        }
+                    }
+                    // M.2 и другие интерфейсы пока считаем совместимыми (можно расширить)
+                }
+
+                if (matchesFilter && isCompatible) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+        }
+
+        // Обработка кнопки "Выбрать" (прямой вызов addToBuild)
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -436,14 +603,17 @@
                     addToBuild(component);
                 } else {
                     console.error('addToBuild not defined');
+                    alert('Ошибка: функция добавления не загружена. Перезагрузите страницу.');
                 }
             });
         });
 
+        // Открытие модального окна с деталями
         document.querySelectorAll('.hdd-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
-                const driveId = this.getAttribute('data-id');
+                const hddItem = this.closest('.hdd-item');
+                const driveId = hddItem.getAttribute('data-id');
 
                 contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
                 modalTitle.textContent = 'Загрузка...';
@@ -468,6 +638,7 @@
                         <hr>
                     `;
 
+                    const storageInterface = drive.interface && drive.interface.includes("M.2") ? "M.2" : "SATA";
                     const specs = [
                         { icon: "bi-tag", label: "Бренд", value: drive.brand },
                         { icon: "bi-bookmark", label: "Серия", value: drive.series },
@@ -496,7 +667,7 @@
 
                     html += `
                         <div class="text-center mt-4">
-                            <button class="btn btn-select-sm select-from-modal" data-id="${drive.id}" data-name="${title}" data-price="${drive.price}" data-tdp="0" data-image="${drive.imageUrl || '/images/placeholder.png'}" data-type="Накопитель" data-storage-interface="SATA">
+                            <button class="btn btn-select-sm select-from-modal" data-id="${drive.id}" data-name="${title}" data-price="${drive.price}" data-tdp="0" data-image="${drive.imageUrl || '/images/placeholder.png'}" data-type="Накопитель" data-storage-interface="${storageInterface}">
                                 <i class="bi bi-plus-lg"></i> Выбрать
                             </button>
                         </div>
@@ -524,5 +695,17 @@
                 }
             });
         });
+
+        compatibilitySwitch.addEventListener('change', updateFilters);
+        searchQuery.addEventListener('input', updateFilters);
+        filterBrand.addEventListener('change', updateFilters);
+        priceMin.addEventListener('input', updateFilters);
+        priceMax.addEventListener('input', updateFilters);
+
+        document.addEventListener('buildUpdated', () => {
+            updateFilters();
+        });
+
+        updateFilters();
     </script>
 }
