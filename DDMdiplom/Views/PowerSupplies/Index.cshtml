@@ -7,6 +7,7 @@
 
 @section Styles {
     <style>
+        /* ========== СОВРЕМЕННЫЙ ЧЁРНО-БЕЛЫЙ ДИЗАЙН (СКРУГЛЁННЫЙ) ========== */
         :root {
             --primary: #0f172a;
             --primary-hover: #1e293b;
@@ -29,7 +30,12 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
         }
 
             .page-header h1 {
@@ -37,29 +43,25 @@
                 font-size: 1.8rem;
                 letter-spacing: -0.5px;
                 color: var(--primary);
+                margin: 0;
             }
 
+        /* Переключатель совместимости в заголовке */
         .compatibility-wrapper {
-            background: white;
+            background: #f1f5f9;
             border: 1px solid var(--border);
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: box-shadow var(--transition);
-            margin-bottom: 1.5rem;
         }
-
-            .compatibility-wrapper:hover {
-                box-shadow: var(--hover-shadow);
-            }
 
         .form-check-input {
             border: 2px solid #cbd5e1;
             width: 1.2em;
             height: 1.2em;
+            cursor: pointer;
         }
 
             .form-check-input:checked {
@@ -75,6 +77,39 @@
             font-size: 0.9rem;
         }
 
+        /* Панель фильтров */
+        .filters-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all var(--transition);
+        }
+
+            .form-control-custom:focus, .form-select-custom:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+                outline: none;
+            }
+
+        /* Сетка карточек */
         .psu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -328,64 +363,103 @@
 <div class="container">
     <div class="page-header">
         <h1>Блоки питания</h1>
-    </div>
-
-    <div class="compatibility-wrapper">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+        <div class="compatibility-wrapper">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+                <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+            </div>
         </div>
     </div>
 
-    <div class="psu-grid">
+    <div class="filters-panel">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control form-control-custom border-start-0 ps-0" placeholder="Модель, бренд...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Бренд</label>
+                <select id="filterBrand" class="form-select form-select-custom">
+                    <option value="">Все бренды</option>
+                    @foreach (var brand in Model.Select(m => m.Brand).Distinct().OrderBy(b => b))
+                    {
+                        <option value="@brand">@brand</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control form-control-custom" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control form-control-custom" placeholder="До">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-lightning-charge fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Блоки питания по заданным фильтрам не найдены или несовместимы.</p>
+    </div>
+
+    <div class="psu-grid" id="psuGrid">
         @foreach (var psu in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(psu.ImageUrl) ? psu.ImageUrl : "/images/placeholder.png";
-            <div class="psu-card h-100"
+            <div class="psu-item"
                  data-id="@psu.Id"
+                 data-brand="@psu.Brand"
+                 data-model="@psu.Model"
+                 data-price="@psu.Price"
                  data-max-power="@psu.MaximumPower"
                  data-psu-length="@psu.MaxPsuLength">
-                <div class="card-img-container">
-                    <span class="brand-badge">@psu.Brand</span>
-                    <img src="@imageUrl" class="card-img-top" alt="@psu.Model">
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@psu.Model</h5>
-                    <div class="card-specs">
-                        @if (!string.IsNullOrEmpty(psu.Type))
-                        {
-                            <span class="spec-badge"><i class="bi bi-puzzle"></i> @psu.Type</span>
-                        }
-                        @if (!string.IsNullOrEmpty(psu.EnergyEfficient))
-                        {
-                            <span class="spec-badge"><i class="bi bi-award"></i> @psu.EnergyEfficient</span>
-                        }
-                        @if (psu.MaximumPower.HasValue)
-                        {
-                            <span class="spec-badge"><i class="bi bi-lightning-charge"></i> @psu.MaximumPower.Value Вт</span>
-                        }
-                        @if (!string.IsNullOrEmpty(psu.Modular))
-                        {
-                            <span class="spec-badge"><i class="bi bi-box"></i> @psu.Modular</span>
-                        }
-                        @if (psu.MaxPsuLength.HasValue)
-                        {
-                            <span class="spec-badge"><i class="bi bi-rulers"></i> @psu.MaxPsuLength.Value мм</span>
-                        }
+                <div class="psu-card">
+                    <div class="card-img-container">
+                        <span class="brand-badge">@psu.Brand</span>
+                        <img src="@imageUrl" class="card-img-top" alt="@psu.Model">
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">@string.Format("{0:N0}", psu.Price) ₽</span>
-                        <button class="btn btn-outline-add select-component"
-                                data-id="@psu.Id"
-                                data-name="@psu.Brand @psu.Model"
-                                data-price="@psu.Price"
-                                data-tdp="0"
-                                data-image="@imageUrl"
-                                data-type="Блок питания">
-                            <i class="bi bi-plus-lg"></i> Выбрать
-                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title">@psu.Model</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(psu.Type))
+                            {
+                                <span class="spec-badge"><i class="bi bi-puzzle"></i> @psu.Type</span>
+                            }
+                            @if (!string.IsNullOrEmpty(psu.EnergyEfficient))
+                            {
+                                <span class="spec-badge"><i class="bi bi-award"></i> @psu.EnergyEfficient</span>
+                            }
+                            @if (psu.MaximumPower.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-lightning-charge"></i> @psu.MaximumPower.Value Вт</span>
+                            }
+                            @if (!string.IsNullOrEmpty(psu.Modular))
+                            {
+                                <span class="spec-badge"><i class="bi bi-box"></i> @psu.Modular</span>
+                            }
+                            @if (psu.MaxPsuLength.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-rulers"></i> @psu.MaxPsuLength.Value мм</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", psu.Price) ₽</span>
+                            <button class="btn btn-outline-add select-component"
+                                    data-id="@psu.Id"
+                                    data-name="@psu.Brand @psu.Model"
+                                    data-price="@psu.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Блок питания">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -422,6 +496,16 @@
         const contentDiv = document.getElementById('modalContent');
         const modalTitle = document.getElementById('modalTitle');
 
+        // Элементы фильтрации
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const searchQuery = document.getElementById('searchQuery');
+        const filterBrand = document.getElementById('filterBrand');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const noResults = document.getElementById('noResults');
+        const psuItems = document.querySelectorAll('.psu-item');
+
+        // Обработка кнопки "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -441,10 +525,12 @@
             });
         });
 
+        // Открытие модального окна с подробной информацией
         document.querySelectorAll('.psu-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
-                const psuId = this.getAttribute('data-id');
+                const psuItem = this.closest('.psu-item');
+                const psuId = psuItem.getAttribute('data-id');
 
                 contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
                 modalTitle.textContent = 'Загрузка...';
@@ -525,58 +611,84 @@
             });
         });
 
-        // ========== ФИЛЬТР СОВМЕСТИМОСТИ БП ==========
-        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
-        const psuCards = document.querySelectorAll('.psu-card');
+        // ========== ЛОГИКА ФИЛЬТРАЦИИ И СОВМЕСТИМОСТИ ==========
+        async function updateFilters() {
+            let build = [];
 
-        async function applyPsuFilter() {
-            if (!compatibilitySwitch.checked) {
-                psuCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
-                return;
+            if (compatibilitySwitch.checked) {
+                try {
+                    const response = await fetch('/PcBuilder/GetBuild');
+                    const data = await response.json();
+                    if (data.success) {
+                        build = data.build;
+                    }
+                } catch (err) {
+                    console.error('Ошибка получения сборки:', err);
+                }
             }
 
-            try {
-                const response = await fetch('/PcBuilder/GetBuild');
-                const data = await response.json();
-                const build = data.success ? data.build : [];
-
-                let totalTdp = 0;
+            // Расчёт требуемой мощности
+            let totalTdp = 0;
+            let maxCasePsuLength = null;
+            if (compatibilitySwitch.checked) {
                 build.forEach(c => {
                     if (c.tdp) totalTdp += c.tdp;
                 });
-                const requiredPower = totalTdp + 200;
-
                 const pcCase = build.find(c => c.type === "Корпус");
-                const maxCasePsuLength = pcCase?.maxPsuLength;
+                maxCasePsuLength = pcCase?.maxPsuLength;
+            }
+            const requiredPower = totalTdp + 200; // запас 200 Вт
 
-                psuCards.forEach(card => {
-                    const psuPower = parseInt(card.dataset.maxPower) || 0;
-                    const psuLength = parseInt(card.dataset.psuLength) || 0;
+            const searchVal = searchQuery.value.trim().toLowerCase();
+            const brandVal = filterBrand.value;
+            const minPrice = parseFloat(priceMin.value) || 0;
+            const maxPrice = parseFloat(priceMax.value) || Infinity;
 
-                    let visible = true;
-                    if (psuPower < requiredPower) {
-                        visible = false;
-                    }
-                    if (visible && pcCase && maxCasePsuLength && psuLength > maxCasePsuLength) {
-                        visible = false;
-                    }
+            let visibleCount = 0;
 
-                    card.style.opacity = visible ? '1' : '0.3';
-                    card.style.pointerEvents = visible ? 'auto' : 'none';
-                });
-            } catch (error) {
-                console.error('Ошибка фильтра БП:', error);
-                psuCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
+            psuItems.forEach(item => {
+                const brand = item.dataset.brand;
+                const model = item.dataset.model.toLowerCase();
+                const price = parseFloat(item.dataset.price) || 0;
+                const psuPower = parseInt(item.dataset.maxPower) || 0;
+                const psuLength = parseInt(item.dataset.psuLength) || 0;
+
+                const matchesSearch = !searchVal || model.includes(searchVal) || brand.toLowerCase().includes(searchVal);
+                const matchesBrand = !brandVal || brand === brandVal;
+                const matchesPrice = price >= minPrice && price <= maxPrice;
+                let matchesFilter = matchesSearch && matchesBrand && matchesPrice;
+
+                let isCompatible = true;
+                if (compatibilitySwitch.checked) {
+                    if (psuPower < requiredPower) isCompatible = false;
+                    if (isCompatible && maxCasePsuLength && psuLength > maxCasePsuLength) isCompatible = false;
+                }
+
+                if (matchesFilter && isCompatible) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
             }
         }
 
-        compatibilitySwitch.addEventListener('change', applyPsuFilter);
-        applyPsuFilter();
+        compatibilitySwitch.addEventListener('change', updateFilters);
+        searchQuery.addEventListener('input', updateFilters);
+        filterBrand.addEventListener('change', updateFilters);
+        priceMin.addEventListener('input', updateFilters);
+        priceMax.addEventListener('input', updateFilters);
+
+        document.addEventListener('buildUpdated', () => {
+            updateFilters();
+        });
+
+        updateFilters();
     </script>
 }
