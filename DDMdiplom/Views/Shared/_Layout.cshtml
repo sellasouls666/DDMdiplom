@@ -269,15 +269,14 @@
                         </li>
                     </ul>
                     <div class="header-actions">
-                        <!-- Корзина -->
-                        <a href="/Cart" class="cart-link">
-                            <i class="bi bi-cart"></i>
-                            <span>Корзина</span>
-                        </a>
-
-                        <!-- Пользователь -->
                         @if (SignInManager.IsSignedIn(User))
                         {
+                            <!-- Корзина показывается только авторизованным -->
+                            <a href="/Cart" class="cart-link">
+                                <i class="bi bi-cart"></i>
+                                <span>Корзина</span>
+                            </a>
+
                             var user = await UserManager.GetUserAsync(User);
                             var displayName = user?.Name ?? User.Identity?.Name ?? "Пользователь";
                             var daysSinceRegistration = (int)Math.Ceiling((DateTime.UtcNow - (user?.CreatedAt ?? DateTime.UtcNow)).TotalDays);

@@ -33,7 +33,7 @@ namespace DDMdiplom.Controllers
 
             foreach (var build in builds)
             {
-                // Порядок важности компонентов
+                // Порядок важности компонентов для превью
                 var priorityOrder = new List<string> {
                     "Процессор", "Материнская плата", "Видеокарта", "Оперативная память",
                     "Накопитель", "Блок питания", "Корпус", "Система охлаждения",
@@ -45,38 +45,34 @@ namespace DDMdiplom.Controllers
                 var sortedItems = build.Items
                     .OrderBy(item => {
                         int idx = priorityOrder.IndexOf(item.ComponentType);
-                        return idx == -1 ? int.MaxValue : idx;  // неизвестные типы – в конец
+                        return idx == -1 ? int.MaxValue : idx;
                     })
                     .ToList();
 
-                decimal total = 0;
-                var previews = new List<ComponentPreview>();
-                int taken = 0;
+                decimal totalPrice = 0;
+                var allPreviews = new List<ComponentPreview>();
 
                 foreach (var item in sortedItems)
                 {
-                    if (taken >= 3) break;  // показываем не более трёх самых важных компонентов
-
-                    var (name, price, img) = await GetComponentInfoAsync(item.ComponentType, item.ComponentId);
-                    total += price;
-                    previews.Add(new ComponentPreview { Name = name, ImageUrl = img });
-                    taken++;
+                    var preview = await GetComponentPreviewAsync(item.ComponentType, item.ComponentId);
+                    if (preview != null)
+                    {
+                        allPreviews.Add(preview);
+                        totalPrice += preview.Price;
+                    }
                 }
 
-                // Если после цикла остались неучтённые цены (для полной суммы), пройдите по оставшимся элементам
-                foreach (var item in sortedItems.Skip(taken))
-                {
-                    var (_, price, _) = await GetComponentInfoAsync(item.ComponentType, item.ComponentId);
-                    total += price;
-                }
+                // Берём первые 3 для отображения в карточке (как превью)
+                var previewsForCard = allPreviews.Take(3).ToList();
 
                 model.Add(new BuildSummaryViewModel
                 {
                     Id = build.Id,
                     Name = build.Name,
                     ComponentCount = build.Items.Count,
-                    TotalPrice = total,
-                    Previews = previews
+                    TotalPrice = totalPrice,
+                    Previews = previewsForCard,
+                    UpdatedAt = build.UpdatedAt
                 });
             }
 
@@ -101,78 +97,228 @@ namespace DDMdiplom.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task<(string name, decimal price, string image)> GetComponentInfoAsync(string type, int id)
+        /// <summary>
+        /// Возвращает объект ComponentPreview для заданного компонента: имя, картинку, тип, краткие характеристики и цену.
+        /// </summary>
+        private async Task<ComponentPreview?> GetComponentPreviewAsync(string type, int id)
         {
-            string name = type;
-            decimal price = 0;
-            string image = "/images/placeholder.png";
-
             try
             {
                 switch (type)
                 {
                     case "Процессор":
                         var cpu = await _context.Processors.FindAsync(id);
-                        if (cpu != null) { name = $"{cpu.Brand} {cpu.Name}"; price = cpu.Price; image = cpu.ImageUrl ?? image; }
-                        break;
+                        if (cpu == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{cpu.Brand} {cpu.Name}",
+                            ImageUrl = cpu.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{cpu.Cores} ядер / {cpu.Threads} потоков, {cpu.OperatingFrequency} ГГц, TDP {cpu.ThermalDesignPower} Вт",
+                            Price = cpu.Price
+                        };
+
                     case "Видеокарта":
                         var gpu = await _context.GraphicsCards.FindAsync(id);
-                        if (gpu != null) { name = $"{gpu.Brand} {gpu.Model}"; price = gpu.Price; image = gpu.ImageUrl ?? image; }
-                        break;
+                        if (gpu == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{gpu.Brand} {gpu.Model}",
+                            ImageUrl = gpu.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{gpu.MemorySize} ГБ {gpu.MemoryType}, {gpu.ThermalDesignPower} Вт, {gpu.Cooler}",
+                            Price = gpu.Price
+                        };
+
                     case "Материнская плата":
                         var mb = await _context.Motherboards.FindAsync(id);
-                        if (mb != null) { name = $"{mb.Brand} {mb.Model}"; price = mb.Price; image = mb.ImageUrl ?? image; }
-                        break;
+                        if (mb == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{mb.Brand} {mb.Model}",
+                            ImageUrl = mb.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{mb.FormFactor}, {mb.Chipset}, сокет {mb.CpuSocketType}, {mb.MemorySlots} слота {mb.MemoryStandard}",
+                            Price = mb.Price
+                        };
+
                     case "Оперативная память":
-                        var ram = await _context.Memories.FindAsync(id);  // ← Memories, не Memory
-                        if (ram != null) { name = $"{ram.Brand} {ram.Model}"; price = ram.Price; image = ram.ImageUrl ?? image; }
-                        break;
+                        var ram = await _context.Memories.FindAsync(id);
+                        if (ram == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{ram.Brand} {ram.Model}",
+                            ImageUrl = ram.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{ram.Capacity}, {ram.Speed}, CAS {ram.CasLatency}, {ram.Voltage} В",
+                            Price = ram.Price
+                        };
+
                     case "Накопитель":
                         var storage = await _context.Storages.FindAsync(id);
-                        if (storage != null) { name = $"{storage.Brand} {storage.Model}"; price = storage.Price; image = storage.ImageUrl ?? image; }
-                        break;
+                        if (storage == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{storage.Brand} {storage.Model}",
+                            ImageUrl = storage.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{storage.Capacity}, {storage.Interface}, {storage.FormFactor}",
+                            Price = storage.Price
+                        };
+
                     case "Блок питания":
                         var psu = await _context.PowerSupplies.FindAsync(id);
-                        if (psu != null) { name = $"{psu.Brand} {psu.Model}"; price = psu.Price; image = psu.ImageUrl ?? image; }
-                        break;
+                        if (psu == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{psu.Brand} {psu.Model}",
+                            ImageUrl = psu.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{psu.MaximumPower} Вт, {psu.EnergyEfficient}, {psu.Modular}",
+                            Price = psu.Price
+                        };
+
                     case "Корпус":
                         var pcCase = await _context.Cases.FindAsync(id);
-                        if (pcCase != null) { name = $"{pcCase.Brand} {pcCase.Model}"; price = pcCase.Price; image = pcCase.ImageUrl ?? image; }
-                        break;
-                    case "Система охлаждения":
-                        var air = await _context.CpuCoolers.FindAsync(id);
-                        if (air != null) { name = $"{air.Brand} {air.Model}"; price = air.Price; image = air.ImageUrl ?? image; }
-                        else
+                        if (pcCase == null) return null;
+                        return new ComponentPreview
                         {
-                            var water = await _context.WaterCoolers.FindAsync(id);
-                            if (water != null) { name = $"{water.Brand} {water.Model}"; price = water.Price; image = water.ImageUrl ?? image; }
+                            Name = $"{pcCase.Brand} {pcCase.Model}",
+                            ImageUrl = pcCase.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{pcCase.Type}, {pcCase.Color}, макс. GPU {pcCase.MaxGpuLength} мм",
+                            Price = pcCase.Price
+                        };
+
+                    case "Система охлаждения":
+                        // Пробуем воздушное, потом жидкостное
+                        var air = await _context.CpuCoolers.FindAsync(id);
+                        if (air != null)
+                        {
+                            return new ComponentPreview
+                            {
+                                Name = $"{air.Brand} {air.Model}",
+                                ImageUrl = air.ImageUrl ?? "/images/placeholder.png",
+                                Type = type,
+                                ShortSpecs = $"Воздушное, {air.FanSize}, {air.Rpm} RPM, {air.NoiseLevel} дБА",
+                                Price = air.Price
+                            };
                         }
-                        break;
+                        var water = await _context.WaterCoolers.FindAsync(id);
+                        if (water != null)
+                        {
+                            return new ComponentPreview
+                            {
+                                Name = $"{water.Brand} {water.Model}",
+                                ImageUrl = water.ImageUrl ?? "/images/placeholder.png",
+                                Type = type,
+                                ShortSpecs = $"Жидкостное, {water.RadiatorSize}, {water.FanCount}x{water.FanSize} мм",
+                                Price = water.Price
+                            };
+                        }
+                        return null;
+
                     case "Операционная система":
                         var os = await _context.OperatingSystems.FindAsync(id);
-                        if (os != null) { name = $"{os.Brand} {os.Name}"; price = os.Price; image = os.ImageUrl ?? image; }
-                        break;
+                        if (os == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{os.Brand} {os.Name}",
+                            ImageUrl = os.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{os.OperatingSystems}, {os.BitVersion}, {os.Packaging}",
+                            Price = os.Price
+                        };
+
                     case "Монитор":
                         var monitor = await _context.Monitors.FindAsync(id);
-                        if (monitor != null) { name = $"{monitor.Brand} {monitor.Model}"; price = monitor.Price; image = monitor.ImageUrl ?? image; }
-                        break;
+                        if (monitor == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{monitor.Brand} {monitor.Model}",
+                            ImageUrl = monitor.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{monitor.ScreenSize}, {monitor.Resolution}, {monitor.RefreshRate} Гц, {monitor.Panel}",
+                            Price = monitor.Price
+                        };
+
                     case "Источник бесперебойного питания":
-                        var ups = await _context.UpsDevices.FindAsync(id);  // ← UpsDevices, не Ups
-                        if (ups != null) { name = $"{ups.Brand} {ups.Model}"; price = ups.Price; image = ups.ImageUrl ?? image; }
-                        break;
+                        var ups = await _context.UpsDevices.FindAsync(id);
+                        if (ups == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{ups.Brand} {ups.Model}",
+                            ImageUrl = ups.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{ups.Watts} Вт / {ups.VaRating} VA, {ups.BatteryType}",
+                            Price = ups.Price
+                        };
+
                     case "Клавиатура":
                         var kb = await _context.Keyboards.FindAsync(id);
-                        if (kb != null) { name = $"{kb.Brand} {kb.Name ?? kb.Model}"; price = kb.Price; image = kb.ImageUrl ?? image; }
-                        break;
+                        if (kb == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{kb.Brand} {kb.Name ?? kb.Model}",
+                            ImageUrl = kb.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{(kb.IsMechanical == true ? "Механическая" : "Мембранная")}, {kb.KeySwitchType}, {kb.ConnectionType}",
+                            Price = kb.Price
+                        };
+
                     case "Мышь":
                         var mouse = await _context.Mice.FindAsync(id);
-                        if (mouse != null) { name = $"{mouse.Brand} {mouse.Name}"; price = mouse.Price; image = mouse.ImageUrl ?? image; }
-                        break;
+                        if (mouse == null) return null;
+                        return new ComponentPreview
+                        {
+                            Name = $"{mouse.Brand} {mouse.Name}",
+                            ImageUrl = mouse.ImageUrl ?? "/images/placeholder.png",
+                            Type = type,
+                            ShortSpecs = $"{mouse.MaxDpi} DPI, {mouse.TrackingMethod}, {mouse.ConnectionType}",
+                            Price = mouse.Price
+                        };
+
+                    default:
+                        return null;
                 }
             }
-            catch { /* ignore */ }
+            catch
+            {
+                return null;
+            }
+        }
 
-            return (name, price, image);
+        // GET: /MyBuilds/GetBuildDetails/5
+        [HttpGet]
+        public async Task<IActionResult> GetBuildDetails(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var build = await _context.Builds
+                .Include(b => b.Items)
+                .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
+            if (build == null)
+                return NotFound();
+
+            var components = new List<object>();
+            foreach (var item in build.Items)
+            {
+                var preview = await GetComponentPreviewAsync(item.ComponentType, item.ComponentId);
+                if (preview != null)
+                {
+                    components.Add(new
+                    {
+                        name = preview.Name,
+                        type = preview.Type,
+                        shortSpecs = preview.ShortSpecs,
+                        price = preview.Price,
+                        imageUrl = preview.ImageUrl
+                    });
+                }
+            }
+            return Ok(components);
         }
     }
 }

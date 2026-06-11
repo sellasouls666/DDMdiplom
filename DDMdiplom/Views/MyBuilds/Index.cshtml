@@ -5,77 +5,329 @@
 }
 
 <style>
+    :root {
+        --black: #111;
+        --white: #fff;
+        --gray-50: #fafafa;
+        --gray-100: #f4f4f5;
+        --gray-200: #e4e4e7;
+        --gray-300: #d4d4d8;
+        --gray-500: #71717a;
+        --gray-700: #3f3f46;
+        --gray-900: #18181b;
+        --radius: 16px;
+        --radius-sm: 12px;
+        --transition: 0.2s ease;
+    }
+
+    .builds-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .builds-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin: 0;
+            color: var(--black);
+        }
+
+    .btn-create {
+        background: var(--black);
+        color: var(--white);
+        border-radius: 40px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        transition: all var(--transition);
+        border: 1px solid var(--black);
+    }
+
+        .btn-create:hover {
+            background: var(--white);
+            color: var(--black);
+            transform: translateY(-1px);
+        }
+
+    /* Карточка сборки */
     .build-card {
-        transition: box-shadow 0.2s, transform 0.2s;
-        cursor: pointer;
+        background: var(--white);
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+        transition: box-shadow var(--transition), transform var(--transition);
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
         .build-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.12) !important;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.1);
+            border-color: var(--gray-300);
         }
 
-        .build-card .card-actions {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-        }
-
-        .build-card:hover .card-actions {
-            opacity: 1;
-            visibility: visible;
-        }
-
-    .preview-img {
-        width: 120px;
-        height: 120px;
-        object-fit: contain;
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--white);
     }
 
-    .preview-name {
-        font-size: 1rem;
-        line-height: 1.3;
-        max-width: 130px;
-        word-break: break-word;
+    .build-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        color: var(--black);
     }
 
-    .stat-label {
+    .build-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
         font-size: 0.85rem;
-        color: #6c757d;
+        color: var(--gray-500);
+        flex-wrap: wrap;
     }
 
-    .stat-value {
-        font-size: 1rem;
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-icon-sm {
+        background: transparent;
+        border: 1px solid var(--gray-200);
+        border-radius: 30px;
+        padding: 0.2rem 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: all var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+        .btn-icon-sm:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+
+    /* Компоненты в сетке */
+    .components-grid {
+        padding: 1.25rem 1.5rem;
+        flex: 1;
+    }
+
+    .component-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+        .component-row:last-child {
+            border-bottom: none;
+        }
+
+    .component-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--gray-100);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--gray-700);
+        flex-shrink: 0;
+    }
+
+    .component-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .component-name {
+        font-size: 0.85rem;
         font-weight: 600;
+        color: var(--gray-900);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .btn-action {
-        font-size: 0.9rem;
+    .component-specs {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+    }
+
+    .component-price {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--black);
+        flex-shrink: 0;
+    }
+
+    /* Футер карточки */
+    .card-footer {
+        background: var(--gray-50);
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .total-price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--black);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        background: transparent;
+        border: 1px solid var(--gray-200);
+        border-radius: 30px;
         padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
     }
 
-    .card-title {
-        font-size: 1.4rem;
+        .btn-icon:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+
+    .btn-danger-outline {
+        color: #b91c1c;
+        border-color: #fecaca;
     }
 
-    .card-body {
-        padding: 1.5rem;
+        .btn-danger-outline:hover {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--white);
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+
+    /* Модальное окно – список всех компонентов */
+    .component-detail-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .component-detail-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--gray-100);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+    }
+
+    .component-detail-info {
+        flex: 1;
+    }
+
+    .component-detail-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .component-detail-specs {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+
+    .component-detail-price {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* адаптив */
+    @@media (max-width: 768px) {
+        .builds-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .card-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-buttons {
+            justify-content: space-between;
+        }
+
+        .component-row {
+            flex-wrap: wrap;
+        }
+
+        .component-specs {
+            white-space: normal;
+        }
+
+        .build-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 </style>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Мои конфигурации</h2>
-        <a href="/PcBuilder/ClearAndGoToProcessors" class="btn btn-dark rounded-pill px-4 py-2">
-            <i class="bi bi-plus-lg me-2"></i>Создать конфигурацию
+<div class="container py-4">
+    <div class="builds-header">
+        <h1><i class="bi bi-pc-display me-2"></i>Мои конфигурации</h1>
+        <a href="/PcBuilder/ClearAndGoToProcessors" class="btn-create">
+            <i class="bi bi-plus-lg me-2"></i>Новая сборка
         </a>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="text-center text-muted mt-5">
-            <i class="bi bi-pc-display" style="font-size: 4rem;"></i>
-            <p class="mt-3">У вас пока нет сохранённых конфигураций</p>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-pc-display"></i></div>
+            <h5 class="fw-bold">У вас пока нет сохранённых конфигураций</h5>
+            <p class="text-muted">Создайте свою первую сборку ПК через конфигуратор</p>
+            <a href="/PcBuilder/ClearAndGoToProcessors" class="btn btn-dark rounded-pill px-4 mt-2">Создать сборку</a>
         </div>
     }
     else
@@ -83,49 +335,47 @@
         <div class="row g-4">
             @foreach (var build in Model)
             {
-                <div class="col-12 col-xl-6">
-                    <div class="card build-card border-0 rounded-4 shadow-sm h-100"
-                         onclick="location.href='/PcBuilder/EditBuild/@build.Id'">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-truncate mb-3">@build.Name</h5>
-                            <div class="d-flex gap-4 align-items-start flex-grow-1">
-                                <div class="d-flex flex-nowrap gap-3 flex-grow-1 overflow-auto">
-                                    @foreach (var prev in build.Previews)
-                                    {
-                                        <div class="text-center flex-shrink-0">
-                                            <img src="@prev.ImageUrl" alt="@prev.Name" class="preview-img rounded-3" />
-                                            <div class="preview-name text-muted mt-2" title="@prev.Name">
-                                                @prev.Name
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                                <div class="text-end flex-shrink-0">
-                                    <div class="mb-3">
-                                        <div class="stat-label">Компонентов</div>
-                                        <div class="stat-value">@build.ComponentCount</div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="stat-label">Цена</div>
-                                        <div class="stat-value">@build.TotalPrice.ToString("N0") ₽</div>
-                                    </div>
-                                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="build-card">
+                        <div class="card-header">
+                            <h5 class="build-name">@build.Name</h5>
+                            <div class="build-meta">
+                                <span class="meta-item"><i class="bi bi-grid-3x3-gap-fill"></i> @build.ComponentCount компонентов</span>
+                                <span class="meta-item"><i class="bi bi-cash-stack"></i> @build.TotalPrice.ToString("N0") ₽</span>
+                                <button class="btn-icon-sm" onclick="event.stopPropagation(); showAllComponents(@build.Id, '@build.Name.Replace("'", "\\'")')">
+                                    <i class="bi bi-eye"></i> Все компоненты
+                                </button>
                             </div>
+                        </div>
 
-                            <div class="card-actions mt-3 d-flex gap-2">
-                                <a href="/PcBuilder/EditBuild/@build.Id"
-                                       onclick="event.stopPropagation();"
-                                       class="btn btn-outline-secondary btn-action rounded-pill flex-grow-1">
-                                    <i class="bi bi-pencil"></i> Редактировать
+                        <div class="components-grid">
+                            @foreach (var comp in build.Previews)
+                            {
+                                <div class="component-row">
+                                    <div class="component-icon">
+                                        <i class="@GetIconForType(comp.Type)"></i>
+                                    </div>
+                                    <div class="component-info">
+                                        <div class="component-name" title="@comp.Name">@comp.Name</div>
+                                        <div class="component-specs">@comp.ShortSpecs</div>
+                                    </div>
+                                    <div class="component-price">@comp.Price.ToString("N0") ₽</div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="total-price">@build.TotalPrice.ToString("N0") ₽</div>
+                            <div class="action-buttons">
+                                <a href="/PcBuilder/EditBuild/@build.Id" class="btn-icon">
+                                    <i class="bi bi-pencil"></i> Править
                                 </a>
-                                <form method="post" class="d-inline" onsubmit="event.preventDefault(); return false;">
-                                    <button type="button" onclick="addToCartHandler(event, @build.Id)" class="btn btn-outline-primary btn-action rounded-pill">
-                                        <i class="bi bi-cart-plus"></i> В корзину
-                                    </button>
-                                </form>
+                                <button type="button" onclick="addToCartHandler(event, @build.Id)" class="btn-icon">
+                                    <i class="bi bi-cart-plus"></i> В корзину
+                                </button>
                                 <form asp-action="Delete" asp-route-id="@build.Id" method="post" class="d-inline"
-                                      onsubmit="event.stopPropagation(); return confirm('Вы действительно хотите удалить эту конфигурацию?');">
-                                    <button type="submit" onclick="event.stopPropagation();" class="btn btn-outline-danger btn-action rounded-pill">
+                                      onsubmit="event.stopPropagation(); return confirm('Удалить конфигурацию?');">
+                                    <button type="submit" class="btn-icon btn-danger-outline">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -137,6 +387,49 @@
         </div>
     }
 </div>
+
+<!-- Модальное окно для всех компонентов -->
+<div class="modal fade" id="allComponentsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allComponentsModalLabel">Компоненты конфигурации</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="allComponentsContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border" role="status"></div>
+                        <p class="mt-2">Загрузка...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetIconForType(string type)
+    {
+        return type switch
+        {
+            "Процессор" => "bi-cpu",
+            "Видеокарта" => "bi-gpu-card",
+            "Материнская плата" => "bi-motherboard",
+            "Оперативная память" => "bi-memory",
+            "Накопитель" => "bi-hdd-stack",
+            "Блок питания" => "bi-plug",
+            "Корпус" => "bi-pc-display",
+            "Система охлаждения" => "bi-fan",
+            "Операционная система" => "bi-windows",
+            "Монитор" => "bi-display",
+            "Источник бесперебойного питания" => "bi-battery-charging",
+            "Клавиатура" => "bi-keyboard",
+            "Мышь" => "bi-mouse",
+            _ => "bi-question-circle"
+        };
+    }
+}
 
 @section Scripts {
     <script>
@@ -154,9 +447,7 @@
         async function addToCartFromCard(buildId) {
             try {
                 const buildResponse = await fetch(`/PcBuilder/GetBuildById?buildId=${buildId}`);
-                if (!buildResponse.ok) {
-                    throw new Error('Не удалось загрузить данные конфигурации.');
-                }
+                if (!buildResponse.ok) throw new Error('Не удалось загрузить конфигурацию.');
                 const buildData = await buildResponse.json();
                 const currentBuild = buildData.components;
 
@@ -311,6 +602,80 @@
             }
 
             return issues;
+        }
+
+        // Функция показа всех компонентов сборки
+        async function showAllComponents(buildId, buildName) {
+            const modalEl = document.getElementById('allComponentsModal');
+            const modal = new bootstrap.Modal(modalEl);
+            const modalTitle = document.getElementById('allComponentsModalLabel');
+            const modalBody = document.getElementById('allComponentsContent');
+            
+            modalTitle.innerText = `Компоненты: ${buildName}`;
+            modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"></div><p class="mt-2">Загрузка...</p></div>';
+            modal.show();
+
+            try {
+                const response = await fetch(`/MyBuilds/GetBuildDetails/${buildId}`);
+                if (!response.ok) throw new Error('Ошибка загрузки');
+                const components = await response.json();
+                
+                if (components.length === 0) {
+                    modalBody.innerHTML = '<div class="alert alert-info">Компоненты не найдены.</div>';
+                    return;
+                }
+
+                let html = '<div class="list-group list-group-flush">';
+                components.forEach(comp => {
+                    const icon = getIconForTypeClient(comp.type);
+                    html += `
+                        <div class="component-detail-row">
+                            <div class="component-detail-icon">
+                                <i class="bi ${icon}"></i>
+                            </div>
+                            <div class="component-detail-info">
+                                <div class="component-detail-name">${escapeHtml(comp.name)}</div>
+                                <div class="component-detail-specs">${escapeHtml(comp.shortSpecs || '—')}</div>
+                            </div>
+                            <div class="component-detail-price">${Number(comp.price).toLocaleString()} ₽</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                modalBody.innerHTML = html;
+            } catch (error) {
+                modalBody.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                console.error(error);
+            }
+        }
+
+        function getIconForTypeClient(type) {
+            const icons = {
+                "Процессор": "bi-cpu",
+                "Видеокарта": "bi-gpu-card",
+                "Материнская плата": "bi-motherboard",
+                "Оперативная память": "bi-memory",
+                "Накопитель": "bi-hdd-stack",
+                "Блок питания": "bi-plug",
+                "Корпус": "bi-pc-display",
+                "Система охлаждения": "bi-fan",
+                "Операционная система": "bi-windows",
+                "Монитор": "bi-display",
+                "Источник бесперебойного питания": "bi-battery-charging",
+                "Клавиатура": "bi-keyboard",
+                "Мышь": "bi-mouse"
+            };
+            return icons[type] || "bi-question-circle";
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
     </script>
 }
