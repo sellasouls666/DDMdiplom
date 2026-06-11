@@ -7,6 +7,7 @@
 
 @section Styles {
     <style>
+        /* ========== СОВРЕМЕННЫЙ ЧЁРНО-БЕЛЫЙ ДИЗАЙН (СКРУГЛЁННЫЙ) ========== */
         :root {
             --primary: #0f172a;
             --primary-hover: #1e293b;
@@ -29,7 +30,7 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
             .page-header h1 {
@@ -39,6 +40,39 @@
                 color: var(--primary);
             }
 
+        /* Панель фильтров */
+        .filters-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all var(--transition);
+        }
+
+            .form-control-custom:focus, .form-select-custom:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+                outline: none;
+            }
+
+        /* Сетка карточек */
         .os-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -294,44 +328,86 @@
         <h1>Операционные системы</h1>
     </div>
 
-    <div class="os-grid">
+    <!-- Панель фильтров (без совместимости) -->
+    <div class="filters-panel">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control form-control-custom border-start-0 ps-0" placeholder="Название, бренд...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Бренд</label>
+                <select id="filterBrand" class="form-select form-select-custom">
+                    <option value="">Все бренды</option>
+                    @foreach (var brand in Model.Select(m => m.Brand).Distinct().OrderBy(b => b))
+                    {
+                        <option value="@brand">@brand</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control form-control-custom" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control form-control-custom" placeholder="До">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-windows fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Операционные системы по заданным фильтрам не найдены.</p>
+    </div>
+
+    <div class="os-grid" id="osGrid">
         @foreach (var os in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(os.ImageUrl) ? os.ImageUrl : "/images/placeholder.png";
-            <div class="os-card h-100" data-id="@os.Id">
-                <div class="card-img-container">
-                    <span class="brand-badge">@os.Brand</span>
-                    <img src="@imageUrl" class="card-img-top" alt="@os.Name">
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@os.Name</h5>
-                    <div class="card-specs">
-                        @if (!string.IsNullOrEmpty(os.Version))
-                        {
-                            <span class="spec-badge"><i class="bi bi-windows"></i> @os.Version</span>
-                        }
-                        @if (!string.IsNullOrEmpty(os.BitVersion))
-                        {
-                            <span class="spec-badge"><i class="bi bi-cpu"></i> @os.BitVersion</span>
-                        }
-                        @if (!string.IsNullOrEmpty(os.Packaging))
-                        {
-                            <span class="spec-badge"><i class="bi bi-box"></i> @os.Packaging</span>
-                        }
+            <div class="os-item"
+                 data-id="@os.Id"
+                 data-brand="@os.Brand"
+                 data-model="@os.Name"
+                 data-price="@os.Price">
+                <div class="os-card">
+                    <div class="card-img-container">
+                        <span class="brand-badge">@os.Brand</span>
+                        <img src="@imageUrl" class="card-img-top" alt="@os.Name">
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">@string.Format("{0:N0}", os.Price) ₽</span>
-                        <button class="btn btn-outline-add select-component"
-                                data-id="@os.Id"
-                                data-name="@os.Brand @os.Name"
-                                data-price="@os.Price"
-                                data-tdp="0"
-                                data-image="@imageUrl"
-                                data-type="Операционная система">
-                            <i class="bi bi-plus-lg"></i> Выбрать
-                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title">@os.Name</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(os.Version))
+                            {
+                                <span class="spec-badge"><i class="bi bi-windows"></i> @os.Version</span>
+                            }
+                            @if (!string.IsNullOrEmpty(os.BitVersion))
+                            {
+                                <span class="spec-badge"><i class="bi bi-cpu"></i> @os.BitVersion</span>
+                            }
+                            @if (!string.IsNullOrEmpty(os.Packaging))
+                            {
+                                <span class="spec-badge"><i class="bi bi-box"></i> @os.Packaging</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", os.Price) ₽</span>
+                            <button class="btn btn-outline-add select-component"
+                                    data-id="@os.Id"
+                                    data-name="@os.Brand @os.Name"
+                                    data-price="@os.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Операционная система">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -363,11 +439,47 @@
 
 @section Scripts {
     <script>
-        const modalElement = document.getElementById('osModal');
-        const modal = new bootstrap.Modal(modalElement);
-        const contentDiv = document.getElementById('modalContent');
-        const modalTitle = document.getElementById('modalTitle');
+        // Элементы фильтрации
+        const searchQuery = document.getElementById('searchQuery');
+        const filterBrand = document.getElementById('filterBrand');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const noResults = document.getElementById('noResults');
+        const osItems = document.querySelectorAll('.os-item');
 
+        function updateFilters() {
+            const searchVal = searchQuery.value.trim().toLowerCase();
+            const brandVal = filterBrand.value;
+            const minPrice = parseFloat(priceMin.value) || 0;
+            const maxPrice = parseFloat(priceMax.value) || Infinity;
+
+            let visibleCount = 0;
+
+            osItems.forEach(item => {
+                const brand = item.dataset.brand;
+                const model = item.dataset.model.toLowerCase();
+                const price = parseFloat(item.dataset.price) || 0;
+
+                const matchesSearch = !searchVal || model.includes(searchVal) || brand.toLowerCase().includes(searchVal);
+                const matchesBrand = !brandVal || brand === brandVal;
+                const matchesPrice = price >= minPrice && price <= maxPrice;
+
+                if (matchesSearch && matchesBrand && matchesPrice) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+        }
+
+        // Обработка кнопки "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -387,10 +499,17 @@
             });
         });
 
+        // Модальное окно
+        const modalElement = document.getElementById('osModal');
+        const modal = new bootstrap.Modal(modalElement);
+        const contentDiv = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+
         document.querySelectorAll('.os-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
-                const osId = this.getAttribute('data-id');
+                const osItem = this.closest('.os-item');
+                const osId = osItem.getAttribute('data-id');
 
                 contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
                 modalTitle.textContent = 'Загрузка...';
@@ -465,5 +584,14 @@
                 }
             });
         });
+
+        // События фильтров
+        if (searchQuery) searchQuery.addEventListener('input', updateFilters);
+        if (filterBrand) filterBrand.addEventListener('change', updateFilters);
+        if (priceMin) priceMin.addEventListener('input', updateFilters);
+        if (priceMax) priceMax.addEventListener('input', updateFilters);
+
+        // Первоначальный запуск
+        updateFilters();
     </script>
 }
