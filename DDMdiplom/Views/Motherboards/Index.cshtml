@@ -7,6 +7,7 @@
 
 @section Styles {
     <style>
+        /* ========== СОВРЕМЕННЫЙ ЧЁРНО-БЕЛЫЙ ДИЗАЙН (СКРУГЛЁННЫЙ) ========== */
         :root {
             --primary: #0f172a;
             --primary-hover: #1e293b;
@@ -29,7 +30,12 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
         }
 
             .page-header h1 {
@@ -37,29 +43,25 @@
                 font-size: 1.8rem;
                 letter-spacing: -0.5px;
                 color: var(--primary);
+                margin: 0;
             }
 
+        /* Переключатель совместимости в заголовке */
         .compatibility-wrapper {
-            background: white;
+            background: #f1f5f9;
             border: 1px solid var(--border);
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: box-shadow var(--transition);
-            margin-bottom: 1.5rem;
         }
-
-            .compatibility-wrapper:hover {
-                box-shadow: var(--hover-shadow);
-            }
 
         .form-check-input {
             border: 2px solid #cbd5e1;
             width: 1.2em;
             height: 1.2em;
+            cursor: pointer;
         }
 
             .form-check-input:checked {
@@ -75,6 +77,39 @@
             font-size: 0.9rem;
         }
 
+        /* Панель фильтров */
+        .filters-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all var(--transition);
+        }
+
+            .form-control-custom:focus, .form-select-custom:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+                outline: none;
+            }
+
+        /* Сетка карточек */
         .motherboards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -328,16 +363,80 @@
 <div class="container">
     <div class="page-header">
         <h1>Материнские платы</h1>
-    </div>
-
-    <div class="compatibility-wrapper">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
-            <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+        <div class="compatibility-wrapper">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="compatibilitySwitch" checked>
+                <label class="form-check-label" for="compatibilitySwitch">Проверка совместимости</label>
+            </div>
         </div>
     </div>
 
-    <div class="motherboards-grid">
+    <div class="filters-panel">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control form-control-custom border-start-0 ps-0" placeholder="Модель, бренд...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Бренд</label>
+                <select id="filterBrand" class="form-select form-select-custom">
+                    <option value="">Все бренды</option>
+                    @foreach (var brand in Model.Select(m => m.Brand).Distinct().OrderBy(b => b))
+                    {
+                        <option value="@brand">@brand</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Сокет</label>
+                <select id="filterSocket" class="form-select form-select-custom">
+                    <option value="">Все сокеты</option>
+                    @foreach (var socket in Model.Where(m => !string.IsNullOrEmpty(m.CpuSocketType)).Select(m => m.CpuSocketType).Distinct().OrderBy(s => s))
+                    {
+                        <option value="@socket">@socket</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Чипсет</label>
+                <select id="filterChipset" class="form-select form-select-custom">
+                    <option value="">Все чипсеты</option>
+                    @foreach (var chipset in Model.Where(m => !string.IsNullOrEmpty(m.Chipset)).Select(m => m.Chipset).Distinct().OrderBy(c => c))
+                    {
+                        <option value="@chipset">@chipset</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Форм-фактор</label>
+                <select id="filterFormFactor" class="form-select form-select-custom">
+                    <option value="">Все форм-факторы</option>
+                    @foreach (var ff in Model.Where(m => !string.IsNullOrEmpty(m.FormFactor)).Select(m => m.FormFactor).Distinct().OrderBy(f => f))
+                    {
+                        <option value="@ff">@ff</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control form-control-custom" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control form-control-custom" placeholder="До">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-motherboard fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Материнские платы по заданным фильтрам не найдены или несовместимы.</p>
+    </div>
+
+    <div class="motherboards-grid" id="motherboardsGrid">
         @foreach (var mb in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(mb.ImageUrl) ? mb.ImageUrl : "/images/placeholder.png";
@@ -353,50 +452,59 @@
             if (!string.IsNullOrEmpty(memoryType))
                 memoryLabel += $" ({memoryType})";
 
-            <div class="motherboard-card h-100"
+            <div class="motherboard-item"
                  data-id="@mb.Id"
+                 data-brand="@mb.Brand"
+                 data-model="@mb.Model"
+                 data-price="@mb.Price"
                  data-socket="@mb.CpuSocketType"
-                 data-memory-standard="@mb.MemoryStandard"
-                 data-form-factor="@mb.FormFactor">
-                <div class="card-img-container">
-                    <span class="brand-badge">@mb.Brand</span>
-                    <img src="@imageUrl" class="card-img-top" alt="@mb.Model">
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@mb.Model</h5>
-                    <div class="card-specs">
-                        @if (!string.IsNullOrEmpty(mb.CpuSocketType))
-                        {
-                            <span class="spec-badge"><i class="bi bi-cpu"></i> @mb.CpuSocketType</span>
-                        }
-                        @if (!string.IsNullOrEmpty(mb.FormFactor))
-                        {
-                            <span class="spec-badge"><i class="bi bi-pc-display"></i> @mb.FormFactor</span>
-                        }
-                        @if (mb.MaxMemorySize.HasValue)
-                        {
-                            <span class="spec-badge"><i class="bi bi-memory"></i> @mb.MaxMemorySize.Value ГБ</span>
-                        }
-                        @if (!string.IsNullOrEmpty(mb.Chipset))
-                        {
-                            <span class="spec-badge"><i class="bi bi-motherboard"></i> @mb.Chipset</span>
-                        }
-                        <span class="spec-badge"><i class="bi bi-layers"></i> @memoryLabel</span>
+                 data-chipset="@mb.Chipset"
+                 data-form-factor="@mb.FormFactor"
+                 data-memory-standard="@mb.MemoryStandard">
+                <div class="motherboard-card">
+                    <div class="card-img-container">
+                        <span class="brand-badge">@mb.Brand</span>
+                        <img src="@imageUrl" class="card-img-top" alt="@mb.Model">
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">@string.Format("{0:N0}", mb.Price) ₽</span>
-                        <button class="btn btn-outline-add select-component"
-                                data-id="@mb.Id"
-                                data-name="@mb.Brand @mb.Model"
-                                data-price="@mb.Price"
-                                data-tdp="0"
-                                data-image="@imageUrl"
-                                data-type="Материнская плата"
-                                data-memory-slots="@mb.MemorySlots">
-                            <i class="bi bi-plus-lg"></i> Выбрать
-                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title">@mb.Model</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(mb.CpuSocketType))
+                            {
+                                <span class="spec-badge"><i class="bi bi-cpu"></i> @mb.CpuSocketType</span>
+                            }
+                            @if (!string.IsNullOrEmpty(mb.FormFactor))
+                            {
+                                <span class="spec-badge"><i class="bi bi-pc-display"></i> @mb.FormFactor</span>
+                            }
+                            @if (mb.MaxMemorySize.HasValue)
+                            {
+                                <span class="spec-badge"><i class="bi bi-memory"></i> @mb.MaxMemorySize.Value ГБ</span>
+                            }
+                            @if (!string.IsNullOrEmpty(mb.Chipset))
+                            {
+                                <span class="spec-badge"><i class="bi bi-motherboard"></i> @mb.Chipset</span>
+                            }
+                            <span class="spec-badge"><i class="bi bi-layers"></i> @memoryLabel</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", mb.Price) ₽</span>
+                            <button class="btn btn-outline-add select-component"
+                                    data-id="@mb.Id"
+                                    data-name="@mb.Brand @mb.Model"
+                                    data-price="@mb.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Материнская плата"
+                                    data-memory-slots="@mb.MemorySlots"
+                                    data-cpu-socket-type="@mb.CpuSocketType"
+                                    data-memory-standard="@mb.MemoryStandard"
+                                    data-form-factor="@mb.FormFactor">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -428,11 +536,142 @@
 
 @section Scripts {
     <script>
-        const modalElement = document.getElementById('motherboardModal');
-        const modal = new bootstrap.Modal(modalElement);
-        const contentDiv = document.getElementById('modalContent');
-        const modalTitle = document.getElementById('modalTitle');
+        // Элементы фильтрации
+        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
+        const searchQuery = document.getElementById('searchQuery');
+        const filterBrand = document.getElementById('filterBrand');
+        const filterSocket = document.getElementById('filterSocket');
+        const filterChipset = document.getElementById('filterChipset');
+        const filterFormFactor = document.getElementById('filterFormFactor');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const noResults = document.getElementById('noResults');
+        const motherboardItems = document.querySelectorAll('.motherboard-item');
 
+        // Функция для извлечения типа памяти из строки (DDR4, DDR5...)
+        function extractMemoryType(memStr) {
+            if (!memStr) return null;
+            const match = memStr.match(/DDR\d+/i);
+            return match ? match[0].toUpperCase() : null;
+        }
+
+        // Асинхронная функция проверки совместимости (возвращает true/false для элемента)
+        async function isMotherboardCompatible(element) {
+            let build = [];
+            try {
+                const response = await fetch('/PcBuilder/GetBuild');
+                const data = await response.json();
+                if (data.success) {
+                    build = data.build;
+                }
+            } catch (err) {
+                console.error('Ошибка получения сборки:', err);
+                return true; // при ошибке считаем совместимым
+            }
+
+            const processor = build.find(c => c.type === "Процессор");
+            const memoryModules = build.filter(c => c.type === "Оперативная память");
+            const pcCase = build.find(c => c.type === "Корпус");
+
+            const requiredSocket = processor?.processorSocket?.replace('Socket ', '').trim();
+            const requiredMemoryTypes = memoryModules.map(m => extractMemoryType(m.speed)).filter(Boolean);
+            const requiredFormFactor = pcCase?.caseMotherboardFormFactors?.toLowerCase();
+
+            const mbSocket = element.dataset.socket || '';
+            const mbMemoryStandard = (element.dataset.memoryStandard || '').toUpperCase();
+            const mbFormFactor = (element.dataset.formFactor || '').toLowerCase();
+
+            let compatible = true;
+
+            if (requiredSocket && mbSocket && !mbSocket.toUpperCase().includes(requiredSocket.toUpperCase())) {
+                compatible = false;
+            }
+            if (compatible && requiredMemoryTypes.length > 0) {
+                const supportsMemory = requiredMemoryTypes.some(memType => mbMemoryStandard.includes(memType));
+                if (!supportsMemory) compatible = false;
+            }
+            if (compatible && requiredFormFactor && mbFormFactor && !requiredFormFactor.includes(mbFormFactor)) {
+                compatible = false;
+            }
+            return compatible;
+        }
+
+        // Основная функция фильтрации (с учётом совместимости)
+        async function updateFilters() {
+            const searchVal = searchQuery.value.trim().toLowerCase();
+            const brandVal = filterBrand.value;
+            const socketVal = filterSocket.value;
+            const chipsetVal = filterChipset.value;
+            const formFactorVal = filterFormFactor.value;
+            const minPrice = parseFloat(priceMin.value) || 0;
+            const maxPrice = parseFloat(priceMax.value) || Infinity;
+
+            // Сначала скрываем всё, чтобы потом показывать только подходящие
+            motherboardItems.forEach(item => {
+                item.style.display = 'none';
+            });
+
+            // Собираем элементы, прошедшие базовые фильтры
+            const filteredItems = [];
+            motherboardItems.forEach(item => {
+                const brand = item.dataset.brand;
+                const model = item.dataset.model.toLowerCase();
+                const price = parseFloat(item.dataset.price) || 0;
+                const socket = item.dataset.socket || '';
+                const chipset = item.dataset.chipset || '';
+                const formFactor = item.dataset.formFactor || '';
+
+                const matchesSearch = !searchVal || model.includes(searchVal) || brand.toLowerCase().includes(searchVal);
+                const matchesBrand = !brandVal || brand === brandVal;
+                const matchesSocket = !socketVal || socket === socketVal;
+                const matchesChipset = !chipsetVal || chipset === chipsetVal;
+                const matchesFormFactor = !formFactorVal || formFactor === formFactorVal;
+                const matchesPrice = price >= minPrice && price <= maxPrice;
+
+                if (matchesSearch && matchesBrand && matchesSocket && matchesChipset && matchesFormFactor && matchesPrice) {
+                    filteredItems.push(item);
+                }
+            });
+
+            let visibleCount = 0;
+
+            if (!compatibilitySwitch.checked) {
+                // Без совместимости – показываем всё, что прошло фильтры
+                filteredItems.forEach(item => {
+                    item.style.display = '';
+                    visibleCount++;
+                });
+            } else {
+                // С проверкой совместимости – проверяем каждый отфильтрованный элемент
+                for (const item of filteredItems) {
+                    const compatible = await isMotherboardCompatible(item);
+                    if (compatible) {
+                        item.style.display = '';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+            }
+
+            // Заглушка
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+
+            // Обновляем состояние карточек (убираем лишние стили)
+            motherboardItems.forEach(item => {
+                const card = item.querySelector('.motherboard-card');
+                if (card) {
+                    card.style.opacity = '';
+                    card.style.pointerEvents = '';
+                }
+            });
+        }
+
+        // Обработка кнопки "Выбрать"
         document.querySelectorAll('.select-component').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -443,7 +682,10 @@
                     type: this.dataset.type,
                     tdp: 0,
                     imageUrl: this.dataset.image,
-                    memorySlots: this.dataset.memorySlots ? parseInt(this.dataset.memorySlots) : null
+                    memorySlots: this.dataset.memorySlots ? parseInt(this.dataset.memorySlots) : null,
+                    cpuSocketType: this.dataset.cpuSocketType,
+                    mbMemoryStandard: this.dataset.memoryStandard,
+                    mbFormFactor: this.dataset.formFactor
                 };
                 if (typeof addToBuild === 'function') {
                     addToBuild(component);
@@ -453,10 +695,17 @@
             });
         });
 
+        // Модальное окно
+        const modalElement = document.getElementById('motherboardModal');
+        const modal = new bootstrap.Modal(modalElement);
+        const contentDiv = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+
         document.querySelectorAll('.motherboard-card').forEach(card => {
             card.addEventListener('click', async function(e) {
                 if (e.target.closest('.select-component')) return;
-                const mbId = this.getAttribute('data-id');
+                const motherboardItem = this.closest('.motherboard-item');
+                const mbId = motherboardItem.getAttribute('data-id');
 
                 contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
                 modalTitle.textContent = 'Загрузка...';
@@ -524,7 +773,7 @@
 
                     html += `
                         <div class="text-center mt-4">
-                            <button class="btn btn-select-sm select-from-modal" data-id="${mb.id}" data-name="${title}" data-price="${mb.price}" data-tdp="0" data-image="${mb.imageUrl || '/images/placeholder.png'}" data-type="Материнская плата" data-memory-slots="${mb.memorySlots}">
+                            <button class="btn btn-select-sm select-from-modal" data-id="${mb.id}" data-name="${title}" data-price="${mb.price}" data-tdp="0" data-image="${mb.imageUrl || '/images/placeholder.png'}" data-type="Материнская плата" data-memory-slots="${mb.memorySlots}" data-cpu-socket-type="${mb.cpuSocketType}" data-memory-standard="${mb.memoryStandard}" data-form-factor="${mb.formFactor}">
                                 <i class="bi bi-plus-lg"></i> Выбрать
                             </button>
                         </div>
@@ -541,7 +790,10 @@
                             type: this.dataset.type,
                             tdp: 0,
                             imageUrl: this.dataset.image,
-                            memorySlots: this.dataset.memorySlots ? parseInt(this.dataset.memorySlots) : null
+                            memorySlots: this.dataset.memorySlots ? parseInt(this.dataset.memorySlots) : null,
+                            cpuSocketType: this.dataset.cpuSocketType,
+                            mbMemoryStandard: this.dataset.memoryStandard,
+                            mbFormFactor: this.dataset.formFactor
                         };
                         if (typeof addToBuild === 'function') addToBuild(component);
                         modal.hide();
@@ -553,73 +805,19 @@
             });
         });
 
-        const compatibilitySwitch = document.getElementById('compatibilitySwitch');
-        const mbCards = document.querySelectorAll('.motherboard-card');
+        // Обработчики событий
+        compatibilitySwitch.addEventListener('change', updateFilters);
+        searchQuery.addEventListener('input', updateFilters);
+        filterBrand.addEventListener('change', updateFilters);
+        filterSocket.addEventListener('change', updateFilters);
+        filterChipset.addEventListener('change', updateFilters);
+        filterFormFactor.addEventListener('change', updateFilters);
+        priceMin.addEventListener('input', updateFilters);
+        priceMax.addEventListener('input', updateFilters);
 
-        function extractMemoryType(memSpeed) {
-            if (!memSpeed) return null;
-            const match = memSpeed.match(/DDR\d+/i);
-            return match ? match[0].toUpperCase() : null;
-        }
+        document.addEventListener('buildUpdated', updateFilters);
 
-        async function applyCompatibilityFilter() {
-            if (!compatibilitySwitch.checked) {
-                mbCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
-                return;
-            }
-
-            try {
-                const response = await fetch('/PcBuilder/GetBuild');
-                const data = await response.json();
-                const build = data.success ? data.build : [];
-
-                const processor = build.find(c => c.type === "Процессор");
-                const memoryModules = build.filter(c => c.type === "Оперативная память");
-                const pcCase = build.find(c => c.type === "Корпус");
-
-                mbCards.forEach(card => {
-                    const mbSocket = card.dataset.socket || '';
-                    const mbMemoryStandard = (card.dataset.memoryStandard || '').toUpperCase();
-                    const mbFormFactor = (card.dataset.formFactor || '').trim();
-
-                    let visible = true;
-
-                    if (processor && processor.processorSocket) {
-                        if (!mbSocket.includes(processor.processorSocket.replace('Socket ', ''))) {
-                            visible = false;
-                        }
-                    }
-
-                    if (visible && memoryModules.length > 0) {
-                        const memTypes = memoryModules.map(m => extractMemoryType(m.speed)).filter(Boolean);
-                        if (memTypes.length > 0) {
-                            const supportsMemory = memTypes.some(mt => mbMemoryStandard.includes(mt));
-                            if (!supportsMemory) visible = false;
-                        }
-                    }
-
-                    if (visible && pcCase && pcCase.caseMotherboardFormFactors) {
-                        if (!pcCase.caseMotherboardFormFactors.toLowerCase().includes(mbFormFactor.toLowerCase())) {
-                            visible = false;
-                        }
-                    }
-
-                    card.style.opacity = visible ? '1' : '0.3';
-                    card.style.pointerEvents = visible ? 'auto' : 'none';
-                });
-            } catch (error) {
-                console.error('Ошибка при получении сборки:', error);
-                mbCards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                });
-            }
-        }
-
-        compatibilitySwitch.addEventListener('change', applyCompatibilityFilter);
-        applyCompatibilityFilter();
+        // Первоначальный запуск
+        updateFilters();
     </script>
 }
