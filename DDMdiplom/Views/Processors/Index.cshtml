@@ -418,7 +418,7 @@
     </div>
 
     <div class="processors-grid" id="processorsGrid">
-        @foreach (var proc in Model)
+        @foreach (var proc in Model.Where(m => m.Quantity > 0))
         {
             var memoryTypes = proc.MemoryTypes ?? "";
             var lastMemory = memoryTypes.Contains('/') ? memoryTypes.Split('/').Last().Trim() : memoryTypes;

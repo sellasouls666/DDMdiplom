@@ -407,7 +407,7 @@
     </div>
 
     <div class="psu-grid" id="psuGrid">
-        @foreach (var psu in Model)
+        @foreach (var psu in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(psu.ImageUrl) ? psu.ImageUrl : "/images/placeholder.png";
             <div class="psu-item"

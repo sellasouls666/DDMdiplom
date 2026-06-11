@@ -365,7 +365,7 @@
     </div>
 
     <div class="keyboards-grid" id="keyboardsGrid">
-        @foreach (var item in Model)
+        @foreach (var item in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
             <div class="keyboard-item"

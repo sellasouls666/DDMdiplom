@@ -71,5 +71,6 @@ namespace DDMdiplom.Models
         public string? ImageUrl { get; set; }
 
         public string? Color { get; set; }
+        public int? Quantity { get; set; }
     }
 }

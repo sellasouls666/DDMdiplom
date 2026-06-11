@@ -408,7 +408,7 @@
     </div>
 
     <div class="graphics-grid" id="graphicsGrid">
-        @foreach (var card in Model)
+        @foreach (var card in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(card.ImageUrl) ? card.ImageUrl : "/images/placeholder.png";
             <div class="graphics-item"

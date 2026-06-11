@@ -365,7 +365,7 @@
     </div>
 
     <div class="ups-grid" id="upsGrid">
-        @foreach (var device in Model)
+        @foreach (var device in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(device.ImageUrl) ? device.ImageUrl : "/images/placeholder.png";
             <div class="ups-item"

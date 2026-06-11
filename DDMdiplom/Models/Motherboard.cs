@@ -114,5 +114,6 @@ namespace DDMdiplom.Models
 
         [Display(Name = "URL изображения")]
         public string? ImageUrl { get; set; }
+        public int? Quantity { get; set; }
     }
 }

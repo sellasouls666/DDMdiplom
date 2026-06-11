@@ -88,5 +88,6 @@ namespace DDMdiplom.Models
 
         [Required]
         public string Model { get; set; } = string.Empty;
+        public int? Quantity { get; set; }
     }
 }

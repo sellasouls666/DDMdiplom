@@ -121,5 +121,6 @@ namespace DDMdiplom.Models
 
         [Display(Name = "Потоковые процессоры")]
         public int? StreamProcessors { get; set; }
+        public int? Quantity { get; set; }
     }
 }

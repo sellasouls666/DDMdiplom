@@ -409,7 +409,7 @@
     </div>
 
     <div class="coolers-grid" id="coolersGrid">
-        @foreach (var cooler in Model)
+        @foreach (var cooler in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(cooler.ImageUrl) ? cooler.ImageUrl : "/images/placeholder.png";
             <div class="cooler-item"

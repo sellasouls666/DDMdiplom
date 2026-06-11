@@ -407,7 +407,7 @@
     </div>
 
     <div class="memory-grid" id="memoryGrid">
-        @foreach (var mem in Model)
+        @foreach (var mem in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(mem.ImageUrl) ? mem.ImageUrl : "/images/placeholder.png";
             <div class="memory-item"

@@ -365,7 +365,7 @@
     </div>
 
     <div class="os-grid" id="osGrid">
-        @foreach (var os in Model)
+        @foreach (var os in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(os.ImageUrl) ? os.ImageUrl : "/images/placeholder.png";
             <div class="os-item"

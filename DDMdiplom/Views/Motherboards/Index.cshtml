@@ -437,7 +437,7 @@
     </div>
 
     <div class="motherboards-grid" id="motherboardsGrid">
-        @foreach (var mb in Model)
+        @foreach (var mb in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(mb.ImageUrl) ? mb.ImageUrl : "/images/placeholder.png";
             var slots = mb.MemorySlots.HasValue ? mb.MemorySlots.Value.ToString() : "?";

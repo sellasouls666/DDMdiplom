@@ -73,5 +73,6 @@ namespace DDMdiplom.Models
         // В Models/Memory.cs
         [Display(Name = "Количество модулей в комплекте")]
         public int ModuleCount { get; set; } = 1; // по умолчанию 1
+        public int? Quantity { get; set; }
     }
 }

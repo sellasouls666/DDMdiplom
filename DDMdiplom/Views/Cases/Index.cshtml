@@ -419,7 +419,7 @@
     </div>
 
     <div class="cases-grid" id="casesGrid">
-        @foreach (var item in Model)
+        @foreach (var item in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
             

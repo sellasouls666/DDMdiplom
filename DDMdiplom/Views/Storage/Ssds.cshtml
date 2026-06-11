@@ -407,7 +407,7 @@
     </div>
 
     <div class="ssd-grid" id="ssdGrid">
-        @foreach (var drive in Model)
+        @foreach (var drive in Model.Where(m => m.Quantity > 0))
         {
             var imageUrl = !string.IsNullOrEmpty(drive.ImageUrl) ? drive.ImageUrl : "/images/placeholder.png";
             var isM2 = drive.FormFactor != null && drive.FormFactor.Contains("M.2");

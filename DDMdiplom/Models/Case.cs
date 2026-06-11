@@ -89,5 +89,6 @@ namespace DDMdiplom.Models
         public string? ImageUrl { get; set; }
 
         public string? LED { get; set; }
+        public int? Quantity { get; set; }
     }
 }
