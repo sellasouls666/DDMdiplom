@@ -7,6 +7,7 @@
 
 @section Styles {
     <style>
+        /* ========== СОВРЕМЕННЫЙ ЧЁРНО-БЕЛЫЙ ДИЗАЙН (СКРУГЛЁННЫЙ) ========== */
         :root {
             --primary: #0f172a;
             --primary-hover: #1e293b;
@@ -29,7 +30,7 @@
         }
 
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
             .page-header h1 {
@@ -39,6 +40,39 @@
                 color: var(--primary);
             }
 
+        /* Панель фильтров */
+        .filters-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all var(--transition);
+        }
+
+            .form-control-custom:focus, .form-select-custom:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+                outline: none;
+            }
+
+        /* Сетка карточек */
         .keyboards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -294,44 +328,86 @@
         <h1>Игровые клавиатуры</h1>
     </div>
 
-    <div class="keyboards-grid">
+    <!-- Панель фильтров (без переключателя совместимости) -->
+    <div class="filters-panel">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Поиск</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchQuery" class="form-control form-control-custom border-start-0 ps-0" placeholder="Модель, бренд...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-custom">Бренд</label>
+                <select id="filterBrand" class="form-select form-select-custom">
+                    <option value="">Все бренды</option>
+                    @foreach (var brand in Model.Select(m => m.Brand).Distinct().OrderBy(b => b))
+                    {
+                        <option value="@brand">@brand</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label-custom">Цена (₽)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="priceMin" class="form-control form-control-custom" placeholder="От">
+                    <input type="number" id="priceMax" class="form-control form-control-custom" placeholder="До">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-light text-center border p-5 my-4 d-none">
+        <i class="bi bi-keyboard fs-1 text-secondary d-block mb-3"></i>
+        <h5 class="fw-bold">Ничего не найдено</h5>
+        <p class="text-secondary mb-0">Клавиатуры по заданным фильтрам не найдены.</p>
+    </div>
+
+    <div class="keyboards-grid" id="keyboardsGrid">
         @foreach (var item in Model)
         {
             var imageUrl = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/images/placeholder.png";
-            <div class="keyboard-card h-100" data-id="@item.Id">
-                <div class="card-img-container">
-                    <span class="brand-badge">@item.Brand</span>
-                    <img src="@imageUrl" class="card-img-top" alt="@item.Model">
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@(item.Name ?? item.Model)</h5>
-                    <div class="card-specs">
-                        @if (!string.IsNullOrEmpty(item.DesignStyle))
-                        {
-                            <span class="spec-badge"><i class="bi bi-sliders"></i> @item.DesignStyle</span>
-                        }
-                        @if (!string.IsNullOrEmpty(item.KeySwitchType))
-                        {
-                            <span class="spec-badge"><i class="bi bi-keyboard"></i> @item.KeySwitchType</span>
-                        }
-                        @if (!string.IsNullOrEmpty(item.KeyboardColor))
-                        {
-                            <span class="spec-badge"><i class="bi bi-palette"></i> @item.KeyboardColor</span>
-                        }
+            <div class="keyboard-item"
+                 data-id="@item.Id"
+                 data-brand="@item.Brand"
+                 data-model="@(item.Name ?? item.Model)"
+                 data-price="@item.Price">
+                <div class="keyboard-card">
+                    <div class="card-img-container">
+                        <span class="brand-badge">@item.Brand</span>
+                        <img src="@imageUrl" class="card-img-top" alt="@item.Model">
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">@string.Format("{0:N0}", item.Price) ₽</span>
-                        <button class="btn btn-outline-add select-component"
-                                data-id="@item.Id"
-                                data-name="@item.Brand @(item.Name ?? item.Model)"
-                                data-price="@item.Price"
-                                data-tdp="0"
-                                data-image="@imageUrl"
-                                data-type="Клавиатура">
-                            <i class="bi bi-plus-lg"></i> Выбрать
-                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title">@(item.Name ?? item.Model)</h5>
+                        <div class="card-specs">
+                            @if (!string.IsNullOrEmpty(item.DesignStyle))
+                            {
+                                <span class="spec-badge"><i class="bi bi-sliders"></i> @item.DesignStyle</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.KeySwitchType))
+                            {
+                                <span class="spec-badge"><i class="bi bi-keyboard"></i> @item.KeySwitchType</span>
+                            }
+                            @if (!string.IsNullOrEmpty(item.KeyboardColor))
+                            {
+                                <span class="spec-badge"><i class="bi bi-palette"></i> @item.KeyboardColor</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">@string.Format("{0:N0}", item.Price) ₽</span>
+                            <button class="btn btn-outline-add select-component"
+                                    data-id="@item.Id"
+                                    data-name="@item.Brand @(item.Name ?? item.Model)"
+                                    data-price="@item.Price"
+                                    data-tdp="0"
+                                    data-image="@imageUrl"
+                                    data-type="Клавиатура">
+                                <i class="bi bi-plus-lg"></i> Выбрать
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -363,114 +439,171 @@
 
 @section Scripts {
     <script>
-        const modalElement = document.getElementById('keyboardModal');
-        const modal = new bootstrap.Modal(modalElement);
-        const contentDiv = document.getElementById('modalContent');
-        const modalTitle = document.getElementById('modalTitle');
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalElement = document.getElementById('keyboardModal');
+            const modal = new bootstrap.Modal(modalElement);
+            const contentDiv = document.getElementById('modalContent');
+            const modalTitle = document.getElementById('modalTitle');
 
-        document.querySelectorAll('.select-component').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const component = {
-                    id: parseInt(this.dataset.id),
-                    name: this.dataset.name,
-                    price: parseFloat(this.dataset.price),
-                    type: this.dataset.type,
-                    tdp: 0,
-                    imageUrl: this.dataset.image
-                };
-                if (typeof addToBuild === 'function') {
-                    addToBuild(component);
+            // Элементы фильтрации
+            const searchQuery = document.getElementById('searchQuery');
+            const filterBrand = document.getElementById('filterBrand');
+            const priceMin = document.getElementById('priceMin');
+            const priceMax = document.getElementById('priceMax');
+            const noResults = document.getElementById('noResults');
+            const keyboardItems = document.querySelectorAll('.keyboard-item');
+
+            console.log('Найдено keyboardItems:', keyboardItems.length); // отладка
+
+            // Функция фильтрации (без совместимости)
+            function updateFilters() {
+                const searchVal = searchQuery.value.trim().toLowerCase();
+                const brandVal = filterBrand.value;
+                const minPrice = parseFloat(priceMin.value) || 0;
+                const maxPrice = parseFloat(priceMax.value) || Infinity;
+
+                let visibleCount = 0;
+
+                keyboardItems.forEach(item => {
+                    const brand = item.dataset.brand;
+                    const model = item.dataset.model.toLowerCase();
+                    const price = parseFloat(item.dataset.price) || 0;
+
+                    const matchesSearch = !searchVal || model.includes(searchVal) || brand.toLowerCase().includes(searchVal);
+                    const matchesBrand = !brandVal || brand === brandVal;
+                    const matchesPrice = price >= minPrice && price <= maxPrice;
+
+                    if (matchesSearch && matchesBrand && matchesPrice) {
+                        item.style.display = '';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                if (visibleCount === 0) {
+                    noResults.classList.remove('d-none');
                 } else {
-                    console.error('addToBuild not defined');
+                    noResults.classList.add('d-none');
                 }
+            }
+
+            // Обработка кнопки "Выбрать"
+            document.querySelectorAll('.select-component').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const component = {
+                        id: parseInt(this.dataset.id),
+                        name: this.dataset.name,
+                        price: parseFloat(this.dataset.price),
+                        type: this.dataset.type,
+                        tdp: 0,
+                        imageUrl: this.dataset.image
+                    };
+                    if (typeof addToBuild === 'function') {
+                        addToBuild(component);
+                    } else {
+                        console.error('addToBuild not defined');
+                    }
+                });
             });
-        });
 
-        document.querySelectorAll('.keyboard-card').forEach(card => {
-            card.addEventListener('click', async function(e) {
-                if (e.target.closest('.select-component')) return;
-                const itemId = this.getAttribute('data-id');
+            // Открытие модального окна
+            document.querySelectorAll('.keyboard-card').forEach(card => {
+                card.addEventListener('click', async function(e) {
+                    if (e.target.closest('.select-component')) return;
+                    const keyboardItem = this.closest('.keyboard-item');
+                    const itemId = keyboardItem.getAttribute('data-id');
 
-                contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
-                modalTitle.textContent = 'Загрузка...';
-                modal.show();
+                    contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
+                    modalTitle.textContent = 'Загрузка...';
+                    modal.show();
 
-                try {
-                    const response = await fetch(`/Keyboards/GetKeyboard/${itemId}`);
-                    if (!response.ok) throw new Error('Ошибка сети');
-                    const item = await response.json();
+                    try {
+                        const response = await fetch(`/Keyboards/GetKeyboard/${itemId}`);
+                        if (!response.ok) throw new Error('Ошибка сети');
+                        const item = await response.json();
 
-                    const title = `${item.brand} ${item.name || item.model}`;
-                    modalTitle.textContent = title;
+                        const title = `${item.brand} ${item.name || item.model}`;
+                        modalTitle.textContent = title;
 
-                    let html = `
-                        <div class="d-flex align-items-center gap-4 mb-4">
-                            <img src="${item.imageUrl || '/images/placeholder.png'}" alt="${title}" style="width: 80px; height: 80px; object-fit: contain;">
-                            <div>
-                                <h4 class="mb-1">${title}</h4>
-                                <div class="price-large">${item.price.toLocaleString()} ₽</div>
-                            </div>
-                        </div>
-                        <hr>
-                    `;
-
-                    const specs = [
-                        { icon: "bi-keyboard", label: "Тип клавиатуры", value: item.type },
-                        { icon: "bi-usb-plug", label: "Интерфейс", value: item.keyboardInterface },
-                        { icon: "bi-bluetooth", label: "Тип подключения", value: item.connectionType },
-                        { icon: "bi-sliders", label: "Стиль", value: item.designStyle },
-                        { icon: "bi-grid-3x3-gap", label: "Раскладка", value: item.layout },
-                        { icon: "bi-palette", label: "Цвет", value: item.keyboardColor },
-                        { icon: "bi-gear", label: "Механическая", value: item.isMechanical != null ? (item.isMechanical ? 'Да' : 'Нет') : null },
-                        { icon: "bi-key", label: "Переключатель", value: item.keySwitch },
-                        { icon: "bi-key-fill", label: "Тип переключателя", value: item.keySwitchType },
-                        { icon: "bi-mouse", label: "Мышь в комплекте", value: item.mouseIncluded },
-                        { icon: "bi-battery", label: "Источник питания", value: item.powerSource },
-                        { icon: "bi-star", label: "Особенности", value: item.features },
-                        { icon: "bi-check2-square", label: "Системные требования", value: item.systemRequirement }
-                    ];
-
-                    specs.forEach(spec => {
-                        if (spec.value) {
-                            html += `
-                                <div class="spec-row">
-                                    <div class="spec-icon"><i class="bi ${spec.icon}"></i></div>
-                                    <span class="spec-label">${spec.label}</span>
-                                    <span class="spec-value">${spec.value}</span>
+                        let html = `
+                            <div class="d-flex align-items-center gap-4 mb-4">
+                                <img src="${item.imageUrl || '/images/placeholder.png'}" alt="${title}" style="width: 80px; height: 80px; object-fit: contain;">
+                                <div>
+                                    <h4 class="mb-1">${title}</h4>
+                                    <div class="price-large">${item.price.toLocaleString()} ₽</div>
                                 </div>
-                            `;
-                        }
-                    });
+                            </div>
+                            <hr>
+                        `;
 
-                    html += `
-                        <div class="text-center mt-4">
-                            <button class="btn btn-select-sm select-from-modal" data-id="${item.id}" data-name="${title}" data-price="${item.price}" data-tdp="0" data-image="${item.imageUrl || '/images/placeholder.png'}" data-type="Клавиатура">
-                                <i class="bi bi-plus-lg"></i> Выбрать
-                            </button>
-                        </div>
-                    `;
+                        const specs = [
+                            { icon: "bi-keyboard", label: "Тип клавиатуры", value: item.type },
+                            { icon: "bi-usb-plug", label: "Интерфейс", value: item.keyboardInterface },
+                            { icon: "bi-bluetooth", label: "Тип подключения", value: item.connectionType },
+                            { icon: "bi-sliders", label: "Стиль", value: item.designStyle },
+                            { icon: "bi-grid-3x3-gap", label: "Раскладка", value: item.layout },
+                            { icon: "bi-palette", label: "Цвет", value: item.keyboardColor },
+                            { icon: "bi-gear", label: "Механическая", value: item.isMechanical != null ? (item.isMechanical ? 'Да' : 'Нет') : null },
+                            { icon: "bi-key", label: "Переключатель", value: item.keySwitch },
+                            { icon: "bi-key-fill", label: "Тип переключателя", value: item.keySwitchType },
+                            { icon: "bi-mouse", label: "Мышь в комплекте", value: item.mouseIncluded },
+                            { icon: "bi-battery", label: "Источник питания", value: item.powerSource },
+                            { icon: "bi-star", label: "Особенности", value: item.features },
+                            { icon: "bi-check2-square", label: "Системные требования", value: item.systemRequirement }
+                        ];
 
-                    contentDiv.innerHTML = html;
+                        specs.forEach(spec => {
+                            if (spec.value) {
+                                html += `
+                                    <div class="spec-row">
+                                        <div class="spec-icon"><i class="bi ${spec.icon}"></i></div>
+                                        <span class="spec-label">${spec.label}</span>
+                                        <span class="spec-value">${spec.value}</span>
+                                    </div>
+                                `;
+                            }
+                        });
 
-                    document.querySelector('.select-from-modal').addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const component = {
-                            id: parseInt(this.dataset.id),
-                            name: this.dataset.name,
-                            price: parseFloat(this.dataset.price),
-                            type: this.dataset.type,
-                            tdp: 0,
-                            imageUrl: this.dataset.image
-                        };
-                        if (typeof addToBuild === 'function') addToBuild(component);
-                        modal.hide();
-                    });
+                        html += `
+                            <div class="text-center mt-4">
+                                <button class="btn btn-select-sm select-from-modal" data-id="${item.id}" data-name="${title}" data-price="${item.price}" data-tdp="0" data-image="${item.imageUrl || '/images/placeholder.png'}" data-type="Клавиатура">
+                                    <i class="bi bi-plus-lg"></i> Выбрать
+                                </button>
+                            </div>
+                        `;
 
-                } catch (error) {
-                    contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
-                }
+                        contentDiv.innerHTML = html;
+
+                        document.querySelector('.select-from-modal').addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const component = {
+                                id: parseInt(this.dataset.id),
+                                name: this.dataset.name,
+                                price: parseFloat(this.dataset.price),
+                                type: this.dataset.type,
+                                tdp: 0,
+                                imageUrl: this.dataset.image
+                            };
+                            if (typeof addToBuild === 'function') addToBuild(component);
+                            modal.hide();
+                        });
+
+                    } catch (error) {
+                        contentDiv.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                    }
+                });
             });
+
+            // События для фильтров
+            if (searchQuery) searchQuery.addEventListener('input', updateFilters);
+            if (filterBrand) filterBrand.addEventListener('change', updateFilters);
+            if (priceMin) priceMin.addEventListener('input', updateFilters);
+            if (priceMax) priceMax.addEventListener('input', updateFilters);
+
+            // Первоначальный запуск
+            updateFilters();
         });
     </script>
 }
