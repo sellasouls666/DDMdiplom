@@ -30,7 +30,7 @@ namespace DDMdiplom.Controllers
                 foreach (var item in build.Items)
                 {
                     decimal price = await CalculateComponentPrice(item.ComponentType, item.ComponentId);
-                    total += item.ComponentType == "Оперативная память" ? price * item.ModuleCount : price;
+                    total += price;   // теперь просто складываем цену компонента (без умножения на ModuleCount)
                 }
                 build.TotalPrice = total;
                 build.ComponentCount = build.Items.Count;
