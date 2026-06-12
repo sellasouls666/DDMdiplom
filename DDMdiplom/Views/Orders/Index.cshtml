@@ -228,7 +228,20 @@
         }
     }
 </style>
-
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 <div class="orders-wrapper">
     <h1 class="page-title">Мои заказы</h1>
 
@@ -271,9 +284,21 @@
                         <div class="total-price">@order.TotalPrice.ToString("N0") ₽</div>
                         <div class="items-count">@order.OrderItems.Sum(i => i.Quantity) позиций</div>
                     </div>
-                    <button class="btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#orderItems-@order.Id" aria-expanded="false">
-                        <i class="bi bi-chevron-down"></i> Состав
-                    </button>
+                    <div class="d-flex gap-2">
+                        @if (order.Status == "Новый" || order.Status == "В обработке")
+                        {
+                            <form asp-action="CancelOrder" method="post" onsubmit="return confirm('Вы уверены, что хотите отменить заказ №@order.Id?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <button type="submit" class="btn-toggle" style="border-color: #dc3545; color: #dc3545;">
+                                    <i class="bi bi-x-circle"></i> Отменить
+                                </button>
+                            </form>
+                        }
+                        <button class="btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#orderItems-@order.Id" aria-expanded="false">
+                            <i class="bi bi-chevron-down"></i> Состав
+                        </button>
+                    </div>
                 </div>
 
                 <div class="collapse collapse-content" id="orderItems-@order.Id">
