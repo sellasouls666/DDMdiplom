@@ -1,30 +1,30 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DDMdiplom.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DDMdiplom.Models
+public class Build
 {
-    [Table("Builds")]
-    public class Build
-    {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        [Required]
-        public string UserId { get; set; } = string.Empty;
-        public ApplicationUser? User { get; set; }
+    // Теперь UserId может быть null — системные сборки
+    public string? UserId { get; set; }
+    public ApplicationUser? User { get; set; }
 
-        [Required, MaxLength(200)]
-        public string Name { get; set; } = string.Empty;
+    [Required, MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<BuildItem> Items { get; set; } = new List<BuildItem>();
+    public ICollection<BuildItem> Items { get; set; } = new List<BuildItem>();
 
-        // Вычисляемые свойства (не хранятся в БД) – вы будете заполнять их при загрузке
-        [NotMapped]
-        public decimal TotalPrice { get; set; }
-        [NotMapped]
-        public int ComponentCount { get; set; }
-    }
+    // Новые поля
+    public bool IsSystem { get; set; } = false;          // по умолчанию 0 (не системная)
+    public string? BuildType { get; set; }               // тип сборки (например, "Gaming", "Office", "Workstation")
+
+    [NotMapped]
+    public decimal TotalPrice { get; set; }
+    [NotMapped]
+    public int ComponentCount { get; set; }
 }
