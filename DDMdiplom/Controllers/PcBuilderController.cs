@@ -44,7 +44,7 @@ namespace DDMdiplom.Controllers
             var build = GetBuildFromSession();
             string buildName = "Моя конфигурация";
 
-            // Проверяем, редактируется ли сейчас какая-то конкретная сборка
+            // Приоритет: если редактируем существующую сборку пользователя – берём имя из БД
             var editingBuildId = HttpContext.Session.GetInt32("EditingBuildId");
             if (editingBuildId.HasValue)
             {
@@ -52,6 +52,16 @@ namespace DDMdiplom.Controllers
                 if (currentBuildDb != null && !string.IsNullOrEmpty(currentBuildDb.Name))
                 {
                     buildName = currentBuildDb.Name;
+                }
+            }
+            else
+            {
+                // Иначе смотрим, есть ли сохранённое имя в сессии (например, от выбора системной сборки)
+                var sessionBuildName = HttpContext.Session.GetString("BuildName");
+                if (!string.IsNullOrEmpty(sessionBuildName))
+                {
+                    buildName = sessionBuildName;
+                    // НЕ удаляем сразу, чтобы имя сохранялось при перезагрузках страницы
                 }
             }
 
@@ -770,6 +780,18 @@ namespace DDMdiplom.Controllers
             }
 
             return Json(new { success = true, components });
+        }
+
+        public class SetBuildNameRequest
+        {
+            public string Name { get; set; } = string.Empty;
+        }
+
+        [HttpPost]
+        public IActionResult SetBuildName([FromBody] SetBuildNameRequest request)
+        {
+            HttpContext.Session.SetString("BuildName", request.Name);
+            return Ok();
         }
     }
 }

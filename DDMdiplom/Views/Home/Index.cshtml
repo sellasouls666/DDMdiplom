@@ -1,13 +1,312 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Главная";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@model IEnumerable<DDMdiplom.Models.Build>
 
-    <!-- Кнопка для перехода на страницу сборки ПК -->
-    <div class="mt-4">
-        <a href="@Url.Action("Index", "PcBuilder")" class="btn btn-dark rounded-pill px-4 py-2">Собрать ПК</a>
+<style>
+    :root {
+        --black: #111;
+        --white: #fff;
+        --gray-50: #fafafa;
+        --gray-100: #f4f4f5;
+        --gray-200: #e4e4e7;
+        --gray-300: #d4d4d8;
+        --gray-500: #71717a;
+        --gray-700: #3f3f46;
+        --gray-900: #18181b;
+        --radius: 20px;
+        --radius-sm: 12px;
+        --transition: 0.25s ease;
+    }
+
+    body {
+        background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .hero {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--white);
+        border-radius: var(--radius);
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        border: 1px solid var(--gray-200);
+    }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--black);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--gray-500);
+            max-width: 600px;
+            margin: 0 auto 2rem auto;
+        }
+
+    .btn-hero {
+        background: var(--black);
+        color: var(--white);
+        border: none;
+        border-radius: 60px;
+        padding: 0.9rem 2.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+        .btn-hero:hover {
+            background: var(--gray-900);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(0,0,0,0.15);
+        }
+
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        margin: 2rem 0 1.5rem;
+        color: var(--black);
+        border-left: 4px solid var(--black);
+        padding-left: 1rem;
+    }
+
+    .builds-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .build-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+        transition: all var(--transition);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .build-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 32px -12px rgba(0,0,0,0.08);
+            border-color: var(--gray-300);
+        }
+
+    .build-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        background: #fefefe;
+    }
+
+    .build-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--black);
+        margin: 0;
+    }
+
+    .build-type {
+        display: inline-block;
+        background: var(--gray-100);
+        padding: 0.2rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--gray-700);
+        margin-top: 0.5rem;
+    }
+
+    .build-content {
+        padding: 1.25rem 1.5rem;
+        flex: 1;
+    }
+
+    .build-price {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--black);
+        margin-bottom: 1rem;
+    }
+
+    .build-specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .spec-chip {
+        background: var(--gray-100);
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    .btn-select {
+        background: transparent;
+        border: 2px solid var(--black);
+        color: var(--black);
+        border-radius: 60px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        width: 100%;
+        justify-content: center;
+    }
+
+        .btn-select:hover {
+            background: var(--black);
+            color: var(--white);
+        }
+
+    .empty-message {
+        text-align: center;
+        padding: 3rem;
+        background: var(--white);
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-500);
+    }
+
+    @@media (max-width: 640px) {
+        .hero h1 {
+            font-size: 2.2rem;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="hero">
+        <h1>Собери свой идеальный ПК</h1>
+        <p>Конструктор с полной проверкой совместимости. Выбирайте комплектующие или используйте готовые решения.</p>
+        <a href="@Url.Action("Index", "PcBuilder")" class="btn-hero">
+            <i class="bi bi-tools"></i> Собрать с нуля
+        </a>
     </div>
+
+    @if (Model != null && Model.Any())
+    {
+        // Группировка по типу сборки (BuildType) с русскими названиями
+        var groups = Model.Where(b => b.IsSystem && !string.IsNullOrEmpty(b.BuildType))
+                          .GroupBy(b => b.BuildType);
+
+        foreach (var group in groups)
+        {
+            var typeName = group.Key switch
+            {
+                "Gaming" => "Игровые сборки",
+                "Business" => "Офисные сборки",
+                "All-In-One" => "Универсальные сборки",
+                "Mini" => "Компактные сборки",
+                _ => group.Key
+            };
+
+            <h2 class="section-title">@typeName</h2>
+            <div class="builds-grid">
+                @foreach (var build in group)
+                {
+                    <div class="build-card">
+                        <div class="build-header">
+                            <h3 class="build-name">@build.Name</h3>
+                            <span class="build-type">@(group.Key)</span>
+                        </div>
+                        <div class="build-content">
+                            <div class="build-price">@build.TotalPrice.ToString("N0") ₽</div>
+                            <div class="build-specs">
+                                @* Здесь можно вывести краткие характеристики, например, из Items *@
+                                @if (build.Items != null && build.Items.Any())
+                                {
+                                    foreach (var item in build.Items.Take(3))
+                                    {
+                                        <span class="spec-chip">@item.ComponentType</span>
+                                    }
+                                    if (build.Items.Count > 3)
+                                    {
+                                        <span class="spec-chip">+ ещё @(build.Items.Count - 3)</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="spec-chip">Нет данных</span>
+                                }
+                            </div>
+                            <button class="btn-select" onclick="selectSystemBuild(@build.Id, '@build.Name.Replace("'", "\\'")')">
+                                <i class="bi bi-pc-display"></i> Выбрать эту сборку
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-message">
+            <i class="bi bi-pc-display" style="font-size: 2rem;"></i>
+            <p class="mt-2 mb-0">Системные сборки пока не добавлены. Загляните позже!</p>
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script>
+        async function selectSystemBuild(buildId, buildName) {
+            try {
+                // Очищаем текущую сессионную сборку
+                await fetch('/PcBuilder/ClearBuild', { method: 'POST' });
+                
+                // Загружаем выбранную системную сборку по ID
+                const response = await fetch(`/PcBuilder/GetBuildById?buildId=${buildId}`);
+                if (!response.ok) throw new Error('Не удалось загрузить сборку');
+                const data = await response.json();
+                
+                // Добавляем каждый компонент из сборки в сессию
+                for (const comp of data.components) {
+                    await fetch('/PcBuilder/AddComponent', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(comp)
+                    });
+                }
+                
+                // Устанавливаем название сборки в сессии
+                await fetch('/PcBuilder/SetBuildName', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: buildName })
+                });
+                
+                // Переход на страницу процессоров (или любую другую категорию)
+                window.location.href = '/Processors';
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при загрузке сборки: ' + err.message);
+            }
+        }
+    </script>
+}
