@@ -36,26 +36,25 @@ namespace DDMdiplom.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Создаём нового пользователя
                 var user = new ApplicationUser
                 {
-                    UserName = model.Email,     // используем email как логин
+                    UserName = model.Email,
                     Email = model.Email,
                     PhoneNumber = model.Phone,
-                    Name = model.FullName,       // дополнительное поле
+                    Name = model.FullName,      
                     CreatedAt = DateTime.UtcNow,
                 };
 
-                var result = await _userManager.CreateAsync(user, model.Password); //создаём нового пользователя
+                var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
-                    await _signInManager.SignInAsync(user, isPersistent: false); //после регистрации остаёмся в аккаунте
+                    await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    var firstError = result.Errors.FirstOrDefault(); //т.к. в моей валидации все ошибки с паролем имеют одинаковый текст, отображаем только первую ошибку
+                    var firstError = result.Errors.FirstOrDefault();
                     if (firstError != null)
                     {
                         ModelState.AddModelError(string.Empty, firstError.Description);
@@ -63,7 +62,6 @@ namespace DDMdiplom.Controllers
                 }
             }
 
-            // Если что-то не так – возвращаем ту же страницу с ошибками
             return View(model);
         }
 

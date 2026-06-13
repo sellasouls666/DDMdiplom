@@ -44,7 +44,6 @@ namespace DDMdiplom.Controllers
             var build = GetBuildFromSession();
             string buildName = "Моя конфигурация";
 
-            // Приоритет: если редактируем существующую сборку пользователя – берём имя из БД
             var editingBuildId = HttpContext.Session.GetInt32("EditingBuildId");
             if (editingBuildId.HasValue)
             {
@@ -56,12 +55,10 @@ namespace DDMdiplom.Controllers
             }
             else
             {
-                // Иначе смотрим, есть ли сохранённое имя в сессии (например, от выбора системной сборки)
                 var sessionBuildName = HttpContext.Session.GetString("BuildName");
                 if (!string.IsNullOrEmpty(sessionBuildName))
                 {
                     buildName = sessionBuildName;
-                    // НЕ удаляем сразу, чтобы имя сохранялось при перезагрузках страницы
                 }
             }
 
@@ -79,7 +76,7 @@ namespace DDMdiplom.Controllers
                 if (motherboard != null)
                 {
                     component.SataPorts = ParseSataPortCount(motherboard.SataPorts);
-                    component.M2Slots = ParseM2SlotCount(motherboard.M2Slots);   // ← парсим из M2Slots!
+                    component.M2Slots = ParseM2SlotCount(motherboard.M2Slots);
                     component.MemorySlots = motherboard.MemorySlots;
                     component.MbMemoryStandard = motherboard.MemoryStandard;
                     component.CpuSocketType = motherboard.CpuSocketType;
@@ -87,13 +84,12 @@ namespace DDMdiplom.Controllers
                 }
             }
 
-            // Специальная обработка для оперативной памяти
             if (component.Type == "Оперативная память")
             {
                 var memory = await _context.Memories.FindAsync(component.Id);
                 if (memory != null)
                 {
-                    component.Speed = memory.Speed;  // сохраняем строку типа "DDR5 6400"
+                    component.Speed = memory.Speed;
                 }
                 int maxModules = 4;
                 var motherboardComponent = build.FirstOrDefault(c => c.Type == "Материнская плата");
@@ -103,7 +99,6 @@ namespace DDMdiplom.Controllers
                 }
                 else if (motherboardComponent != null)
                 {
-                    // fallback – запрос в БД (если поле не сохранено)
                     var motherboard = await _context.Motherboards.FindAsync(motherboardComponent.Id);
                     if (motherboard != null && motherboard.MemorySlots.HasValue)
                         maxModules = motherboard.MemorySlots.Value;
@@ -125,15 +120,12 @@ namespace DDMdiplom.Controllers
                     build.Add(component);
                 }
             }
-            // Специальная обработка для накопителей
             else if (component.Type == "Накопитель")
             {
-                // Проверяем, выбрана ли материнская плата
                 var motherboardComponent = build.FirstOrDefault(c => c.Type == "Материнская плата");
 
                 if (motherboardComponent == null)
                 {
-                    // Без материнки: общий лимит накопителей = 2 (любые)
                     int totalDrives = build.Count(c => c.Type == "Накопитель");
                     if (totalDrives >= 2)
                     {
@@ -144,16 +136,13 @@ namespace DDMdiplom.Controllers
                 }
                 else
                 {
-                    // С материнской платой: разделяем SATA и M.2
-                    int maxSata = motherboardComponent.SataPorts ?? 2; // значение по умолчанию
+                    int maxSata = motherboardComponent.SataPorts ?? 2;
                     int maxM2 = motherboardComponent.M2Slots ?? 2;
 
-                    // Подсчитываем текущее количество накопителей каждого интерфейса
                     int currentSata = build.Count(c => c.Type == "Накопитель" &&
-                        (c.StorageInterface == "SATA" || string.IsNullOrEmpty(c.StorageInterface))); // HDD без указания интерфейса считаем SATA
+                        (c.StorageInterface == "SATA" || string.IsNullOrEmpty(c.StorageInterface)));
                     int currentM2 = build.Count(c => c.Type == "Накопитель" && c.StorageInterface == "M.2");
 
-                    // Определяем интерфейс нового компонента (если не задан – считаем SATA для HDD)
                     string newInterface = component.StorageInterface ?? "SATA";
 
                     if (newInterface == "SATA")
@@ -177,7 +166,6 @@ namespace DDMdiplom.Controllers
                     }
                 }
             }
-            // Видеокарта
             else if (component.Type == "Видеокарта")
             {
                 var gpu = await _context.GraphicsCards.FindAsync(component.Id);
@@ -186,7 +174,6 @@ namespace DDMdiplom.Controllers
                 if (existing != null) build.Remove(existing);
                 build.Add(component);
             }
-            // Блок питания
             else if (component.Type == "Блок питания")
             {
                 var psu = await _context.PowerSupplies.FindAsync(component.Id);
@@ -206,7 +193,7 @@ namespace DDMdiplom.Controllers
                 }
                 build.Add(component);
             }
-            else // все остальные компоненты (в том числе кулеры)
+            else
             {
                 if (component.Type == "Процессор")
                 {
@@ -229,10 +216,8 @@ namespace DDMdiplom.Controllers
                     }
                 }
 
-                // если это система охлаждения – сохраняем совместимость
                 if (component.Type == "Система охлаждения")
                 {
-                    // пробуем найти воздушный кулер
                     var airCooler = await _context.CpuCoolers.FindAsync(component.Id);
                     if (airCooler != null)
                     {
@@ -240,7 +225,6 @@ namespace DDMdiplom.Controllers
                     }
                     else
                     {
-                        // ищем водяное охлаждение
                         var waterCooler = await _context.WaterCoolers.FindAsync(component.Id);
                         if (waterCooler != null)
                         {

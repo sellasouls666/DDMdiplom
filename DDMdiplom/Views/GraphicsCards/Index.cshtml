@@ -620,7 +620,6 @@
             });
         });
 
-        // ========== ЛОГИКА ФИЛЬТРАЦИИ И СОВМЕСТИМОСТИ ==========
         async function updateFilters() {
             let build = [];
 
@@ -636,7 +635,6 @@
                 }
             }
 
-            // Определяем максимальную длину GPU, которую может вместить корпус
             const caseComponent = build.find(c => c.type === "Корпус");
             const maxGpuLengthAllowed = caseComponent?.maxGpuLength;
 
@@ -653,13 +651,11 @@
                 const price = parseFloat(item.dataset.price) || 0;
                 const gpuLength = parseInt(item.dataset.gpuLength) || 0;
 
-                // Обычные фильтры
                 const matchesSearch = !searchVal || model.includes(searchVal) || brand.toLowerCase().includes(searchVal);
                 const matchesBrand = !brandVal || brand === brandVal;
                 const matchesPrice = price >= minPrice && price <= maxPrice;
                 let matchesFilter = matchesSearch && matchesBrand && matchesPrice;
 
-                // Совместимость: видеокарта должна быть не длиннее максимально допустимой длины в корпусе
                 let isCompatible = true;
                 if (compatibilitySwitch.checked && maxGpuLengthAllowed && gpuLength > 0) {
                     if (gpuLength > maxGpuLengthAllowed) {

@@ -40,7 +40,6 @@ namespace DDMdiplom.Controllers
             return View(model);
         }
 
-        // POST: Account/Settings
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Settings(ProfileViewModel model)
@@ -64,7 +63,6 @@ namespace DDMdiplom.Controllers
             return RedirectToAction("Settings");
         }
 
-        // POST: Account/UploadAvatar
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadAvatar(IFormFile avatar)
@@ -76,7 +74,6 @@ namespace DDMdiplom.Controllers
             var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "avatars");
             Directory.CreateDirectory(uploadsDir);
 
-            // Удаляем старый файл
             if (!string.IsNullOrEmpty(user.AvatarUrl))
             {
                 var oldPath = Path.Combine(_env.WebRootPath, user.AvatarUrl.TrimStart('/'));
@@ -96,7 +93,6 @@ namespace DDMdiplom.Controllers
             return RedirectToAction("Settings");
         }
 
-        // POST: Account/ChangePassword
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
@@ -124,7 +120,6 @@ namespace DDMdiplom.Controllers
             return RedirectToAction("Settings");
         }
 
-        // POST: Account/DeleteAvatar
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAvatar()
