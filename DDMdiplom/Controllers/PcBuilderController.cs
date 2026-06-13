@@ -78,21 +78,8 @@ namespace DDMdiplom.Controllers
                 var motherboard = await _context.Motherboards.FindAsync(component.Id);
                 if (motherboard != null)
                 {
-                    // Количество SATA-портов
-                    if (!string.IsNullOrEmpty(motherboard.SataPorts))
-                    {
-                        var matchSata = Regex.Match(motherboard.SataPorts, @"(\d+)\s*x\s*SATA");
-                        if (matchSata.Success)
-                            component.SataPorts = int.Parse(matchSata.Groups[1].Value);
-                    }
-                    // Количество слотов M.2
-                    if (!string.IsNullOrEmpty(motherboard.SataPorts))
-                    {
-                        var matchM2 = Regex.Match(motherboard.SataPorts, @"(\d+)\s*x\s*M\.2", RegexOptions.IgnoreCase);
-                        if (matchM2.Success)
-                            component.M2Slots = int.Parse(matchM2.Groups[1].Value);
-                    }
-                    // Количество слотов памяти
+                    component.SataPorts = ParseSataPortCount(motherboard.SataPorts);
+                    component.M2Slots = ParseM2SlotCount(motherboard.M2Slots);   // ← парсим из M2Slots!
                     component.MemorySlots = motherboard.MemorySlots;
                     component.MbMemoryStandard = motherboard.MemoryStandard;
                     component.CpuSocketType = motherboard.CpuSocketType;
@@ -418,18 +405,9 @@ namespace DDMdiplom.Controllers
                             comp.MemorySlots = mb.MemorySlots;
                             comp.MbMemoryStandard = mb.MemoryStandard;
                             comp.MbFormFactor = mb.FormFactor;
-                            // SATA порты
-                            if (!string.IsNullOrEmpty(mb.SataPorts))
-                            {
-                                var matchSata = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*SATA");
-                                if (matchSata.Success) comp.SataPorts = int.Parse(matchSata.Groups[1].Value);
-                            }
-                            // M.2 слоты
-                            if (!string.IsNullOrEmpty(mb.SataPorts))
-                            {
-                                var matchM2 = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*M\.2", RegexOptions.IgnoreCase);
-                                if (matchM2.Success) comp.M2Slots = int.Parse(matchM2.Groups[1].Value);
-                            }
+                            // Правильно парсим SATA и M.2
+                            comp.SataPorts = ParseSataPortCount(mb.SataPorts);
+                            comp.M2Slots = ParseM2SlotCount(mb.M2Slots);
                         }
                         break;
 
@@ -627,16 +605,9 @@ namespace DDMdiplom.Controllers
                             comp.MemorySlots = mb.MemorySlots;
                             comp.MbMemoryStandard = mb.MemoryStandard;
                             comp.MbFormFactor = mb.FormFactor;
-                            if (!string.IsNullOrEmpty(mb.SataPorts))
-                            {
-                                var matchSata = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*SATA");
-                                if (matchSata.Success) comp.SataPorts = int.Parse(matchSata.Groups[1].Value);
-                            }
-                            if (!string.IsNullOrEmpty(mb.SataPorts))
-                            {
-                                var matchM2 = Regex.Match(mb.SataPorts, @"(\d+)\s*x\s*M\.2", RegexOptions.IgnoreCase);
-                                if (matchM2.Success) comp.M2Slots = int.Parse(matchM2.Groups[1].Value);
-                            }
+                            // Правильно парсим SATA и M.2
+                            comp.SataPorts = ParseSataPortCount(mb.SataPorts);
+                            comp.M2Slots = ParseM2SlotCount(mb.M2Slots);
                         }
                         break;
 
@@ -792,6 +763,23 @@ namespace DDMdiplom.Controllers
         {
             HttpContext.Session.SetString("BuildName", request.Name);
             return Ok();
+        }
+
+        private int ParseSataPortCount(string sataPortsString)
+        {
+            if (string.IsNullOrEmpty(sataPortsString)) return 0;
+            var match = Regex.Match(sataPortsString, @"(\d+)\s*x\s*SATA", RegexOptions.IgnoreCase);
+            return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+        }
+
+        private int ParseM2SlotCount(string m2SlotsString)
+        {
+            if (string.IsNullOrEmpty(m2SlotsString)) return 0;
+            // Ищем "цифра x M.2"
+            var match = Regex.Match(m2SlotsString, @"(\d+)\s*x\s*M\.2", RegexOptions.IgnoreCase);
+            if (match.Success) return int.Parse(match.Groups[1].Value);
+            // Если нет, считаем количество упоминаний "M.2"
+            return Regex.Matches(m2SlotsString, @"M\.2", RegexOptions.IgnoreCase).Count;
         }
     }
 }

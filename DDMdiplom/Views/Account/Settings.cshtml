@@ -1,7 +1,7 @@
 ﻿@using DDMdiplom.ViewModels
 @model ProfileViewModel
 @{
-    ViewData["Title"] = "Личный кабинет";
+    ViewData["Title"] = "Настройки";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var avatarUrl = ViewBag.AvatarUrl as string ?? "/images/default-avatar.png";
 }
@@ -149,7 +149,7 @@
 
 <div class="profile-wrapper">
     <div class="profile-card">
-        <h2 class="mb-4">Личный кабинет</h2>
+        <h2 class="mb-4">Настройки</h2>
 
         @if (TempData["SuccessMessage"] != null)
         {
