@@ -273,7 +273,6 @@ namespace DDMdiplom.Controllers
 
             int? buildId = request.BuildId;
 
-            // Если buildId не передан в запросе, пробуем взять из сессии (для редактирования)
             if (!buildId.HasValue)
             {
                 var editingBuildId = HttpContext.Session.GetInt32("EditingBuildId");
@@ -288,7 +287,6 @@ namespace DDMdiplom.Controllers
                     .FirstOrDefaultAsync(b => b.Id == buildId && b.UserId == userId);
                 if (build == null)
                     return Json(new { success = false, error = "Сборка не найдена" });
-                // Удаляем старые элементы
                 _context.BuildItems.RemoveRange(build.Items);
                 build.Items.Clear();
                 build.UpdatedAt = DateTime.UtcNow;
@@ -320,7 +318,6 @@ namespace DDMdiplom.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Очищаем EditingBuildId в сессии после сохранения
             HttpContext.Session.Remove("EditingBuildId");
 
             return Json(new { success = true, buildId = build.Id });
@@ -347,7 +344,6 @@ namespace DDMdiplom.Controllers
             if (build == null)
                 return NotFound();
 
-            // Очищаем текущую сессию
             HttpContext.Session.Remove(BuildSessionKey);
 
             var components = new List<BuildComponent>();
@@ -389,7 +385,6 @@ namespace DDMdiplom.Controllers
                             comp.MemorySlots = mb.MemorySlots;
                             comp.MbMemoryStandard = mb.MemoryStandard;
                             comp.MbFormFactor = mb.FormFactor;
-                            // Правильно парсим SATA и M.2
                             comp.SataPorts = ParseSataPortCount(mb.SataPorts);
                             comp.M2Slots = ParseM2SlotCount(mb.M2Slots);
                         }

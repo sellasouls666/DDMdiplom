@@ -21,8 +21,8 @@ namespace DDMdiplom.Controllers
 
             var items = await _context.CartItems
                 .Where(ci => ci.UserId == userId)
-                .Include(ci => ci.Build)        // подгружаем сборку
-                .ThenInclude(b => b.Items)      // и её элементы
+                .Include(ci => ci.Build)
+                .ThenInclude(b => b.Items)
                 .OrderByDescending(ci => ci.AddedAt)
                 .ToListAsync();
 
@@ -142,7 +142,6 @@ namespace DDMdiplom.Controllers
             if (!request.BuildId.HasValue)
                 return BadRequest("Не указана сборка");
 
-            // Проверяем, что сборка принадлежит пользователю
             var build = await _context.Builds
                 .FirstOrDefaultAsync(b => b.Id == request.BuildId && b.UserId == userId);
             if (build == null) return NotFound("Сборка не найдена");
@@ -205,7 +204,7 @@ namespace DDMdiplom.Controllers
                 if (item.Quantity > 1)
                     item.Quantity--;
                 else
-                    _context.CartItems.Remove(item);   // если 1 и нажали "-" – удаляем совсем
+                    _context.CartItems.Remove(item);
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));

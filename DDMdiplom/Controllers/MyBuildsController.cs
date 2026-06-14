@@ -33,7 +33,6 @@ namespace DDMdiplom.Controllers
 
             foreach (var build in builds)
             {
-                // Порядок важности компонентов для превью
                 var priorityOrder = new List<string> {
                     "Процессор", "Материнская плата", "Видеокарта", "Оперативная память",
                     "Накопитель", "Блок питания", "Корпус", "Система охлаждения",
@@ -41,7 +40,6 @@ namespace DDMdiplom.Controllers
                     "Клавиатура", "Мышь"
                 };
 
-                // Сортируем элементы сборки по приоритету
                 var sortedItems = build.Items
                     .OrderBy(item => {
                         int idx = priorityOrder.IndexOf(item.ComponentType);
@@ -62,7 +60,6 @@ namespace DDMdiplom.Controllers
                     }
                 }
 
-                // Берём первые 3 для отображения в карточке (как превью)
                 var previewsForCard = allPreviews.Take(3).ToList();
 
                 model.Add(new BuildSummaryViewModel
@@ -79,7 +76,6 @@ namespace DDMdiplom.Controllers
             return View(model);
         }
 
-        // POST: /MyBuilds/Delete
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

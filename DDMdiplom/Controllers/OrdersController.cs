@@ -388,7 +388,6 @@ namespace DDMdiplom.Controllers
             return View();
         }
 
-        // GET: /Orders
         [HttpGet]
         public async Task<IActionResult> Index()
         {
