@@ -145,6 +145,20 @@
         color: var(--gray-400);
         font-size: 4rem;
     }
+
+    /* Поля с ошибками выделяются красным */
+    .input-error {
+        border-color: #dc3545 !important;
+        background-color: #fff5f5;
+    }
+
+    /* Сообщения об ошибках красным */
+    .error-message {
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
 </style>
 
 <div class="profile-wrapper">
@@ -190,22 +204,22 @@
         </div>
 
         <!-- Основные данные -->
-        <form asp-action="Settings" method="post" novalidate>
+        <form asp-action="Settings" method="post" id="settingsForm" novalidate>
             @Html.AntiForgeryToken()
             <div class="mb-3">
                 <label asp-for="FullName" class="form-label">Имя</label>
                 <input asp-for="FullName" class="form-control" placeholder="Ваше имя" />
-                <span asp-validation-for="FullName" class="text-danger small"></span>
+                <span asp-validation-for="FullName" class="error-message"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="Phone" class="form-label">Телефон</label>
-                <input asp-for="Phone" class="form-control" placeholder="+7 999 123-45-67" />
-                <span asp-validation-for="Phone" class="text-danger small"></span>
+                <input asp-for="Phone" class="form-control" placeholder="8 999 123-45-67" maxlength="20" />
+                <span asp-validation-for="Phone" class="error-message"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="Address" class="form-label">Адрес доставки</label>
                 <textarea asp-for="Address" class="form-control" rows="2" placeholder="Город, улица, дом, квартира"></textarea>
-                <span asp-validation-for="Address" class="text-danger small"></span>
+                <span asp-validation-for="Address" class="error-message"></span>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mt-4">
@@ -224,24 +238,31 @@
 <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <form asp-action="ChangePassword" method="post">
+            <form asp-action="ChangePassword" method="post" id="changePasswordForm" novalidate>
                 @Html.AntiForgeryToken()
                 <div class="modal-header">
                     <h5 class="modal-title">Сменить пароль</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Текущий пароль -->
                     <div class="mb-3">
                         <label class="form-label">Текущий пароль</label>
-                        <input name="CurrentPassword" type="password" class="form-control" placeholder="Введите текущий пароль" required />
+                        <input name="CurrentPassword" type="password" class="form-control" placeholder="Введите текущий пароль" />
+                        <span class="error-message" data-error="CurrentPassword"></span>
                     </div>
+                    <!-- Новый пароль -->
                     <div class="mb-3">
                         <label class="form-label">Новый пароль</label>
-                        <input name="NewPassword" type="password" class="form-control" placeholder="Не менее 6 символов" required minlength="6" />
+                        <input name="NewPassword" id="NewPassword" type="password" class="form-control"
+                               placeholder="Минимум 8 символов, заглавные, строчные, цифры, спецсимволы" />
+                        <span class="error-message" data-error="NewPassword"></span>
                     </div>
+                    <!-- Подтверждение пароля -->
                     <div class="mb-3">
                         <label class="form-label">Повторите новый пароль</label>
-                        <input name="ConfirmPassword" type="password" class="form-control" placeholder="Повторите пароль" required />
+                        <input name="ConfirmPassword" type="password" class="form-control" placeholder="Повторите пароль" />
+                        <span class="error-message" data-error="ConfirmPassword"></span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -254,13 +275,114 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
     <script>
-        // Автосабмит формы при выборе файла аватарки
+        // Автосабмит при выборе аватарки
         document.getElementById('fileInput').addEventListener('change', function () {
             if (this.files.length > 0) {
                 document.getElementById('uploadForm').submit();
             }
+        });
+    </script>
+
+    <!-- КАСТОМНАЯ ВАЛИДАЦИЯ НА ЧИСТОМ JAVASCRIPT -->
+    <script>
+        // Вспомогательные функции
+        function clearErrors(form) {
+            form.querySelectorAll('.error-message').forEach(span => span.textContent = '');
+            form.querySelectorAll('.input-error').forEach(input => input.classList.remove('input-error'));
+        }
+
+        function showError(input, message, form) {
+            let errorSpan;
+            const name = input.getAttribute('name');
+            if (name) {
+                errorSpan = form.querySelector(`.error-message[data-error="${name}"]`) ||
+                            form.querySelector(`span[data-valmsg-for="${name}"]`) ||
+                            input.closest('.mb-3')?.querySelector('.error-message');
+            }
+            if (!errorSpan) {
+                errorSpan = document.createElement('span');
+                errorSpan.className = 'error-message';
+                input.parentNode.appendChild(errorSpan);
+            }
+            errorSpan.textContent = message;
+            input.classList.add('input-error');
+        }
+
+        // Проверка телефона: 11 цифр, начинается с 8
+        function validatePhone(value) {
+            const cleaned = value.replace(/[\s\-\(\)\+]/g, '');
+            return /^8\d{10}$/.test(cleaned);
+        }
+
+        // Проверка пароля: минимум 8 символов, заглавная, строчная, цифра, спецсимвол
+        function validatePassword(password) {
+            // Символ at заменён на \x40, чтобы Razor не пытался обработать его как C#
+            return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\d\s]|.*[_!\x40#$%^&*])/.test(password) && password.length >= 8;
+        }
+
+        // Валидация основной формы настроек
+        document.getElementById('settingsForm').addEventListener('submit', function(e) {
+            clearErrors(this);
+            let valid = true;
+
+            const fullName = this.querySelector('[name="FullName"]');
+            if (!fullName.value.trim()) {
+                showError(fullName, 'Введите имя', this);
+                valid = false;
+            }
+
+            const phone = this.querySelector('[name="Phone"]');
+            if (!validatePhone(phone.value)) {
+                showError(phone, 'Введите российский номер (11 цифр, начиная с 8)', this);
+                valid = false;
+            }
+
+            if (!valid) {
+                e.preventDefault();
+            }
+        });
+
+        // Валидация формы смены пароля в модальном окне
+        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+            clearErrors(this);
+            let valid = true;
+
+            const currentPassword = this.querySelector('[name="CurrentPassword"]');
+            const newPassword = this.querySelector('[name="NewPassword"]');
+            const confirmPassword = this.querySelector('[name="ConfirmPassword"]');
+
+            if (!currentPassword.value) {
+                showError(currentPassword, 'Введите текущий пароль', this);
+                valid = false;
+            }
+
+            if (!newPassword.value) {
+                showError(newPassword, 'Введите новый пароль', this);
+                valid = false;
+            } else if (!validatePassword(newPassword.value)) {
+                showError(newPassword, 'Пароль должен быть мин. 8 символов, содержать заглавные, строчные буквы, цифры и спецсимволы', this);
+                valid = false;
+            }
+
+            if (!confirmPassword.value) {
+                showError(confirmPassword, 'Подтвердите пароль', this);
+                valid = false;
+            } else if (newPassword.value !== confirmPassword.value) {
+                showError(confirmPassword, 'Пароли не совпадают', this);
+                valid = false;
+            }
+
+            if (!valid) {
+                e.preventDefault();
+            }
+        });
+
+        // Сброс формы и ошибок при открытии модального окна
+        $('#changePasswordModal').on('show.bs.modal', function () {
+            const form = document.getElementById('changePasswordForm');
+            form.reset();
+            clearErrors(form);
         });
     </script>
 }
