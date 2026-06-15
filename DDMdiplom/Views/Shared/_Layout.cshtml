@@ -236,6 +236,15 @@
                     margin-top: 0.5rem;
                 }
             }
+
+            /* Стили для мини-аватара в шапке */
+            .header-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 1px solid var(--gray-200);
+            }
     </style>
 
     @await RenderSectionAsync("Styles", required: false)
@@ -284,7 +293,14 @@
 
                             <div class="dropdown">
                                 <button class="user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person"></i>
+                                    @if (!string.IsNullOrEmpty(user?.AvatarUrl))
+                                    {
+                                        <img src="@user.AvatarUrl" alt="Аватар" class="header-avatar" />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-person"></i>
+                                    }
                                     <span>@displayName <i class="bi bi-chevron-down"></i></span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
