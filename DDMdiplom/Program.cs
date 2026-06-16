@@ -3,6 +3,7 @@ using DDMdiplom.Models;
 using DDMdiplom.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +70,15 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseSession();
 app.UseAuthorization();
+
+// Обслуживание статических файлов из папки uploads/avatars
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(app.Environment.WebRootPath, "uploads", "avatars")
+    ),
+    RequestPath = "/uploads/avatars"
+});
 
 app.MapStaticAssets();
 app.MapControllerRoute(
